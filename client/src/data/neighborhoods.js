@@ -18,6 +18,12 @@ export const NEIGHBORHOODS = [
       'Short-term rentals common — neighbor turnover is high',
       'Very bike-friendly; SLO Creek Trail is nearby',
     ],
+    recentNews: [
+      { category: 'Development', headline: 'Parking structure on Palm St undergoing renovation', date: 'Apr 2025' },
+      { category: 'Events', headline: 'Thursday Farmers Market season kicks off — Higuera closed weekly', date: 'Apr 2025' },
+      { category: 'Housing', headline: 'SLO City Council approves 48-unit mixed-use project near train station', date: 'Mar 2025' },
+      { category: 'Transport', headline: 'SLO Transit adds late-night route connecting downtown to LOVR', date: 'Feb 2025' },
+    ],
     polygon: [
       [-120.675, 35.295],
       [-120.645, 35.295],
@@ -43,6 +49,12 @@ export const NEIGHBORHOODS = [
       'Cal Poly shuttle provides free rides to campus',
       'Grocery options limited on foot — a bike or car helps significantly',
       'Noise ordinance enforced but inconsistent on game days',
+    ],
+    recentNews: [
+      { category: 'Housing', headline: 'Cal Poly enrollment cap raises off-campus rental demand', date: 'Apr 2025' },
+      { category: 'Transport', headline: 'New bike lanes added along California Blvd toward campus', date: 'Mar 2025' },
+      { category: 'Development', headline: 'Student-targeted apartment complex breaks ground on Foothill', date: 'Feb 2025' },
+      { category: 'Events', headline: 'Cal Poly Poly Royal Rodeo weekend — expect traffic and noise', date: 'Apr 2025' },
     ],
     polygon: [
       [-120.680, 35.315],
@@ -70,6 +82,12 @@ export const NEIGHBORHOODS = [
       'Very dark skies at night — great for stargazing',
       'Commute to downtown SLO is ~15 min by car',
     ],
+    recentNews: [
+      { category: 'Agriculture', headline: 'Edna Valley AVA sees record Pinot Noir harvest this season', date: 'Nov 2024' },
+      { category: 'Events', headline: 'SLO Wine Country Harvest Celebration returns to Edna Valley', date: 'Oct 2024' },
+      { category: 'Development', headline: 'County approves low-density residential lots near Orcutt Rd', date: 'Jan 2025' },
+      { category: 'Roads', headline: 'Orcutt Rd repaving project completed — smoother commute to SLO', date: 'Mar 2025' },
+    ],
     polygon: [
       [-120.620, 35.245],
       [-120.540, 35.245],
@@ -95,6 +113,12 @@ export const NEIGHBORHOODS = [
       'Small-town feel with a tight-knit community',
       'Limited dining options locally; Morro Bay is 10 min away',
       'Septic systems common — factor in maintenance responsibilities',
+    ],
+    recentNews: [
+      { category: 'Environment', headline: 'Morro Bay Estuary restoration project receives state funding', date: 'Mar 2025' },
+      { category: 'Development', headline: 'Los Osos Community Services District water system upgrade approved', date: 'Feb 2025' },
+      { category: 'Transport', headline: 'New bike path connects Los Osos to Montana de Oro trailhead', date: 'Jan 2025' },
+      { category: 'Housing', headline: 'Short-term rental enforcement tightens in unincorporated areas', date: 'Apr 2025' },
     ],
     polygon: [
       [-120.870, 35.335],
@@ -122,6 +146,12 @@ export const NEIGHBORHOODS = [
       'Colder and foggier than inland SLO — bring layers',
       'Vacation rental competition pushes long-term rents higher',
     ],
+    recentNews: [
+      { category: 'Development', headline: 'Embarcadero seawall repair project entering final phase', date: 'Apr 2025' },
+      { category: 'Environment', headline: 'Morro Bay otter population hits 10-year high — kayak tours sold out', date: 'Mar 2025' },
+      { category: 'Housing', headline: 'Vacation rental conversions tighten long-term supply in 93442', date: 'Feb 2025' },
+      { category: 'Events', headline: 'Morro Bay Harbor Festival returns May 2025 — expect crowds', date: 'Apr 2025' },
+    ],
     polygon: [
       [-120.880, 35.390],
       [-120.825, 35.390],
@@ -147,6 +177,12 @@ export const NEIGHBORHOODS = [
       'Hot and dry summers; significantly warmer than coastal towns',
       'Downtown revitalization is underway — new shops and dining',
       '30-minute commute to SLO via US-101 or Amtrak Pacific Surfliner',
+    ],
+    recentNews: [
+      { category: 'Development', headline: 'Downtown Atascadero revitalization — 3 new restaurants opening on El Camino', date: 'Apr 2025' },
+      { category: 'Transport', headline: 'Caltrans 101 improvement project brings lane additions near Atascadero exits', date: 'Mar 2025' },
+      { category: 'Events', headline: 'Atascadero Lake Park hosts inaugural summer concert series', date: 'May 2025' },
+      { category: 'Housing', headline: 'Rental vacancy rate drops to 3.2% — tightest market in 5 years', date: 'Feb 2025' },
     ],
     polygon: [
       [-120.720, 35.520],
@@ -174,6 +210,12 @@ export const NEIGHBORHOODS = [
       'Pismo Beach and Oceano Dunes just 10 minutes south',
       'Produce stands and farm-fresh food abundant in the area',
     ],
+    recentNews: [
+      { category: 'Development', headline: 'Historic Village district adds weekend night market starting June', date: 'May 2025' },
+      { category: 'Roads', headline: 'Grand Ave and Courtland St intersection signals upgraded', date: 'Mar 2025' },
+      { category: 'Environment', headline: 'Lopez Lake water levels at 85% — recreation season looks strong', date: 'Apr 2025' },
+      { category: 'Housing', headline: 'Arroyo Grande sees 6% rent increase YoY, driven by remote worker migration', date: 'Jan 2025' },
+    ],
     polygon: [
       [-120.630, 35.145],
       [-120.555, 35.145],
@@ -199,6 +241,12 @@ export const NEIGHBORHOODS = [
       'Oceano Dunes SVRA — one of California\'s only beach driving areas nearby',
       'Higher rents partly driven by vacation rental demand',
       'Off-season (Jan–Mar) offers the best local experience',
+    ],
+    recentNews: [
+      { category: 'Environment', headline: 'Beach erosion at Pismo worsens — boardwalk access temporarily limited', date: 'Mar 2025' },
+      { category: 'Events', headline: 'Pismo Beach Clam Festival returns October — tourism spike expected', date: 'May 2025' },
+      { category: 'Transport', headline: 'HWY 1 coastal closure at Ragged Point lifted — full access restored', date: 'Apr 2025' },
+      { category: 'Housing', headline: 'Vacation rental income peaks in 93449 — long-term supply shrinks', date: 'Feb 2025' },
     ],
     polygon: [
       [-120.670, 35.170],

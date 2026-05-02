@@ -52,7 +52,7 @@ export default function MapView({
   monthlyIncome, roommates, maxRent, vibe,
   onNeighborhoodSelect, selectedId,
   listings, shortlist, onListingSelect,
-  selectedListing,
+  selectedListing, rightPanelOpen,
 }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
@@ -73,6 +73,13 @@ export default function MapView({
   const [routeError, setRouteError] = useState(null);
   const [stepsOpen, setStepsOpen] = useState(false);
   const [travelMode, setTravelMode] = useState('driving');
+
+  // Resize map when right panel opens/closes (after CSS transition)
+  useEffect(() => {
+    const t = setTimeout(() => { if (map.current) map.current.resize(); }, 320);
+    return () => clearTimeout(t);
+  }, [rightPanelOpen]);
+
 
   // ── Map init ─────────────────────────────────────────
   useEffect(() => {
