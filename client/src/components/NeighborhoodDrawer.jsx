@@ -10,14 +10,14 @@ const TILES = [
 const NOISE_CLASS  = { quiet: 'badge-green', moderate: 'badge-amber', loud: 'badge-red' };
 const PARK_CLASS   = { easy: 'badge-green',  moderate: 'badge-amber', hard: 'badge-red' };
 
-export default function NeighborhoodDrawer({ open, neighborhood, onClose, onTileClick, activeTile, rightPanelOpen }) {
+export default function NeighborhoodDrawer({ open, neighborhood, onClose, onTileClick, activeTile }) {
   if (!open || !neighborhood) return null;
 
   const noiseCls   = NOISE_CLASS[neighborhood.noiseLevel]       || 'badge-muted';
   const parkingCls = PARK_CLASS[neighborhood.parkingDifficulty] || 'badge-muted';
 
   return (
-    <div className={`nbr-bar ${rightPanelOpen ? 'panel-open' : ''}`}>
+    <div className="nbr-bar">
       {/* Name + quick stats */}
       <div className="nbr-header">
         <div className="nbr-info">
