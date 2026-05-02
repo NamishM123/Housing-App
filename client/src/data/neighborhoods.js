@@ -230,6 +230,17 @@ export function getAffordabilityLabel(rent, monthlyIncome, maxRent = null) {
   return 'Out of Range';
 }
 
+// Dark, atmospheric colors for the map heatmap glow — satellite-friendly
+export function getHeatmapColor(rent, monthlyIncome, maxRent = null) {
+  if (!monthlyIncome || monthlyIncome <= 0) return '#1e293b'; // dark slate
+  if (maxRent && rent > maxRent) return '#881337'; // deep crimson
+  const pct = rent / monthlyIncome;
+  if (pct < 0.28) return '#1d4ed8'; // deep cobalt — comfortable
+  if (pct < 0.35) return '#5b21b6'; // deep violet — manageable
+  if (pct < 0.45) return '#b45309'; // dark amber — tight
+  return '#881337'; // deep crimson — out of range
+}
+
 export function matchesVibe(neighborhood, vibe) {
   if (!vibe || vibe === 'any') return true;
   return (neighborhood.vibes || []).includes(vibe);

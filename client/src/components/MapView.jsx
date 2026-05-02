@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { NEIGHBORHOODS, getAffordabilityColor, getAffordabilityLabel, matchesVibe } from '../data/neighborhoods';
+import { NEIGHBORHOODS, getAffordabilityColor, getAffordabilityLabel, getHeatmapColor, matchesVibe } from '../data/neighborhoods';
 
 function buildMarkerEl(listing, isShortlisted) {
   const el = document.createElement('div');
@@ -61,6 +61,7 @@ export default function MapView({
   const userMarkerRef = useRef(null);
   const destMarkerRef = useRef(null);
   const animFrameRef = useRef(null);
+  const monthlyIncomeRef = useRef(monthlyIncome);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState(false);
 
@@ -83,8 +84,8 @@ export default function MapView({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/satellite-streets-v12',
         center: [-120.68, 35.28],
-        zoom: 9.5,
-        pitch: 58,
+        zoom: 9.0,
+        pitch: 55,
         bearing: -18,
         antialias: true,
       });
@@ -137,6 +138,7 @@ export default function MapView({
       const vibeMatch = matchesVibe(hood, vibe);
       const isSelected = hood.id === selectedId;
       const color = monthlyIncome > 0 ? getAffordabilityColor(effectiveRent, monthlyIncome, maxRent) : '#64748b';
+      const heatColor = getHeatmapColor(effectiveRent, monthlyIncome, maxRent);
 
       // ── Point source (center) — used for glow circle and label ──
       const labelGeojson = {
@@ -150,19 +152,19 @@ export default function MapView({
         map.current.addSource(labelSource, { type: 'geojson', data: labelGeojson });
       }
 
-      // ── Heatmap-style glow circle (radial gradient effect) ──
-      const glowOpacity = vibeMatch ? (isSelected ? 0.58 : 0.34) : 0.05;
+      // ── Heatmap-style glow circle — dark atmospheric colors, heavy blur ──
+      const glowOpacity = vibeMatch ? (isSelected ? 0.52 : 0.28) : 0.04;
       if (map.current.getLayer(glowId)) {
-        map.current.setPaintProperty(glowId, 'circle-color', color);
+        map.current.setPaintProperty(glowId, 'circle-color', heatColor);
         map.current.setPaintProperty(glowId, 'circle-opacity', glowOpacity);
       } else {
         map.current.addLayer({
           id: glowId, type: 'circle', source: labelSource,
           paint: {
-            'circle-radius': ['interpolate', ['linear'], ['zoom'], 8, 28, 9.5, 50, 11, 90, 13, 155],
-            'circle-color': color,
+            'circle-radius': ['interpolate', ['linear'], ['zoom'], 7.5, 22, 9, 44, 10.5, 80, 12, 140, 14, 210],
+            'circle-color': heatColor,
             'circle-opacity': glowOpacity,
-            'circle-blur': 0.82,
+            'circle-blur': 0.88,
             'circle-pitch-alignment': 'map',
             'circle-pitch-scale': 'map',
           },
@@ -237,19 +239,19 @@ export default function MapView({
         });
       }
 
-      // ── Outline ───────────────────────────────────────
+      // ── Outline — uses heatmap color for consistent subdued look ──
       if (map.current.getLayer(outlineId)) {
-        map.current.setPaintProperty(outlineId, 'line-color', color);
-        map.current.setPaintProperty(outlineId, 'line-width', isSelected ? 3 : 1.5);
-        map.current.setPaintProperty(outlineId, 'line-opacity', vibeMatch ? (isSelected ? 0.9 : 0.55) : 0.10);
+        map.current.setPaintProperty(outlineId, 'line-color', heatColor);
+        map.current.setPaintProperty(outlineId, 'line-width', isSelected ? 2.5 : 1.2);
+        map.current.setPaintProperty(outlineId, 'line-opacity', vibeMatch ? (isSelected ? 0.85 : 0.45) : 0.08);
       } else {
         map.current.addLayer({
           id: outlineId, type: 'line', source: sourceId,
           paint: {
-            'line-color': color,
-            'line-width': isSelected ? 3 : 1.5,
-            'line-opacity': vibeMatch ? 0.55 : 0.10,
-            'line-blur': 0.5,
+            'line-color': heatColor,
+            'line-width': isSelected ? 2.5 : 1.2,
+            'line-opacity': vibeMatch ? 0.45 : 0.08,
+            'line-blur': 0.8,
           },
         });
       }
@@ -477,10 +479,33 @@ export default function MapView({
     setStepsOpen(false);
   }, [clearRoute]);
 
-  // Reset camera when deselecting
+  // Keep ref in sync so deselect zoom can read current income without dep
+  useEffect(() => { monthlyIncomeRef.current = monthlyIncome; }, [monthlyIncome]);
+
+  // After form submit: fly in to focused analysis view
+  useEffect(() => {
+    if (!mapLoaded || !map.current || !monthlyIncome) return;
+    map.current.flyTo({
+      center: [-120.68, 35.27],
+      zoom: 10.5,
+      pitch: 52,
+      bearing: -12,
+      duration: 1600,
+      essential: true,
+    });
+  }, [mapLoaded, monthlyIncome]);
+
+  // Reset camera when deselecting a neighborhood
   useEffect(() => {
     if (!mapLoaded || !map.current || selectedId) return;
-    map.current.flyTo({ center: [-120.68, 35.30], zoom: 9.5, pitch: 58, bearing: -18, duration: 700 });
+    const hasForm = monthlyIncomeRef.current > 0;
+    map.current.flyTo({
+      center: [-120.68, 35.30],
+      zoom: hasForm ? 10.5 : 9.0,
+      pitch: 55,
+      bearing: -18,
+      duration: 800,
+    });
   }, [mapLoaded, selectedId]);
 
   // ── Fallback (no token) ───────────────────────────────
