@@ -981,6 +981,97 @@ input.error { border-color: var(--red); }
 }
 .platform-btn:hover { border-color: var(--accent); color: var(--accent); }
 
+/* ── Satellite preview modal ────────────────────────── */
+.preview-modal { max-width: 720px; padding: 20px; gap: 12px; }
+.preview-map-wrap {
+  position: relative;
+  width: 100%;
+  height: 420px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: #0b1220;
+}
+.preview-map { position: absolute; inset: 0; }
+.preview-loading {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  color: var(--text-muted); font-size: 13px;
+  background: rgba(11, 18, 32, 0.7);
+  pointer-events: none;
+}
+.preview-fallback {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px; text-align: center;
+  color: var(--text-muted); font-size: 13px;
+}
+.preview-fallback code {
+  background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px;
+  font-size: 12px;
+}
+.preview-controls {
+  position: absolute;
+  left: 12px; bottom: 12px;
+  display: flex; gap: 8px; align-items: center;
+  z-index: 5;
+}
+.preview-rotate-btn {
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  border: 1px solid #334155;
+  background: rgba(15, 23, 42, 0.85);
+  color: #e2e8f0;
+  font-size: 11px; font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: all 0.15s;
+}
+.preview-rotate-btn:hover { border-color: #38bdf8; color: #38bdf8; }
+.preview-rotate-btn.active { border-color: #38bdf8; color: #38bdf8; background: rgba(56,189,248,0.12); }
+.preview-headings {
+  display: flex; gap: 4px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid #334155;
+  border-radius: var(--radius);
+  padding: 3px;
+  backdrop-filter: blur(6px);
+}
+.heading-btn {
+  width: 26px; height: 26px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: #cbd5e1;
+  font-size: 11px; font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.heading-btn:hover { background: rgba(56,189,248,0.15); color: #38bdf8; }
+.heading-btn.active { background: rgba(56,189,248,0.22); color: #38bdf8; }
+.preview-meta {
+  display: flex; gap: 8px; align-items: center;
+  font-size: 13px; color: var(--text);
+}
+.preview-pin {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: #38bdf8;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 4px rgba(56,189,248,0.35), 0 4px 14px rgba(0,0,0,0.6);
+  animation: preview-pin-pulse 1.6s ease-out infinite;
+}
+.preview-pin-inner { display: none; }
+@keyframes preview-pin-pulse {
+  0%   { box-shadow: 0 0 0 4px rgba(56,189,248,0.40), 0 4px 14px rgba(0,0,0,0.6); }
+  70%  { box-shadow: 0 0 0 16px rgba(56,189,248,0.0),  0 4px 14px rgba(0,0,0,0.6); }
+  100% { box-shadow: 0 0 0 4px rgba(56,189,248,0.0),  0 4px 14px rgba(0,0,0,0.6); }
+}
+
+@media (max-width: 720px) {
+  .preview-map-wrap { height: 320px; }
+}
+
 /* ── Routing panel ────────────────────────────────── */
 .route-panel {
   position: absolute;

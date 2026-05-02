@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { NEIGHBORHOODS, getAffordabilityColor, getAffordabilityLabel, getHeatmapColor, matchesVibe } from '../data/neighborhoods';
+import SatellitePreview from './SatellitePreview';
 
 function buildMarkerEl(listing, isShortlisted) {
   const el = document.createElement('div');
@@ -64,6 +65,9 @@ export default function MapView({
   const monthlyIncomeRef = useRef(monthlyIncome);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState(false);
+
+  // Satellite preview modal target
+  const [previewListing, setPreviewListing] = useState(null);
 
   // Routing state
   const [routeOpen, setRouteOpen] = useState(false);
@@ -304,7 +308,7 @@ export default function MapView({
             </div>
             <div style="font-size:11px;color:#64748b">${listing.type} · Available ${listing.available}</div>
             ${listing.petFriendly ? '<div style="font-size:11px;color:#22c55e;margin-top:3px">🐾 Pet-friendly</div>' : ''}
-            <div style="font-size:10px;color:#38bdf8;margin-top:4px">Click to use as route origin</div>
+            <div style="font-size:10px;color:#38bdf8;margin-top:4px">🛰️ Click for satellite preview</div>
           </div>
         `);
 
@@ -316,6 +320,7 @@ export default function MapView({
       el.addEventListener('click', (e) => {
         e.stopPropagation();
         if (onListingSelect) onListingSelect(listing);
+        setPreviewListing(listing);
       });
 
       markersRef.current.push(marker);
@@ -672,6 +677,13 @@ export default function MapView({
           <div className="spinner" />
           <span>Loading 3D map…</span>
         </div>
+      )}
+
+      {previewListing && (
+        <SatellitePreview
+          listing={previewListing}
+          onClose={() => setPreviewListing(null)}
+        />
       )}
     </div>
   );
