@@ -119,8 +119,8 @@ export default function InputForm({ form, setForm, onSubmit }) {
               <span>$</span>
               <input
                 type="number" min="0" step="500"
-                value={form.savings}
-                onChange={e => field('savings', Number(e.target.value))}
+                value={form.savings || ''}
+                onChange={e => field('savings', e.target.value === '' ? '' : Number(e.target.value))}
                 className={errors.savings ? 'error' : ''}
               />
             </div>
