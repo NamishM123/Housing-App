@@ -1226,3 +1226,202 @@ input.error { border-color: var(--red); }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
 ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+/* ── Settlr full wordmark logo ────────────────────── */
+.sidebar-logo-full {
+  width: 100%;
+  height: auto;
+  max-height: 56px;
+  object-fit: contain;
+  display: block;
+  flex: 1;
+}
+
+/* ── Onboarding form ──────────────────────────────── */
+.onboarding-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 4px 0 8px;
+}
+
+.q-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.q-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+
+/* Vertical segmented stack (Q2, Q5) */
+.seg-stack { display: flex; flex-direction: column; gap: 6px; }
+
+.seg-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 11px 14px;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+  font-family: inherit;
+}
+.seg-row:hover { background: var(--bg-hover); border-color: var(--border-med); }
+.seg-row.active {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent-glow);
+}
+.seg-label { font-size: 13px; font-weight: 500; }
+.seg-sub   { font-size: 11px; color: var(--text-muted); }
+.seg-row.active .seg-sub { color: var(--accent-hover); }
+
+/* Horizontal pill row (roommate count) */
+.seg-row-h { display: flex; gap: 6px; }
+.seg-pill {
+  flex: 1;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 9px 0;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+.seg-pill:hover { background: var(--bg-hover); }
+.seg-pill.active {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--accent-hover);
+}
+
+/* Situation 2x2 grid */
+.situation-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.situation-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  color: var(--text);
+  transition: all 0.15s ease;
+}
+.situation-btn:hover { background: var(--bg-hover); border-color: var(--border-med); }
+.situation-btn.active {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+.situation-label { font-size: 13px; font-weight: 600; }
+.situation-sub { font-size: 11px; color: var(--text-muted); }
+.situation-btn.active .situation-sub { color: var(--accent-hover); }
+
+.form-group.nested { margin-top: 8px; }
+
+.combined-display {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-hover);
+}
+
+/* Geocoding suggestions dropdown */
+.work-loc-field { position: relative; }
+.geo-suggestions {
+  list-style: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 2px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-med);
+  border-radius: var(--radius);
+  z-index: 20;
+  max-height: 220px;
+  overflow-y: auto;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+}
+.geo-suggestions li {
+  padding: 9px 12px;
+  font-size: 12px;
+  color: var(--text);
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+}
+.geo-suggestions li:last-child { border-bottom: none; }
+.geo-suggestions li:hover { background: var(--bg-hover); }
+
+/* Preset chips under work field */
+.preset-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+}
+.chip {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 11px;
+  font-size: 11px;
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.12s ease;
+}
+.chip:hover { background: var(--bg-hover); border-color: var(--border-med); }
+.chip.active {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--accent-hover);
+}
+
+.budget-preview {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 8px 0 0;
+}
+.budget-preview strong { color: var(--text); }
+
+.submit-btn {
+  background: var(--accent);
+  color: #06101F;
+  border: none;
+  border-radius: var(--radius);
+  padding: 13px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+  letter-spacing: 0.01em;
+}
+.submit-btn:hover:not(:disabled) { background: var(--accent-hover); }
+.submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
