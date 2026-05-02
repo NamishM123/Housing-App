@@ -286,6 +286,13 @@ export default function LandingPage({ onComplete }) {
           Welcome to Settlr
         </div>
       </div>
+      <button
+        className="landing-skip-btn"
+        onClick={() => onComplete?.()}
+        type="button"
+      >
+        Skip to Dashboard →
+      </button>
     </div>
   );
 }
