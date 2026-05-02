@@ -83,10 +83,10 @@ export default function MapView({
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/satellite-streets-v12',
-        center: [-120.68, 35.28],
-        zoom: 9.0,
-        pitch: 55,
-        bearing: -18,
+        center: [-108, 32],
+        zoom: 2.8,
+        pitch: 0,
+        bearing: 0,
         antialias: true,
       });
 
@@ -153,7 +153,7 @@ export default function MapView({
       }
 
       // ── Heatmap-style glow circle — dark atmospheric colors, heavy blur ──
-      const glowOpacity = vibeMatch ? (isSelected ? 0.52 : 0.28) : 0.04;
+      const glowOpacity = vibeMatch ? (isSelected ? 0.82 : 0.52) : 0.06;
       if (map.current.getLayer(glowId)) {
         map.current.setPaintProperty(glowId, 'circle-color', heatColor);
         map.current.setPaintProperty(glowId, 'circle-opacity', glowOpacity);
@@ -243,14 +243,14 @@ export default function MapView({
       if (map.current.getLayer(outlineId)) {
         map.current.setPaintProperty(outlineId, 'line-color', heatColor);
         map.current.setPaintProperty(outlineId, 'line-width', isSelected ? 2.5 : 1.2);
-        map.current.setPaintProperty(outlineId, 'line-opacity', vibeMatch ? (isSelected ? 0.85 : 0.45) : 0.08);
+        map.current.setPaintProperty(outlineId, 'line-opacity', vibeMatch ? (isSelected ? 0.95 : 0.65) : 0.08);
       } else {
         map.current.addLayer({
           id: outlineId, type: 'line', source: sourceId,
           paint: {
             'line-color': heatColor,
             'line-width': isSelected ? 2.5 : 1.2,
-            'line-opacity': vibeMatch ? 0.45 : 0.08,
+            'line-opacity': vibeMatch ? 0.65 : 0.08,
             'line-blur': 0.8,
           },
         });
@@ -482,16 +482,18 @@ export default function MapView({
   // Keep ref in sync so deselect zoom can read current income without dep
   useEffect(() => { monthlyIncomeRef.current = monthlyIncome; }, [monthlyIncome]);
 
-  // After form submit: fly in to focused analysis view
+  // After form submit: dramatic globe → SLO zoom-in
   useEffect(() => {
     if (!mapLoaded || !map.current || !monthlyIncome) return;
     map.current.flyTo({
       center: [-120.68, 35.27],
-      zoom: 10.5,
-      pitch: 52,
-      bearing: -12,
-      duration: 1600,
+      zoom: 10.8,
+      pitch: 54,
+      bearing: -14,
+      duration: 3200,
       essential: true,
+      curve: 1.8,   // tighter arc = more dramatic deceleration at target
+      speed: 0.8,
     });
   }, [mapLoaded, monthlyIncome]);
 
@@ -500,11 +502,11 @@ export default function MapView({
     if (!mapLoaded || !map.current || selectedId) return;
     const hasForm = monthlyIncomeRef.current > 0;
     map.current.flyTo({
-      center: [-120.68, 35.30],
-      zoom: hasForm ? 10.5 : 9.0,
-      pitch: 55,
-      bearing: -18,
-      duration: 800,
+      center: hasForm ? [-120.68, 35.30] : [-108, 32],
+      zoom: hasForm ? 10.8 : 2.8,
+      pitch: hasForm ? 54 : 0,
+      bearing: hasForm ? -14 : 0,
+      duration: 1200,
     });
   }, [mapLoaded, selectedId]);
 

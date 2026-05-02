@@ -230,15 +230,15 @@ export function getAffordabilityLabel(rent, monthlyIncome, maxRent = null) {
   return 'Out of Range';
 }
 
-// Dark, atmospheric colors for the map heatmap glow — satellite-friendly
+// Dark saturated colors for map heatmap glow — rich jewel tones over satellite
 export function getHeatmapColor(rent, monthlyIncome, maxRent = null) {
-  if (!monthlyIncome || monthlyIncome <= 0) return '#1e293b'; // dark slate
-  if (maxRent && rent > maxRent) return '#881337'; // deep crimson
+  if (!monthlyIncome || monthlyIncome <= 0) return '#0f172a'; // near-black navy
+  if (maxRent && rent > maxRent) return '#4c0519'; // very deep crimson
   const pct = rent / monthlyIncome;
-  if (pct < 0.28) return '#1d4ed8'; // deep cobalt — comfortable
-  if (pct < 0.35) return '#5b21b6'; // deep violet — manageable
-  if (pct < 0.45) return '#b45309'; // dark amber — tight
-  return '#881337'; // deep crimson — out of range
+  if (pct < 0.28) return '#172554'; // very deep sapphire — comfortable
+  if (pct < 0.35) return '#3b0764'; // very deep violet — manageable
+  if (pct < 0.45) return '#7c2d12'; // very dark rust-orange — tight
+  return '#4c0519'; // very deep crimson — out of range
 }
 
 export function matchesVibe(neighborhood, vibe) {
