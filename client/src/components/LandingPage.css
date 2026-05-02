@@ -26,68 +26,6 @@
   pointer-events: none;
 }
 
-.landing-text-wrap {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-}
-
-.landing-text {
-  font-family: 'Helvetica Neue', 'Inter', system-ui, sans-serif;
-  font-weight: 200;
-  letter-spacing: 0.32em;
-  color: #f4f1e8;
-  text-transform: uppercase;
-  font-size: clamp(1.6rem, 4.5vw, 3.8rem);
-  text-shadow:
-    0 0 18px rgba(255, 240, 210, 0.35),
-    0 0 60px rgba(180, 200, 255, 0.18);
-  white-space: nowrap;
-  opacity: 0;
-  transform: scale(0.85);
-  filter: blur(8px);
-  transition: none;
-}
-
-.landing-text.appear {
-  animation: textAppear 1.6s cubic-bezier(0.22, 0.9, 0.32, 1) forwards;
-}
-
-.landing-text.expand {
-  animation: textExpand 1.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-.landing-text.dissolved {
-  opacity: 0;
-}
-
-@keyframes textAppear {
-  0%   { opacity: 0; transform: scale(0.85); filter: blur(8px); letter-spacing: 0.12em; }
-  60%  { opacity: 1; filter: blur(0px); }
-  100% { opacity: 1; transform: scale(1);   filter: blur(0px); letter-spacing: 0.32em; }
-}
-
-@keyframes textExpand {
-  0%   { transform: scale(1)    translateX(0);    letter-spacing: 0.32em; opacity: 1; filter: blur(0px); }
-  55%  { transform: scale(1.45) translateX(0);    letter-spacing: 0.7em;  opacity: 1; filter: blur(0.5px); }
-  100% { transform: scale(1.9)  translateX(40px); letter-spacing: 1.2em;  opacity: 0; filter: blur(2px); }
-}
-
-.landing-skip {
-  position: absolute;
-  bottom: 24px;
-  right: 28px;
-  color: rgba(244, 241, 232, 0.5);
-  font-family: 'Helvetica Neue', 'Inter', system-ui, sans-serif;
-  font-size: 0.75rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  pointer-events: none;
-  user-select: none;
-}
 
 .landing-root.dismissing {
   opacity: 0;
