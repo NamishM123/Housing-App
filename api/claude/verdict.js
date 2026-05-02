@@ -1,6 +1,6 @@
-import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const SYSTEM = `You are a brutally honest financial advisor specializing in California housing markets.
 You give clear, specific, no-nonsense advice about whether someone can afford to live somewhere.
@@ -43,13 +43,15 @@ Respond ONLY with this JSON structure:
 }`;
 
   try {
-    const message = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1024,
-      system: SYSTEM,
-      messages: [{ role: 'user', content: prompt }],
+    const completion = await client.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: SYSTEM },
+        { role: 'user', content: prompt },
+      ],
+      response_format: { type: 'json_object' },
     });
-    res.json(JSON.parse(message.content[0].text.trim()));
+    res.json(JSON.parse(completion.choices[0].message.content));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });

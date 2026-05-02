@@ -1,6 +1,6 @@
-import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
@@ -21,13 +21,15 @@ Respond ONLY with JSON:
 List 6-8 items ordered by priority. Keep costs realistic (IKEA/Amazon/Facebook Marketplace).`;
 
   try {
-    const message = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1024,
-      system: 'You are a budget interior design assistant. Respond only with valid JSON.',
-      messages: [{ role: 'user', content: prompt }],
+    const completion = await client.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: 'You are a budget interior design assistant. Respond only with valid JSON.' },
+        { role: 'user', content: prompt },
+      ],
+      response_format: { type: 'json_object' },
     });
-    res.json(JSON.parse(message.content[0].text.trim()));
+    res.json(JSON.parse(completion.choices[0].message.content));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });

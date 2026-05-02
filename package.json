@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.52.0",
-    "axios": "^1.7.2"
+    "axios": "^1.7.2",
+    "openai": "^6.35.0"
   },
   "scripts": {
     "dev:server": "cd server && npm run dev",

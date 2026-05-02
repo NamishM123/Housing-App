@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
 
 const router = Router();
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const VERDICT_SYSTEM = `You are a brutally honest financial advisor specializing in California housing markets.
 You give clear, specific, no-nonsense advice about whether someone can afford to live somewhere.
@@ -25,7 +25,6 @@ Details:
 - Eating out: ${lifestyle}
 - Their share of avg rent: $${rent}/mo (${rentPct}% of income)
 - Avg walk score: ${neighborhoodStats.walkScore}/100
-- Area: ${neighborhood.name}
 
 Respond ONLY with this JSON structure:
 {
@@ -44,18 +43,17 @@ Respond ONLY with this JSON structure:
 }`;
 
   try {
-    const message = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1024,
-      system: VERDICT_SYSTEM,
-      messages: [{ role: 'user', content: prompt }],
+    const completion = await client.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: VERDICT_SYSTEM },
+        { role: 'user', content: prompt },
+      ],
+      response_format: { type: 'json_object' },
     });
-
-    const text = message.content[0].text.trim();
-    const json = JSON.parse(text);
-    res.json(json);
+    res.json(JSON.parse(completion.choices[0].message.content));
   } catch (err) {
-    console.error('Claude verdict error:', err.message);
+    console.error('OpenAI verdict error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -69,27 +67,23 @@ Context: salary $${salary}, savings $${savings}, roommates: ${roommates}, has ca
 Respond ONLY with JSON:
 {
   "categories": [
-    {
-      "name": "category name",
-      "items": ["item1", "item2", ...]
-    }
+    { "name": "category name", "items": ["item1", "item2"] }
   ]
 }
-Include 4-5 categories like Admin/Paperwork, Utilities Setup, Home Essentials, Transport, Social/Fun. Tailor items to their context (e.g. if has car → parking permit, if no roommates → router setup).`;
+Include 4-5 categories: Admin/Paperwork, Utilities Setup, Home Essentials, Transport, Social/Fun. Tailor to context.`;
 
   try {
-    const message = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1024,
-      system: 'You are a helpful moving assistant. Respond only with valid JSON.',
-      messages: [{ role: 'user', content: prompt }],
+    const completion = await client.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: 'You are a helpful moving assistant. Respond only with valid JSON.' },
+        { role: 'user', content: prompt },
+      ],
+      response_format: { type: 'json_object' },
     });
-
-    const text = message.content[0].text.trim();
-    const json = JSON.parse(text);
-    res.json(json);
+    res.json(JSON.parse(completion.choices[0].message.content));
   } catch (err) {
-    console.error('Claude checklist error:', err.message);
+    console.error('OpenAI checklist error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -97,32 +91,30 @@ Include 4-5 categories like Admin/Paperwork, Utilities Setup, Home Essentials, T
 router.post('/furniture', async (req, res) => {
   const { budget, roomWidth, roomLength } = req.body;
 
-  const prompt = `Someone has $${budget} remaining after move-in costs for a ${roomWidth}x${roomLength} ft room in SLO County.
-Generate a prioritized furniture shopping list.
+  const prompt = `Someone has $${budget} for a ${roomWidth}x${roomLength} ft room in SLO County.
 
 Respond ONLY with JSON:
 {
   "items": [
-    { "name": "item name", "estimatedCost": <number>, "priority": "essential|recommended|nice-to-have", "reason": "one sentence why" }
+    { "name": "item", "estimatedCost": <number>, "priority": "essential|recommended|nice-to-have", "reason": "one sentence" }
   ],
   "totalEstimate": <number>,
   "summary": "one sentence advice"
 }
-List 6-8 items ordered by priority. Keep costs realistic for budget furniture (IKEA/Amazon/Facebook Marketplace).`;
+List 6-8 items ordered by priority. Keep costs realistic (IKEA/Amazon/Facebook Marketplace).`;
 
   try {
-    const message = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1024,
-      system: 'You are a budget interior design assistant. Respond only with valid JSON.',
-      messages: [{ role: 'user', content: prompt }],
+    const completion = await client.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: 'You are a budget interior design assistant. Respond only with valid JSON.' },
+        { role: 'user', content: prompt },
+      ],
+      response_format: { type: 'json_object' },
     });
-
-    const text = message.content[0].text.trim();
-    const json = JSON.parse(text);
-    res.json(json);
+    res.json(JSON.parse(completion.choices[0].message.content));
   } catch (err) {
-    console.error('Claude furniture error:', err.message);
+    console.error('OpenAI furniture error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
