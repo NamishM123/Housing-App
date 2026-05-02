@@ -35,6 +35,7 @@ export default function App() {
   const [listingsLoading, setListingsLoading] = useState(false);
   const [searchUrls, setSearchUrls] = useState(null);
   const [shortlist, setShortlist] = useState([]);
+  const [selectedListing, setSelectedListing] = useState(null);
 
   const handleFormSubmit = useCallback((formData) => {
     setSubmittedForm(formData);
@@ -43,6 +44,7 @@ export default function App() {
     setDrawerOpen(false);
     setListings([]);
     setSearchUrls(null);
+    setSelectedListing(null);
   }, []);
 
   const handleNeighborhoodSelect = useCallback((neighborhood) => {
@@ -50,6 +52,7 @@ export default function App() {
     setDrawerOpen(true);
     setListings([]);
     setListingsLoading(true);
+    setSelectedListing(null);
     fetchListings(neighborhood.zip, neighborhood.name)
       .then(({ listings: l, urls }) => {
         setListings(l || []);
@@ -68,8 +71,9 @@ export default function App() {
     });
   }, []);
 
-  // When a listing pin is clicked on the map, open drawer on listings tab
-  const handleListingSelect = useCallback(() => {
+  // Clicking a map pin selects that listing as the routing origin and opens drawer
+  const handleListingSelect = useCallback((listing) => {
+    setSelectedListing(listing);
     setDrawerOpen(true);
   }, []);
 
@@ -119,6 +123,7 @@ export default function App() {
             listings={listings}
             shortlist={shortlist}
             onListingSelect={handleListingSelect}
+            selectedListing={selectedListing}
           />
         </main>
       </div>

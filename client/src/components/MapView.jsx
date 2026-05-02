@@ -14,16 +14,6 @@ function buildMarkerEl(listing, isShortlisted) {
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
-function extrusionHeight(rent, monthlyIncome, maxRent) {
-  if (!monthlyIncome) return 500;
-  if (maxRent && rent > maxRent) return 120;
-  const pct = rent / monthlyIncome;
-  if (pct < 0.28) return 2800;
-  if (pct < 0.35) return 1800;
-  if (pct < 0.45) return 900;
-  return 250;
-}
-
 const LEGEND = [
   { color: '#22c55e', label: 'Comfortable  <28%' },
   { color: '#14b8a6', label: 'Manageable  28–35%' },
@@ -51,7 +41,12 @@ function fmtDur(seconds) {
   return m < 60 ? `${m} min` : `${Math.floor(m / 60)}h ${m % 60}m`;
 }
 
-export default function MapView({ monthlyIncome, roommates, maxRent, vibe, onNeighborhoodSelect, selectedId, listings, shortlist, onListingSelect }) {
+export default function MapView({
+  monthlyIncome, roommates, maxRent, vibe,
+  onNeighborhoodSelect, selectedId,
+  listings, shortlist, onListingSelect,
+  selectedListing,
+}) {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const popupRef = useRef(null);
@@ -62,24 +57,13 @@ export default function MapView({ monthlyIncome, roommates, maxRent, vibe, onNei
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState(false);
 
-  // ── Routing state ───────────────────────────────────
+  // Routing state
   const [routeOpen, setRouteOpen] = useState(false);
   const [activeAmenity, setActiveAmenity] = useState(null);
   const [routeLoading, setRouteLoading] = useState(false);
   const [routeInfo, setRouteInfo] = useState(null);
   const [routeError, setRouteError] = useState(null);
-  const [userLngLat, setUserLngLat] = useState(null);
   const [stepsOpen, setStepsOpen] = useState(false);
-
-  // Attempt geolocation once on mount
-  useEffect(() => {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      (pos) => setUserLngLat([pos.coords.longitude, pos.coords.latitude]),
-      () => {},
-      { timeout: 6000, maximumAge: 60000 }
-    );
-  }, []);
 
   // ── Map init ─────────────────────────────────────────
   useEffect(() => {
@@ -106,7 +90,7 @@ export default function MapView({ monthlyIncome, roommates, maxRent, vibe, onNei
           tileSize: 512,
           maxzoom: 14,
         });
-        map.current.setTerrain({ source: 'mapbox-dem', exaggeration: 2.0 });
+        map.current.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 });
 
         map.current.addLayer({
           id: 'sky',
@@ -129,22 +113,25 @@ export default function MapView({ monthlyIncome, roommates, maxRent, vibe, onNei
     return () => { if (map.current) { map.current.remove(); map.current = null; } };
   }, []);
 
-  // ── Neighborhood extrusions ───────────────────────────
+  // ── Neighborhood flat-fill overlays ──────────────────
   useEffect(() => {
     if (!mapLoaded || !map.current) return;
 
     NEIGHBORHOODS.forEach((hood) => {
       const sourceId  = `hood-${hood.id}`;
-      const extrudeId = `extrude-${hood.id}`;
+      const fillId    = `fill-${hood.id}`;
       const outlineId = `outline-${hood.id}`;
       const labelId   = `label-${hood.id}`;
 
       const effectiveRent = roommates > 0 ? Math.round(hood.avgRent / (roommates + 1)) : hood.avgRent;
       const vibeMatch = matchesVibe(hood, vibe);
       const isSelected = hood.id === selectedId;
-      const color   = monthlyIncome > 0 ? getAffordabilityColor(effectiveRent, monthlyIncome, maxRent) : '#64748b';
-      const height  = extrusionHeight(effectiveRent, monthlyIncome, maxRent);
-      const opacity = vibeMatch ? (isSelected ? 0.82 : 0.65) : 0.15;
+      const color = monthlyIncome > 0 ? getAffordabilityColor(effectiveRent, monthlyIncome, maxRent) : '#64748b';
+
+      // Flat fill opacity — soft, heat-map style
+      const fillOpacity = vibeMatch
+        ? (isSelected ? 0.48 : 0.28)
+        : 0.06;
 
       const geojson = {
         type: 'Feature',
@@ -158,29 +145,28 @@ export default function MapView({ monthlyIncome, roommates, maxRent, vibe, onNei
         map.current.addSource(sourceId, { type: 'geojson', data: geojson });
       }
 
-      if (map.current.getLayer(extrudeId)) {
-        map.current.setPaintProperty(extrudeId, 'fill-extrusion-color', color);
-        map.current.setPaintProperty(extrudeId, 'fill-extrusion-height', height);
-        map.current.setPaintProperty(extrudeId, 'fill-extrusion-opacity', opacity);
+      // ── Flat fill (replaces blocky 3D extrusion) ──────
+      if (map.current.getLayer(fillId)) {
+        map.current.setPaintProperty(fillId, 'fill-color', color);
+        map.current.setPaintProperty(fillId, 'fill-opacity', fillOpacity);
       } else {
         map.current.addLayer({
-          id: extrudeId,
-          type: 'fill-extrusion',
+          id: fillId,
+          type: 'fill',
           source: sourceId,
           paint: {
-            'fill-extrusion-color': color,
-            'fill-extrusion-height': height,
-            'fill-extrusion-base': 0,
-            'fill-extrusion-opacity': opacity,
+            'fill-color': color,
+            'fill-opacity': fillOpacity,
+            'fill-antialias': true,
           },
         });
 
-        map.current.on('click', extrudeId, () => {
+        map.current.on('click', fillId, () => {
           onNeighborhoodSelect({ ...hood, avgRent: effectiveRent });
-          map.current.flyTo({ center: hood.center, zoom: 11.5, pitch: 55, bearing: -8, duration: 900 });
+          map.current.flyTo({ center: hood.center, zoom: 11.5, pitch: 50, bearing: -8, duration: 900 });
         });
 
-        map.current.on('mouseenter', extrudeId, () => {
+        map.current.on('mouseenter', fillId, () => {
           map.current.getCanvas().style.cursor = 'pointer';
           const r = roommates > 0 ? Math.round(hood.avgRent / (roommates + 1)) : hood.avgRent;
           const label = monthlyIncome > 0 ? getAffordabilityLabel(r, monthlyIncome, maxRent) : 'Enter salary';
@@ -208,25 +194,36 @@ export default function MapView({ monthlyIncome, roommates, maxRent, vibe, onNei
             .addTo(map.current);
         });
 
-        map.current.on('mouseleave', extrudeId, () => {
+        map.current.on('mouseleave', fillId, () => {
           map.current.getCanvas().style.cursor = '';
           if (popupRef.current) { popupRef.current.remove(); popupRef.current = null; }
         });
       }
 
+      // ── Outline ───────────────────────────────────────
       if (map.current.getLayer(outlineId)) {
         map.current.setPaintProperty(outlineId, 'line-color', color);
-        map.current.setPaintProperty(outlineId, 'line-width', isSelected ? 4 : 2);
-        map.current.setPaintProperty(outlineId, 'line-opacity', vibeMatch ? (isSelected ? 1 : 0.85) : 0.15);
+        map.current.setPaintProperty(outlineId, 'line-width', isSelected ? 3 : 1.5);
+        map.current.setPaintProperty(outlineId, 'line-opacity', vibeMatch ? (isSelected ? 0.9 : 0.55) : 0.12);
       } else {
         map.current.addLayer({
           id: outlineId, type: 'line', source: sourceId,
-          paint: { 'line-color': color, 'line-width': isSelected ? 4 : 2, 'line-opacity': vibeMatch ? 0.85 : 0.15 },
+          paint: {
+            'line-color': color,
+            'line-width': isSelected ? 3 : 1.5,
+            'line-opacity': vibeMatch ? 0.55 : 0.12,
+            'line-blur': 0.5,
+          },
         });
       }
 
+      // ── Label ─────────────────────────────────────────
       const labelSource = `label-src-${hood.id}`;
-      const labelGeojson = { type: 'Feature', geometry: { type: 'Point', coordinates: hood.center }, properties: { name: hood.name } };
+      const labelGeojson = {
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: hood.center },
+        properties: { name: hood.name },
+      };
 
       if (map.current.getSource(labelSource)) {
         map.current.getSource(labelSource).setData(labelGeojson);
@@ -248,7 +245,7 @@ export default function MapView({ monthlyIncome, roommates, maxRent, vibe, onNei
           },
           paint: {
             'text-color': '#ffffff',
-            'text-halo-color': 'rgba(0,0,0,0.85)',
+            'text-halo-color': 'rgba(0,0,0,0.9)',
             'text-halo-width': 2,
             'text-opacity': vibeMatch ? 1 : 0.2,
           },
@@ -267,7 +264,9 @@ export default function MapView({ monthlyIncome, roommates, maxRent, vibe, onNei
     listings.forEach(listing => {
       if (!listing.lat || !listing.lng) return;
       const isShortlisted = (shortlist || []).some(s => s.id === listing.id);
+      const isSelected = selectedListing?.id === listing.id;
       const el = buildMarkerEl(listing, isShortlisted);
+      if (isSelected) el.classList.add('origin-pin');
 
       const popup = new mapboxgl.Popup({ offset: [0, -28], closeButton: false })
         .setHTML(`
@@ -279,6 +278,7 @@ export default function MapView({ monthlyIncome, roommates, maxRent, vibe, onNei
             </div>
             <div style="font-size:11px;color:#64748b">${listing.type} · Available ${listing.available}</div>
             ${listing.petFriendly ? '<div style="font-size:11px;color:#22c55e;margin-top:3px">🐾 Pet-friendly</div>' : ''}
+            <div style="font-size:10px;color:#38bdf8;margin-top:4px">Click to use as route origin</div>
           </div>
         `);
 
@@ -294,23 +294,26 @@ export default function MapView({ monthlyIncome, roommates, maxRent, vibe, onNei
 
       markersRef.current.push(marker);
     });
-  }, [mapLoaded, listings, shortlist, onListingSelect]);
+  }, [mapLoaded, listings, shortlist, onListingSelect, selectedListing]);
 
-  // ── User location pulsing dot ─────────────────────────
+  // ── User location marker (only shown when no listing selected) ──
   useEffect(() => {
     if (!mapLoaded || !map.current) return;
     if (userMarkerRef.current) { userMarkerRef.current.remove(); userMarkerRef.current = null; }
-    if (!userLngLat) return;
+    if (selectedListing) return; // listing takes priority
+
+    // Still show a subtle dot at neighborhood center for context
+    const selectedHood = NEIGHBORHOODS.find(n => n.id === selectedId);
+    if (!selectedHood) return;
 
     const el = document.createElement('div');
     el.className = 'user-location-dot';
-
     userMarkerRef.current = new mapboxgl.Marker({ element: el, anchor: 'center' })
-      .setLngLat(userLngLat)
+      .setLngLat(selectedHood.center)
       .addTo(map.current);
-  }, [mapLoaded, userLngLat]);
+  }, [mapLoaded, selectedId, selectedListing]);
 
-  // ── Route rendering with animation ───────────────────
+  // ── Route rendering ───────────────────────────────────
   const clearRoute = useCallback(() => {
     if (animFrameRef.current) { cancelAnimationFrame(animFrameRef.current); animFrameRef.current = null; }
     if (!map.current) return;
@@ -325,7 +328,6 @@ export default function MapView({ monthlyIncome, roommates, maxRent, vibe, onNei
     if (!map.current) return;
     clearRoute();
 
-    // Destination marker
     const destEl = document.createElement('div');
     destEl.className = 'dest-marker';
     destEl.innerHTML = amenity.icon;
@@ -333,16 +335,14 @@ export default function MapView({ monthlyIncome, roommates, maxRent, vibe, onNei
       .setLngLat([amenity.lng, amenity.lat])
       .addTo(map.current);
 
-    // Route source — start empty, fill via animation
     map.current.addSource('route', {
       type: 'geojson',
       data: { type: 'FeatureCollection', features: [{ type: 'Feature', geometry: { type: 'LineString', coordinates: [] } }] },
     });
-
     map.current.addLayer({
       id: 'route-glow', type: 'line', source: 'route',
       layout: { 'line-join': 'round', 'line-cap': 'round' },
-      paint: { 'line-color': '#38bdf8', 'line-width': 16, 'line-opacity': 0.20, 'line-blur': 6 },
+      paint: { 'line-color': '#38bdf8', 'line-width': 16, 'line-opacity': 0.18, 'line-blur': 6 },
     });
     map.current.addLayer({
       id: 'route-casing', type: 'line', source: 'route',
@@ -355,15 +355,12 @@ export default function MapView({ monthlyIncome, roommates, maxRent, vibe, onNei
       paint: { 'line-color': '#e0f2fe', 'line-width': 2.5, 'line-opacity': 1 },
     });
 
-    // Fly to fit route bounds
     const bounds = coords.reduce((b, c) => b.extend(c), new mapboxgl.LngLatBounds(coords[0], coords[0]));
-    map.current.fitBounds(bounds, { padding: 80, pitch: 55, bearing: -10, duration: 1100 });
+    map.current.fitBounds(bounds, { padding: 100, pitch: 50, bearing: -10, duration: 1100 });
 
-    // Animate drawing
     const total = coords.length;
     const stepsPerFrame = Math.max(1, Math.ceil(total / 80));
     let step = 0;
-
     function tick() {
       step = Math.min(step + stepsPerFrame, total);
       if (map.current?.getSource('route')) {
@@ -384,19 +381,23 @@ export default function MapView({ monthlyIncome, roommates, maxRent, vibe, onNei
     setRouteInfo(null);
     setStepsOpen(false);
 
+    // Origin: selected listing → neighborhood center → SLO downtown
     const selectedHood = NEIGHBORHOODS.find(n => n.id === selectedId);
-    const origin = userLngLat || selectedHood?.center || [-120.6606, 35.2800];
+    const listingOrigin = selectedListing?.lng && selectedListing?.lat
+      ? [selectedListing.lng, selectedListing.lat]
+      : null;
+    const origin = listingOrigin || selectedHood?.center || [-120.6606, 35.2800];
+    const originLabel = listingOrigin
+      ? selectedListing.address
+      : (selectedHood?.name ? `${selectedHood.name} area` : 'SLO');
 
     try {
       const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${origin[0]},${origin[1]};${amenity.lng},${amenity.lat}?geometries=geojson&overview=full&steps=true&access_token=${mapboxgl.accessToken}`;
       const res = await fetch(url);
       const data = await res.json();
-
       if (!data.routes?.length) throw new Error('No route found');
 
       const route = data.routes[0];
-      const coords = route.geometry.coordinates;
-
       const steps = route.legs[0]?.steps?.map(s => ({
         instruction: s.maneuver.instruction,
         distance: fmtDist(s.distance),
@@ -406,17 +407,16 @@ export default function MapView({ monthlyIncome, roommates, maxRent, vibe, onNei
         distance: fmtDist(route.distance),
         duration: fmtDur(route.duration),
         destination: amenity.name,
-        originLabel: userLngLat ? 'your location' : (selectedHood?.name || 'SLO'),
+        originLabel,
         steps,
       });
-
-      drawRoute(coords, amenity);
+      drawRoute(route.geometry.coordinates, amenity);
     } catch {
       setRouteError('Could not fetch route. Check your Mapbox token.');
     } finally {
       setRouteLoading(false);
     }
-  }, [selectedId, userLngLat, drawRoute]);
+  }, [selectedId, selectedListing, drawRoute]);
 
   const handleAmenityClick = useCallback((amenity) => {
     setActiveAmenity(amenity.id);
@@ -437,6 +437,7 @@ export default function MapView({ monthlyIncome, roommates, maxRent, vibe, onNei
     map.current.flyTo({ center: [-120.68, 35.30], zoom: 9.2, pitch: 58, bearing: -18, duration: 700 });
   }, [mapLoaded, selectedId]);
 
+  // ── Fallback (no token) ───────────────────────────────
   if (mapError || !mapboxgl.accessToken) {
     return (
       <div className="map-fallback">
@@ -468,11 +469,17 @@ export default function MapView({ monthlyIncome, roommates, maxRent, vibe, onNei
     );
   }
 
+  const originLabel = selectedListing?.address
+    ? selectedListing.address
+    : selectedId
+      ? (NEIGHBORHOODS.find(n => n.id === selectedId)?.name ?? 'SLO') + ' area'
+      : 'SLO area';
+
   return (
     <div className="map-wrapper">
       <div ref={mapContainer} className="map-container" />
 
-      {/* Affordability legend */}
+      {/* Affordability legend — bottom RIGHT to avoid directions panel */}
       <div className="map-legend">
         <div className="legend-title">Affordability</div>
         {LEGEND.map(({ color, label }) => (
@@ -481,11 +488,10 @@ export default function MapView({ monthlyIncome, roommates, maxRent, vibe, onNei
             <span>{label}</span>
           </div>
         ))}
-        <div className="legend-hint">Taller = more affordable</div>
         {vibe && vibe !== 'any' && <div className="legend-filter">Vibe: <strong>{vibe}</strong></div>}
       </div>
 
-      {/* Directions floating panel */}
+      {/* Directions floating panel — bottom LEFT */}
       <div className={`route-panel ${routeOpen ? 'open' : ''}`}>
         <button
           className="route-toggle-btn"
@@ -498,7 +504,12 @@ export default function MapView({ monthlyIncome, roommates, maxRent, vibe, onNei
           <div className="route-panel-body">
             <div className="route-origin-label">
               <span className="route-origin-dot" />
-              {userLngLat ? 'Your GPS location' : selectedId ? `${NEIGHBORHOODS.find(n => n.id === selectedId)?.name ?? 'SLO'} area` : 'SLO area'}
+              <span>
+                {selectedListing
+                  ? <><strong style={{ color: '#38bdf8' }}>From:</strong> {selectedListing.address}</>
+                  : <span style={{ color: '#64748b' }}>Click a listing pin to set origin</span>
+                }
+              </span>
             </div>
 
             <div className="route-amenity-grid">
