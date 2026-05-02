@@ -13,6 +13,8 @@ const HEADINGS = [
 const STYLE_PRIMARY  = 'mapbox://styles/mapbox/standard-satellite';
 const STYLE_FALLBACK = 'mapbox://styles/mapbox/satellite-streets-v12';
 
+const GOOGLE_EMBED_KEY = import.meta.env.VITE_GOOGLE_MAPS_EMBED_KEY || '';
+
 export default function SatellitePreview({ listing, onClose }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
@@ -24,6 +26,7 @@ export default function SatellitePreview({ listing, onClose }) {
   const [bearing, setBearing] = useState(-20);
   const [autoRotate, setAutoRotate] = useState(true);
   const [firstPerson, setFirstPerson] = useState(false);
+  const [view, setView] = useState('aerial'); // 'aerial' | 'street'
 
   const initMap = useCallback((styleUrl) => {
     if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; }
@@ -156,9 +159,13 @@ export default function SatellitePreview({ listing, onClose }) {
     };
   }, [listing, initMap]);
 
-  // Slow drone-style auto-rotate
+  // Slow drone-style auto-rotate (only when aerial tab is visible)
   useEffect(() => {
     if (!loaded || !mapRef.current) return;
+    if (view !== 'aerial') {
+      if (rotateFrameRef.current) { cancelAnimationFrame(rotateFrameRef.current); rotateFrameRef.current = null; }
+      return;
+    }
     if (!autoRotate) {
       if (rotateFrameRef.current) { cancelAnimationFrame(rotateFrameRef.current); rotateFrameRef.current = null; }
       return;
@@ -177,15 +184,16 @@ export default function SatellitePreview({ listing, onClose }) {
     return () => {
       if (rotateFrameRef.current) { cancelAnimationFrame(rotateFrameRef.current); rotateFrameRef.current = null; }
     };
-  }, [loaded, autoRotate]);
+  }, [loaded, autoRotate, view]);
 
-  // Keyboard controls — Street-View-style WASD/arrow nav
+  // Keyboard controls — Street-View-style WASD/arrow nav (aerial tab only)
   useEffect(() => {
     if (!loaded || !mapRef.current) return;
     const map = mapRef.current;
 
     const onKey = (e) => {
       if (e.key === 'Escape') { onClose(); return; }
+      if (view !== 'aerial') return;
       // Don't fight typing in inputs
       const target = e.target;
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return;
@@ -214,7 +222,7 @@ export default function SatellitePreview({ listing, onClose }) {
 
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [loaded, onClose]);
+  }, [loaded, onClose, view]);
 
   const flyToHeading = (b) => {
     setAutoRotate(false);
@@ -237,6 +245,10 @@ export default function SatellitePreview({ listing, onClose }) {
     ? `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${listing.lat},${listing.lng}`
     : null;
 
+  const streetEmbedUrl = listing?.lat && listing?.lng && GOOGLE_EMBED_KEY
+    ? `https://www.google.com/maps/embed/v1/streetview?key=${GOOGLE_EMBED_KEY}&location=${listing.lat},${listing.lng}&heading=210&pitch=0&fov=90`
+    : null;
+
   if (!listing) return null;
   const hasToken = !!mapboxgl.accessToken;
   const hasCoords = !!(listing.lat && listing.lng);
@@ -246,74 +258,119 @@ export default function SatellitePreview({ listing, onClose }) {
       <div className="modal preview-modal">
         <div className="modal-header">
           <div>
-            <h3>🛰️ Satellite Preview</h3>
+            <h3>{view === 'street' ? '🚶 Street View' : '🛰️ Satellite Preview'}</h3>
             <p className="modal-subtitle">{listing.address}</p>
+          </div>
+          <div className="preview-view-tabs">
+            <button
+              className={`view-tab ${view === 'aerial' ? 'active' : ''}`}
+              onClick={() => setView('aerial')}
+            >
+              🛰 Aerial
+            </button>
+            <button
+              className={`view-tab ${view === 'street' ? 'active' : ''}`}
+              onClick={() => setView('street')}
+            >
+              🚶 Street
+            </button>
           </div>
           <button className="close-btn" onClick={onClose}>✕</button>
         </div>
 
         <div className="preview-map-wrap">
-          {!hasToken || !hasCoords ? (
-            <div className="preview-fallback">
-              {!hasToken
-                ? <span>Add <code>VITE_MAPBOX_TOKEN</code> to enable the satellite preview.</span>
-                : <span>No coordinates available for this listing.</span>}
-            </div>
-          ) : (
-            <>
-              <div ref={containerRef} className="preview-map" />
-              {!loaded && (
-                <div className="preview-loading">
-                  <div className="spinner sm" />
-                  <span>Loading high-res aerial view…</span>
-                </div>
-              )}
-
-              <div className="preview-controls">
-                <button
-                  className={`preview-rotate-btn ${autoRotate ? 'active' : ''}`}
-                  onClick={() => setAutoRotate(r => !r)}
-                  title="Auto-rotate"
-                >
-                  {autoRotate ? '⏸ Pause' : '↻ Auto'}
-                </button>
-                <button
-                  className={`preview-rotate-btn ${firstPerson ? 'active' : ''}`}
-                  onClick={toggleFirstPerson}
-                  title="First-person view (low pitch)"
-                >
-                  {firstPerson ? '🛰 Aerial' : '👁 First-person'}
-                </button>
-                <div className="preview-headings">
-                  {HEADINGS.map(h => {
-                    const diff = Math.abs(((bearing - h.bearing + 540) % 360) - 180);
-                    const active = diff < 22.5;
-                    return (
-                      <button
-                        key={h.id}
-                        className={`heading-btn ${active ? 'active' : ''}`}
-                        onClick={() => flyToHeading(h.bearing)}
-                      >
-                        {h.label}
-                      </button>
-                    );
-                  })}
-                </div>
+          {/* Aerial view — keep mounted so the Mapbox map persists across tab toggles */}
+          <div className={`preview-view-pane ${view === 'aerial' ? '' : 'hidden'}`}>
+            {!hasToken || !hasCoords ? (
+              <div className="preview-fallback">
+                {!hasToken
+                  ? <span>Add <code>VITE_MAPBOX_TOKEN</code> to enable the satellite preview.</span>
+                  : <span>No coordinates available for this listing.</span>}
               </div>
+            ) : (
+              <>
+                <div ref={containerRef} className="preview-map" />
+                {!loaded && (
+                  <div className="preview-loading">
+                    <div className="spinner sm" />
+                    <span>Loading high-res aerial view…</span>
+                  </div>
+                )}
 
-              {streetViewUrl && (
-                <a
-                  className="preview-streetview-btn"
-                  href={streetViewUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  title="Open ground-level Google Street View in a new tab"
-                >
-                  🚶 Street View
-                </a>
-              )}
-            </>
-          )}
+                <div className="preview-controls">
+                  <button
+                    className={`preview-rotate-btn ${autoRotate ? 'active' : ''}`}
+                    onClick={() => setAutoRotate(r => !r)}
+                    title="Auto-rotate"
+                  >
+                    {autoRotate ? '⏸ Pause' : '↻ Auto'}
+                  </button>
+                  <button
+                    className={`preview-rotate-btn ${firstPerson ? 'active' : ''}`}
+                    onClick={toggleFirstPerson}
+                    title="First-person view (low pitch)"
+                  >
+                    {firstPerson ? '🛰 Aerial' : '👁 First-person'}
+                  </button>
+                  <div className="preview-headings">
+                    {HEADINGS.map(h => {
+                      const diff = Math.abs(((bearing - h.bearing + 540) % 360) - 180);
+                      const active = diff < 22.5;
+                      return (
+                        <button
+                          key={h.id}
+                          className={`heading-btn ${active ? 'active' : ''}`}
+                          onClick={() => flyToHeading(h.bearing)}
+                        >
+                          {h.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Street view (Google Maps Embed API iframe) */}
+          <div className={`preview-view-pane ${view === 'street' ? '' : 'hidden'}`}>
+            {!hasCoords ? (
+              <div className="preview-fallback">No coordinates available for this listing.</div>
+            ) : streetEmbedUrl ? (
+              <iframe
+                title="Google Street View"
+                className="preview-streetview-iframe"
+                src={streetEmbedUrl}
+                loading="lazy"
+                allowFullScreen
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            ) : (
+              <div className="preview-fallback streetview-setup">
+                <div>
+                  <strong>Embedded Street View needs a Google Maps Embed API key.</strong>
+                  <p className="muted small" style={{ marginTop: 8 }}>
+                    Set <code>VITE_GOOGLE_MAPS_EMBED_KEY</code> in your client env (and Vercel),
+                    then redeploy. The Embed API is free with no usage cap.
+                  </p>
+                  <p className="muted small" style={{ marginTop: 4 }}>
+                    Get a key at <code>console.cloud.google.com</code> → enable
+                    <em> Maps Embed API</em>.
+                  </p>
+                </div>
+                {streetViewUrl && (
+                  <a
+                    className="preview-streetview-btn static"
+                    href={streetViewUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    🚶 Open in Google Street View
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="preview-meta">
@@ -323,13 +380,19 @@ export default function SatellitePreview({ listing, onClose }) {
           {listing.sqft && (<><span className="stat-sep">·</span><span>{listing.sqft.toLocaleString()} sqft</span></>)}
         </div>
 
-        <div className="preview-hint-row">
-          <span className="kbd-hint"><kbd>WASD</kbd>/<kbd>↑↓←→</kbd> pan</span>
-          <span className="kbd-hint"><kbd>Q</kbd>/<kbd>E</kbd> rotate</span>
-          <span className="kbd-hint"><kbd>R</kbd>/<kbd>F</kbd> tilt</span>
-          <span className="kbd-hint"><kbd>+</kbd>/<kbd>-</kbd> zoom</span>
-          <span className="kbd-hint kbd-muted">drag · scroll · right-drag to tilt</span>
-        </div>
+        {view === 'aerial' ? (
+          <div className="preview-hint-row">
+            <span className="kbd-hint"><kbd>WASD</kbd>/<kbd>↑↓←→</kbd> pan</span>
+            <span className="kbd-hint"><kbd>Q</kbd>/<kbd>E</kbd> rotate</span>
+            <span className="kbd-hint"><kbd>R</kbd>/<kbd>F</kbd> tilt</span>
+            <span className="kbd-hint"><kbd>+</kbd>/<kbd>-</kbd> zoom</span>
+            <span className="kbd-hint kbd-muted">drag · scroll · right-drag to tilt</span>
+          </div>
+        ) : (
+          <div className="preview-hint-row">
+            <span className="kbd-hint kbd-muted">Drag to look around · click arrows on the road to walk down the street</span>
+          </div>
+        )}
       </div>
     </div>
   );
