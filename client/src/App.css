@@ -79,6 +79,52 @@ body {
 /* ── Form ─────────────────────────────────────────── */
 .input-form { display: flex; flex-direction: column; gap: 12px; }
 
+.form-tabs { display: flex; gap: 4px; margin-bottom: 2px; }
+.form-tab {
+  flex: 1; padding: 7px; border-radius: var(--radius);
+  border: 1px solid var(--border); background: var(--bg);
+  color: var(--text-muted); cursor: pointer; font-size: 13px;
+  font-weight: 600; transition: all 0.15s;
+}
+.form-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+.vibe-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.vibe-btn {
+  display: flex; flex-direction: column; align-items: flex-start;
+  padding: 8px 10px; border-radius: var(--radius);
+  border: 1px solid var(--border); background: var(--bg);
+  cursor: pointer; transition: all 0.15s; text-align: left;
+  gap: 2px;
+}
+.vibe-btn.active { border-color: var(--accent); background: var(--accent-dim); }
+.vibe-btn:last-child { grid-column: span 2; }
+.vibe-label { font-size: 13px; font-weight: 600; color: var(--text); }
+.vibe-desc { font-size: 11px; color: var(--text-muted); }
+
+.must-haves-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.must-have-btn {
+  padding: 6px 10px; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--bg);
+  color: var(--text-muted); cursor: pointer; font-size: 12px;
+  transition: all 0.15s;
+}
+.must-have-btn.active { border-color: var(--accent); background: var(--accent-dim); color: var(--text); }
+
+.pref-summary { display: flex; flex-wrap: wrap; gap: 6px; min-height: 24px; }
+.pref-tag {
+  font-size: 11px; padding: 3px 8px; border-radius: 999px;
+  background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3);
+  color: #93c5fd;
+}
+
+.next-btn {
+  background: var(--bg); border: 1px solid var(--border);
+  color: var(--text-muted); border-radius: var(--radius);
+  padding: 10px; font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: all 0.15s;
+}
+.next-btn:hover { background: var(--bg-hover); color: var(--text); }
+
 .form-group { display: flex; flex-direction: column; gap: 4px; }
 .form-group label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
 
@@ -182,6 +228,9 @@ input.error { border-color: var(--red); }
 .neighborhood-card-name { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
 .neighborhood-card-rent { color: var(--text-muted); font-size: 12px; margin-bottom: 4px; }
 .neighborhood-card-label { font-size: 12px; font-weight: 600; }
+.neighborhood-card-warn { font-size: 10px; color: var(--amber); margin-top: 2px; }
+
+.legend-filter { font-size: 11px; color: var(--accent); margin-top: 6px; border-top: 1px solid var(--border); padding-top: 6px; }
 
 /* ── Verdict Panel ────────────────────────────────── */
 .verdict-panel { display: flex; flex-direction: column; gap: 14px; }

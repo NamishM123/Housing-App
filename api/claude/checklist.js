@@ -5,10 +5,21 @@ const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { jobTitle, salary, savings, roommates, hasCar, lifestyle, neighborhood } = req.body;
+  const {
+    jobTitle, salary, savings, roommates, hasCar, hasPet,
+    lifestyle, workSetup, mustHaves, timeline, neighborhood,
+  } = req.body;
+
+  const mustHavesList = (mustHaves || []).join(', ') || 'none';
 
   const prompt = `Generate a personalized move-in checklist for a ${jobTitle} moving to ${neighborhood} in SLO County.
-Context: salary $${salary}, savings $${savings}, roommates: ${roommates}, has car: ${hasCar}, lifestyle: ${lifestyle}.
+
+Profile:
+- Salary: $${salary}, savings: $${savings}
+- Roommates: ${roommates}, has car: ${hasCar}, has pet: ${hasPet || false}
+- Work setup: ${workSetup || 'hybrid'}, eating out: ${lifestyle}
+- Must-haves requested: ${mustHavesList}
+- Move-in timeline: ${timeline || 'asap'}
 
 Respond ONLY with JSON:
 {
@@ -16,7 +27,7 @@ Respond ONLY with JSON:
     { "name": "category name", "items": ["item1", "item2"] }
   ]
 }
-Include 4-5 categories: Admin/Paperwork, Utilities Setup, Home Essentials, Transport, Social/Fun. Tailor to context (car → parking permit; no roommates → router setup; etc).`;
+Include 5-6 relevant categories. Tailor specifically: car → parking permit + smog check; pet → pet deposit + vet search; remote → desk setup + fast internet; no roommates → full router setup; tight timeline → priority items first.`;
 
   try {
     const completion = await client.chat.completions.create({

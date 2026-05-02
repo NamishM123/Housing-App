@@ -12,7 +12,14 @@ const DEFAULT_FORM = {
   savings: 10000,
   roommates: 0,
   hasCar: true,
+  hasPet: false,
   lifestyle: 'sometimes',
+  maxRent: null,
+  vibe: 'any',
+  commute: 'medium',
+  workSetup: 'hybrid',
+  mustHaves: [],
+  timeline: 'asap',
 };
 
 export default function App() {
@@ -77,6 +84,8 @@ export default function App() {
           <MapView
             monthlyIncome={monthlyIncome}
             roommates={submittedForm?.roommates ?? 0}
+            maxRent={submittedForm?.maxRent ?? null}
+            vibe={submittedForm?.vibe ?? 'any'}
             onNeighborhoodSelect={handleNeighborhoodSelect}
             selectedId={selectedNeighborhood?.id}
           />
