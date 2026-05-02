@@ -152,19 +152,32 @@ export default function MapView({
         map.current.addSource(labelSource, { type: 'geojson', data: labelGeojson });
       }
 
-      // ── Heatmap-style glow circle — dark atmospheric colors, heavy blur ──
-      const glowOpacity = vibeMatch ? (isSelected ? 0.82 : 0.52) : 0.06;
+      // ── Heatmap-style glow circle — covers full area at low zoom, fades on zoom-in ──
+      const glowOpacityBase = vibeMatch ? (isSelected ? 0.82 : 0.52) : 0.06;
+      const glowOpacityZoom = [
+        'interpolate', ['linear'], ['zoom'],
+        9,  glowOpacityBase,   // full opacity when zoomed out
+        12, glowOpacityBase,   // start fading
+        13.5, 0,               // fully gone when zoomed in
+      ];
       if (map.current.getLayer(glowId)) {
         map.current.setPaintProperty(glowId, 'circle-color', heatColor);
-        map.current.setPaintProperty(glowId, 'circle-opacity', glowOpacity);
+        map.current.setPaintProperty(glowId, 'circle-opacity', glowOpacityZoom);
       } else {
         map.current.addLayer({
           id: glowId, type: 'circle', source: labelSource,
           paint: {
-            'circle-radius': ['interpolate', ['linear'], ['zoom'], 7.5, 22, 9, 44, 10.5, 80, 12, 140, 14, 210],
+            // Large enough to blanket the whole neighborhood polygon at low zoom
+            'circle-radius': ['interpolate', ['linear'], ['zoom'],
+              7,  60,
+              9,  120,
+              10.5, 200,
+              12, 320,
+              13.5, 420,
+            ],
             'circle-color': heatColor,
-            'circle-opacity': glowOpacity,
-            'circle-blur': 0.88,
+            'circle-opacity': glowOpacityZoom,
+            'circle-blur': 0.92,
             'circle-pitch-alignment': 'map',
             'circle-pitch-scale': 'map',
           },
@@ -487,12 +500,12 @@ export default function MapView({
     if (!mapLoaded || !map.current || !monthlyIncome) return;
     map.current.flyTo({
       center: [-120.68, 35.27],
-      zoom: 10.8,
+      zoom: 9.5,
       pitch: 54,
       bearing: -14,
       duration: 3200,
       essential: true,
-      curve: 1.8,   // tighter arc = more dramatic deceleration at target
+      curve: 1.8,
       speed: 0.8,
     });
   }, [mapLoaded, monthlyIncome]);
@@ -503,7 +516,7 @@ export default function MapView({
     const hasForm = monthlyIncomeRef.current > 0;
     map.current.flyTo({
       center: hasForm ? [-120.68, 35.30] : [-108, 32],
-      zoom: hasForm ? 10.8 : 2.8,
+      zoom: hasForm ? 9.5 : 2.8,
       pitch: hasForm ? 54 : 0,
       bearing: hasForm ? -14 : 0,
       duration: 1200,
