@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 300" fill="none">
+  <!-- Upper S arc: sweeps from left-center over the top to right-center -->
+  <path d="M68,148 C62,90 95,18 192,12 C289,6 330,68 322,128"
+        stroke="black" stroke-width="18" stroke-linecap="round"/>
+
+  <!-- Lower S arc: sweeps from right-center under the bottom to left-center -->
+  <path d="M314,172 C320,230 288,290 192,292 C96,294 56,236 62,186"
+        stroke="black" stroke-width="18" stroke-linecap="round"/>
+
+  <!-- Small house (left) -->
+  <path d="M85,184 L85,154 L100,139 L115,154 L115,184"
+        stroke="black" stroke-width="3.5" stroke-linejoin="round"/>
+  <rect x="91" y="165" width="18" height="19" stroke="black" stroke-width="3"/>
+
+  <!-- Medium house (centre, taller) -->
+  <path d="M117,184 L117,148 L138,126 L159,148 L159,184"
+        stroke="black" stroke-width="3.5" stroke-linejoin="round"/>
+  <rect x="126" y="157" width="24" height="27" stroke="black" stroke-width="3"/>
+
+  <!-- Right building block -->
+  <rect x="162" y="128" width="52" height="56" stroke="black" stroke-width="3.5"/>
+  <rect x="170" y="137" width="10" height="10" stroke="black" stroke-width="2.5"/>
+  <rect x="185" y="137" width="10" height="10" stroke="black" stroke-width="2.5"/>
+  <rect x="170" y="152" width="10" height="10" stroke="black" stroke-width="2.5"/>
+  <rect x="185" y="152" width="10" height="10" stroke="black" stroke-width="2.5"/>
+  <rect x="177" y="163" width="14" height="21" stroke="black" stroke-width="2.5"/>
+</svg>

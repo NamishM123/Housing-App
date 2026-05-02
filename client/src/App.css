@@ -49,69 +49,58 @@ body {
 }
 
 /* ── Layout ───────────────────────────────────────── */
-.app { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+/* No full-width header — map fills the full height */
+.app { display: flex; height: 100vh; overflow: hidden; }
+.app-body { display: flex; flex: 1; overflow: hidden; width: 100%; }
 
-.app-header {
-  background: #070D16;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  padding: 0 22px;
-  height: 58px;
-  flex-shrink: 0;
-  z-index: 10;
+/* ── Settler sidebar brand section ──────────────────
+   Logo lives here — NOT in a full-width top bar.
+   Using <img> + height:auto preserves the SVG
+   aspect ratio without any distortion.
+─────────────────────────────────────────────────── */
+.sidebar-brand {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-}
-
-/* ── Settler brand header ───────────────────────── */
-.settler-header {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-}
-
-.settler-mark {
-  width: 42px;
-  height: 42px;
-  color: rgba(232,238,246,0.90);
+  gap: 12px;
+  padding: 20px 2px 18px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
   flex-shrink: 0;
 }
 
-.settler-wordmark {
+.sidebar-logo {
+  /* height fixed, width: auto — never distorts the logo */
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+  flex-shrink: 0;
+  /* invert for dark bg: the SVG is black-on-white, flip to white-on-dark */
+  filter: invert(1) brightness(0.85);
+}
+
+.sidebar-wordmark {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  line-height: 1;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
 }
 
-.settler-name {
-  font-size: 16px;
+.sidebar-name {
+  font-size: 15px;
   font-weight: 800;
-  letter-spacing: 0.20em;
+  letter-spacing: 0.22em;
   color: var(--text);
+  line-height: 1;
+  display: block;
 }
 
-.settler-tagline {
+.sidebar-tagline {
   font-size: 10px;
   color: var(--text-sub);
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   font-weight: 400;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.header-location-pill {
-  font-size: 11px;
-  color: var(--text-muted);
-  padding: 4px 11px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,0.03);
-  white-space: nowrap;
+  display: block;
 }
 
 .app-body { display: flex; flex: 1; overflow: hidden; }
@@ -123,7 +112,8 @@ body {
   border-right: 1px solid rgba(255,255,255,0.05);
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 18px 16px;
+  /* top padding handled by sidebar-brand section */
+  padding: 0 16px 18px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -606,20 +596,24 @@ input.error { border-color: var(--red); }
 
 /* ── Mobile ───────────────────────────────────────── */
 @media (max-width: 768px) {
+  .app { flex-direction: column; }
   .app-body { flex-direction: column; }
   .sidebar { width: 100%; height: auto; max-height: 50vh; border-right: none; border-bottom: 1px solid var(--border); }
-  .header-subtitle { display: none; }
+  .sidebar-logo { height: 28px; }
   .drawer { max-height: 90vh; }
   .score-ring { width: 52px; height: 52px; font-size: 18px; }
   .neighborhood-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
-/* ── Shortlist badge in header ────────────────────── */
+/* ── Shortlist badge (lives in sidebar brand row) ── */
 .shortlist-badge {
-  padding: 5px 13px; border-radius: 999px;
-  background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.3);
-  color: var(--amber); font-size: 12px; font-weight: 700;
+  padding: 4px 10px; border-radius: 999px;
+  background: rgba(251,191,36,0.10); border: 1px solid rgba(251,191,36,0.28);
+  color: var(--amber); font-size: 11px; font-weight: 700;
   letter-spacing: 0.02em;
+  white-space: nowrap;
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 /* ── Listing price pins on map ────────────────────── */
