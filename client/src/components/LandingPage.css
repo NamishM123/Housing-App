@@ -26,6 +26,42 @@
   pointer-events: none;
 }
 
+.landing-text-wrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.landing-text {
+  color: #f4f1e8;
+  font-size: clamp(1.8rem, 4.6vw, 4rem);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  opacity: 0;
+  transform: scale(0.55);
+  text-shadow:
+    0 0 22px rgba(255, 240, 210, 0.32),
+    0 0 70px rgba(180, 200, 255, 0.18);
+  will-change: opacity, transform;
+}
+
+.landing-text.in {
+  animation: textFadeExpand 1.8s cubic-bezier(0.22, 0.9, 0.32, 1) forwards;
+}
+
+.landing-text.snap {
+  opacity: 0;       /* DOM text hidden — particles take over */
+}
+
+@keyframes textFadeExpand {
+  0%   { opacity: 0;    transform: scale(0.55); filter: blur(6px); }
+  60%  { opacity: 0.95; filter: blur(0px); }
+  100% { opacity: 1;    transform: scale(1.05); filter: blur(0px); }
+}
+
 
 .landing-root.dismissing {
   opacity: 0;
