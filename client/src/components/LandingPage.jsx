@@ -4,13 +4,14 @@ import { Stars } from '@react-three/drei';
 import './LandingPage.css';
 
 /**
- * Cinematic landing sequence:
- *  1. Realistic 3D starfield + Rolls-Royce-style varied shooting stars
- *  2. After ~3.2s, "Welcome to Settlr" fades in (opacity 0→1) while
- *     scaling out from the middle
- *  3. Brief hold
- *  4. Thanos snap — text rasterized to particles that drift right and fade
- *  5. After snap, dashboard is revealed
+ * Landing sequence:
+ *  1. Stars + Rolls-Royce-style varied shooting stars
+ *  2. "Welcome to Settlr" fades in (DOM, opacity 0→1, scale-out from center)
+ *  3. Settle: canvas particles crossfade in over the DOM text (seamless handoff)
+ *  4. Hold (canvas particles only)
+ *  5. Spider-Man / Thanos snap: slow right-to-left disintegration wave,
+ *     mixed grain sizes, particles drift right & fade
+ *  6. After snap, dashboard
  */
 
 function StarField() {
@@ -23,7 +24,6 @@ function StarField() {
   });
   return (
     <group ref={ref}>
-      {/* Two layers: sparser big stars + denser small stars */}
       <Stars radius={100} depth={50} count={1600} factor={7}   saturation={0.3} fade speed={0.5} />
       <Stars radius={140} depth={70} count={9000} factor={3.0} saturation={0.5} fade speed={0.7} />
     </group>
@@ -33,13 +33,14 @@ function StarField() {
 const TEXT             = 'Welcome to Settlr';
 const FONT_STACK       = "'Montserrat', 'Helvetica Neue', system-ui, sans-serif";
 const FONT_WEIGHT      = 300;
-const SAMPLE_STEP      = 3;
+const SAMPLE_STEP      = 2;        // fine grain
 
 // Phase timing (ms)
-const T_STARS_ONLY      = 3200;     // stars-only intro
-const T_TEXT_IN         = 1800;     // fade + scale in
-const T_HOLD_TEXT       = 1300;     // hold
-const T_SNAP            = 2500;     // Thanos snap
+const T_STARS_ONLY      = 3200;
+const T_TEXT_IN         = 1800;    // DOM fade + scale
+const T_SETTLE          = 380;     // DOM↘ canvas↗ crossfade
+const T_HOLD            = 1000;
+const T_SNAP            = 3400;    // slow Spider-Man wave
 const T_DISMISS_FADE    = 900;
 
 export default function LandingPage({ onComplete }) {
@@ -47,47 +48,63 @@ export default function LandingPage({ onComplete }) {
   const textRef       = useRef(null);
   const animRef       = useRef(null);
   const particlesRef  = useRef([]);
-  const phaseRef      = useRef('stars');     // stars → text-in → hold → snap → done
+  const phaseRef      = useRef('stars');     // stars → text-in → settle → hold → snap → done
   const phaseStartRef = useRef(performance.now());
 
-  const [textPhase,  setTextPhase]  = useState('hidden');   // hidden → in → snap
+  const [textPhase,  setTextPhase]  = useState('hidden');   // hidden → in → fading → gone
   const [blurStars,  setBlurStars]  = useState(false);
   const [dismissing, setDismissing] = useState(false);
 
-  // ---------- Build dissolve particles by sampling DOM text ----------
-  function buildSnapParticles() {
+  // ---------- Build particles by sampling DOM text exactly ----------
+  function buildParticles() {
     const textEl = textRef.current;
     if (!textEl) return;
     const rect = textEl.getBoundingClientRect();
+    const cs = window.getComputedStyle(textEl);
 
+    // Render text at exactly the same metrics as the DOM
     const off = document.createElement('canvas');
     off.width  = Math.ceil(rect.width);
     off.height = Math.ceil(rect.height);
     const octx = off.getContext('2d');
-    const cs = window.getComputedStyle(textEl);
-    octx.fillStyle = '#f4f1e8';
+    octx.fillStyle = '#ffffff';
     octx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
     octx.textBaseline = 'middle';
     octx.textAlign = 'center';
-    octx.fillText(textEl.textContent, off.width / 2, off.height / 2);
+    octx.fillText(TEXT, off.width / 2, off.height / 2);
 
     const data = octx.getImageData(0, 0, off.width, off.height).data;
     const ps = [];
-    const W = window.innerWidth;
     for (let y = 0; y < off.height; y += SAMPLE_STEP) {
       for (let x = 0; x < off.width; x += SAMPLE_STEP) {
         const idx = (y * off.width + x) * 4;
-        if (data[idx + 3] > 128) {
-          // Right-to-left wave: particles further right disintegrate first
-          const distFromLeft = x / off.width;     // 0..1
+        if (data[idx + 3] > 80) {
+          // Mixed grain sizes — most tiny, some chunkier
+          const r = Math.random();
+          const size = r < 0.6  ? 1
+                     : r < 0.85 ? 1.5
+                     : r < 0.97 ? 2.2
+                     : 3.0;
+
+          // Spider-Man wave: rightmost pixels disintegrate first
+          // Wave covers ~70% of T_SNAP, each pixel fades over remaining 30%
+          const distFromRight = 1 - (x / off.width);   // 0 at right edge → 1 at left
+          const waveStart = distFromRight * 0.7;       // 0..0.7
+          const jitter = (Math.random() - 0.3) * 0.18; // some particles go early/late
+          const snapDelay = Math.max(0, Math.min(0.85, waveStart + jitter));
+
+          // Heavier grains drift a bit faster (sand caught in wind)
+          const speedBoost = size > 1.5 ? 0.4 + Math.random() * 0.4 : 0;
           ps.push({
             x: rect.left + x,
             y: rect.top  + y,
-            vx: 1.6 + Math.random() * 2.6,
-            vy: (Math.random() - 0.5) * 0.7 - 0.18,
-            size: 1.0 + Math.random() * 1.1,
-            baseAlpha: 0.7 + Math.random() * 0.3,
-            snapDelay: (1 - distFromLeft) * 0.35 + Math.random() * 0.4,    // 0..0.75
+            vx: 1.0 + Math.random() * 2.4 + speedBoost,
+            vy: (Math.random() - 0.5) * 0.7 - 0.12,
+            size,
+            alphaBase: 0.82 + Math.random() * 0.18,
+            snapDelay,
+            // Per-particle decay rate after release (varies the trail look)
+            decay: 0.9 + Math.random() * 0.4,
           });
         }
       }
@@ -95,7 +112,7 @@ export default function LandingPage({ onComplete }) {
     particlesRef.current = ps;
   }
 
-  // ---------- Main animation loop ----------
+  // ---------- Animation loop ----------
   useEffect(() => {
     const canvas = overlayRef.current;
     const ctx = canvas.getContext('2d');
@@ -112,88 +129,64 @@ export default function LandingPage({ onComplete }) {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
-    /* Rolls-Royce starlight style shooting stars:
-       - Three profiles: quick (short tail, fast), medium, elegant (long tail, slow)
-       - Random direction (full 360)
-       - Drawn as thin gradient line (head bright → tail transparent)
-       - Some travel a long way; some are tiny brief flickers
-    */
     function spawnShootingStar() {
       const profile = Math.random();
       let tailLen, speed, life, lineWidth;
       if (profile < 0.45) {
-        // quick brief flick
-        tailLen   = 25 + Math.random() * 35;
-        speed     = 7  + Math.random() * 5;
-        life      = 28 + Math.random() * 18;
+        tailLen = 25 + Math.random() * 35;
+        speed   = 7  + Math.random() * 5;
+        life    = 28 + Math.random() * 18;
         lineWidth = 0.8;
       } else if (profile < 0.85) {
-        // medium
-        tailLen   = 70 + Math.random() * 80;
-        speed     = 4  + Math.random() * 3;
-        life      = 80 + Math.random() * 60;
+        tailLen = 70 + Math.random() * 80;
+        speed   = 4  + Math.random() * 3;
+        life    = 80 + Math.random() * 60;
         lineWidth = 1.0;
       } else {
-        // long elegant
-        tailLen   = 180 + Math.random() * 140;
-        speed     = 2.0 + Math.random() * 1.6;
-        life      = 220 + Math.random() * 140;
+        tailLen = 180 + Math.random() * 140;
+        speed   = 2.0 + Math.random() * 1.6;
+        life    = 220 + Math.random() * 140;
         lineWidth = 1.2;
       }
-
-      // Random direction with slight downward bias (more natural)
       const angle = Math.random() * Math.PI * 2 + Math.PI * 0.05;
       const vx = Math.cos(angle) * speed;
       const vy = Math.sin(angle) * speed;
-
-      // Spawn somewhere on screen (not just edges) so they appear anywhere
       const margin = -50;
-      const startX = margin + Math.random() * (W - margin * 2);
-      const startY = margin + Math.random() * (H * 0.7 - margin * 2);
-
       shootingStars.push({
-        x: startX, y: startY, vx, vy,
-        tailLen, life: 0, maxLife: life, lineWidth,
-        // mild color variation
+        x: margin + Math.random() * (W - margin * 2),
+        y: margin + Math.random() * (H * 0.7 - margin * 2),
+        vx, vy, tailLen, life: 0, maxLife: life, lineWidth,
         hue: Math.random() < 0.7 ? 'rgba(255, 245, 225,' : 'rgba(220, 230, 255,',
       });
     }
 
-    let lastShoot = performance.now() - 1000;   // spawn first one quickly
+    let lastShoot = performance.now() - 1000;
     let nextShootIn = 400 + Math.random() * 600;
 
     function frame(now) {
       ctx.clearRect(0, 0, W, H);
 
-      // --- Spawn shooting stars frequently for ambient feel ---
+      // --- Shooting stars ---
       if (now - lastShoot > nextShootIn) {
         spawnShootingStar();
-        // sometimes a quick cluster
         if (Math.random() < 0.3) setTimeout(spawnShootingStar, 200 + Math.random() * 400);
         lastShoot = now;
         nextShootIn = 600 + Math.random() * 1800;
       }
-
-      // --- Render shooting stars as gradient lines ---
       for (let i = shootingStars.length - 1; i >= 0; i--) {
         const sh = shootingStars[i];
         sh.x += sh.vx;
         sh.y += sh.vy;
         sh.life++;
         const lr = sh.life / sh.maxLife;
-        const fade = lr < 0.12
-          ? lr / 0.12
-          : lr > 0.7
-            ? Math.max(0, 1 - (lr - 0.7) / 0.3)
-            : 1;
-
-        // Tail end: opposite of velocity direction
+        const fade = lr < 0.12 ? lr / 0.12
+                  : lr > 0.7  ? Math.max(0, 1 - (lr - 0.7) / 0.3)
+                  : 1;
         const speed = Math.hypot(sh.vx, sh.vy) || 1;
         const ux = sh.vx / speed;
         const uy = sh.vy / speed;
         const tailX = sh.x - ux * sh.tailLen;
         const tailY = sh.y - uy * sh.tailLen;
-
         const grad = ctx.createLinearGradient(tailX, tailY, sh.x, sh.y);
         grad.addColorStop(0,   sh.hue + '0)');
         grad.addColorStop(0.6, sh.hue + (0.18 * fade) + ')');
@@ -205,8 +198,6 @@ export default function LandingPage({ onComplete }) {
         ctx.moveTo(tailX, tailY);
         ctx.lineTo(sh.x, sh.y);
         ctx.stroke();
-
-        // Tiny soft head glow (subtle, not a missile)
         const headG = ctx.createRadialGradient(sh.x, sh.y, 0, sh.x, sh.y, 3);
         headG.addColorStop(0, sh.hue + (0.7 * fade) + ')');
         headG.addColorStop(1, sh.hue + '0)');
@@ -214,7 +205,6 @@ export default function LandingPage({ onComplete }) {
         ctx.beginPath();
         ctx.arc(sh.x, sh.y, 3, 0, Math.PI * 2);
         ctx.fill();
-
         if (sh.life >= sh.maxLife || sh.x < -200 || sh.x > W + 200 || sh.y > H + 200 || sh.y < -200) {
           shootingStars.splice(i, 1);
         }
@@ -229,12 +219,17 @@ export default function LandingPage({ onComplete }) {
         phaseStartRef.current = now;
         setTextPhase('in');
       } else if (phase === 'text-in' && elapsed >= T_TEXT_IN) {
+        // Build particles right when DOM text is fully visible — same metrics
+        buildParticles();
+        // Start crossfading DOM out
+        setTextPhase('fading');
+        phaseRef.current = 'settle';
+        phaseStartRef.current = now;
+      } else if (phase === 'settle' && elapsed >= T_SETTLE) {
+        setTextPhase('gone');
         phaseRef.current = 'hold';
         phaseStartRef.current = now;
-      } else if (phase === 'hold' && elapsed >= T_HOLD_TEXT) {
-        // Begin Thanos snap — sample current DOM text
-        buildSnapParticles();
-        setTextPhase('snap');     // hides DOM text instantly
+      } else if (phase === 'hold' && elapsed >= T_HOLD) {
         setBlurStars(true);
         phaseRef.current = 'snap';
         phaseStartRef.current = now;
@@ -244,24 +239,42 @@ export default function LandingPage({ onComplete }) {
         setTimeout(() => onComplete?.(), T_DISMISS_FADE);
       }
 
-      // --- Render snap particles ---
-      if (phase === 'snap' && particlesRef.current.length) {
-        const t = elapsed / T_SNAP;
-        const ps = particlesRef.current;
-        for (const p of ps) {
-          const local = Math.max(0, (t - p.snapDelay) / (1 - p.snapDelay));
-          if (local <= 0) {
-            ctx.fillStyle = `rgba(244, 241, 232, ${p.baseAlpha})`;
+      // --- Render text-particle layer ---
+      const ps = particlesRef.current;
+      if (ps.length) {
+        if (phase === 'settle') {
+          // Particles fade in 0 → 1 to crossfade with DOM text fading out
+          const t = elapsed / T_SETTLE;
+          for (const p of ps) {
+            ctx.fillStyle = `rgba(244, 241, 232, ${p.alphaBase * t})`;
             ctx.fillRect(p.x, p.y, p.size, p.size);
-            continue;
           }
-          p.x += p.vx;
-          p.y += p.vy;
-          p.vx *= 0.992;
-          p.vy *= 0.992;
-          const alpha = Math.max(0, 1 - local) * p.baseAlpha;
-          ctx.fillStyle = `rgba(244, 241, 232, ${alpha})`;
-          ctx.fillRect(p.x, p.y, p.size, p.size);
+        } else if (phase === 'hold') {
+          for (const p of ps) {
+            ctx.fillStyle = `rgba(244, 241, 232, ${p.alphaBase})`;
+            ctx.fillRect(p.x, p.y, p.size, p.size);
+          }
+        } else if (phase === 'snap') {
+          const t = elapsed / T_SNAP;
+          for (const p of ps) {
+            if (t <= p.snapDelay) {
+              // Not yet released — still part of solid text
+              ctx.fillStyle = `rgba(244, 241, 232, ${p.alphaBase})`;
+              ctx.fillRect(p.x, p.y, p.size, p.size);
+              continue;
+            }
+            // Released — drift right, decay
+            const localT = t - p.snapDelay;     // 0..(1-snapDelay)
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vx *= 0.992;
+            p.vy *= 0.992;
+            const alpha = Math.max(0, 1 - localT * p.decay * 3.5) * p.alphaBase;
+            if (alpha > 0.005) {
+              ctx.fillStyle = `rgba(244, 241, 232, ${alpha})`;
+              ctx.fillRect(p.x, p.y, p.size, p.size);
+            }
+          }
         }
       }
 
