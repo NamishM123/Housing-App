@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import IncomeInput, { validateIncome } from './IncomeInput';
 
 const VIBES = [
   { id: 'urban',    label: '🏙️ Urban',    desc: 'Walkable, downtown energy' },
@@ -49,7 +50,8 @@ export default function InputForm({ form, setForm, onSubmit }) {
   const validate = () => {
     const e = {};
     if (!form.jobTitle.trim()) e.jobTitle = 'Required';
-    if (!form.salary || form.salary < 1) e.salary = 'Enter valid salary';
+    const salaryErr = validateIncome(form.salary);
+    if (salaryErr) e.salary = salaryErr;
     if (form.savings < 0) e.savings = 'Cannot be negative';
     if (form.maxRent && form.maxRent < 500) e.maxRent = 'Too low';
     return e;
@@ -105,20 +107,11 @@ export default function InputForm({ form, setForm, onSubmit }) {
             {errors.jobTitle && <span className="error-msg">{errors.jobTitle}</span>}
           </div>
 
-          <div className="form-group">
-            <label>Annual Salary</label>
-            <div className="input-prefix">
-              <span>$</span>
-              <input
-                type="number" min="1" step="1000"
-                value={form.salary}
-                onChange={e => field('salary', Number(e.target.value))}
-                className={errors.salary ? 'error' : ''}
-              />
-            </div>
-            {errors.salary && <span className="error-msg">{errors.salary}</span>}
-            <span className="hint">${Math.round(form.salary / 12).toLocaleString()}/mo gross</span>
-          </div>
+          <IncomeInput
+            value={form.salary}
+            onChange={(v) => field('salary', v)}
+            error={errors.salary}
+          />
 
           <div className="form-group">
             <label>Current Savings</label>
