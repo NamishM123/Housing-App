@@ -1,43 +1,59 @@
 import { useEffect, useRef, useState } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { Stars } from '@react-three/drei';
 import './LandingPage.css';
 
 /**
  * Cinematic landing sequence:
- *  1. Realistic parallax starfield fades in
- *  2. Rolls-Royce-style slow shooting stars streak occasionally
+ *  1. Realistic 3D parallax starfield (R3F + drei) fades in
+ *  2. Slow Rolls-Royce-style shooting stars on overlay canvas
  *  3. "WELCOME TO SETTLR" appears, expands ("mosh")
- *  4. Stars blur, text dissolves into drifting particles to the right
+ *  4. Stars blur, text dissolves into drifting particles
  *  5. onComplete fires → main app revealed
  */
+
+function StarField() {
+  const ref = useRef();
+  // Slow drift gives a sense of motion without spinning the scene
+  useFrame((_, delta) => {
+    if (ref.current) {
+      ref.current.rotation.y += delta * 0.01;
+      ref.current.rotation.x += delta * 0.003;
+    }
+  });
+  return (
+    <group ref={ref}>
+      <Stars
+        radius={120}      // sphere radius
+        depth={60}        // depth of star layer
+        count={9000}      // dense, real-looking field
+        factor={3.2}      // star size factor
+        saturation={0.4}  // tint variation
+        fade
+        speed={0.6}       // twinkle speed
+      />
+    </group>
+  );
+}
+
 export default function LandingPage({ onComplete }) {
-  const canvasRef     = useRef(null);
-  const containerRef  = useRef(null);
+  const overlayRef    = useRef(null);
   const textRef       = useRef(null);
   const animRef       = useRef(null);
-  const particlesRef  = useRef([]);          // text-dissolve particles
+  const particlesRef  = useRef([]);
   const dissolvingRef = useRef(false);
 
-  const [phase, setPhase] = useState('appear');   // appear → expand → dissolve → done
+  const [phase, setPhase] = useState('appear');
   const [blurStars, setBlurStars] = useState(false);
   const [dismissing, setDismissing] = useState(false);
 
-  // ---------- Starfield + shooting stars (canvas) ----------
+  // ---------- Overlay canvas: shooting stars + dissolve particles ----------
   useEffect(() => {
-    const canvas = canvasRef.current;
+    const canvas = overlayRef.current;
     const ctx = canvas.getContext('2d');
     let dpr = Math.min(window.devicePixelRatio || 1, 2);
     let W = 0, H = 0;
-
-    const stars = [];
     const shootingStars = [];
-
-    const STAR_COLORS = [
-      'rgba(255,255,255,',   // pure white
-      'rgba(220,230,255,',   // cool blue
-      'rgba(255,240,220,',   // warm
-      'rgba(200,210,255,',   // pale blue
-      'rgba(255,225,200,',   // amber
-    ];
 
     function resize() {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -46,37 +62,14 @@ export default function LandingPage({ onComplete }) {
       canvas.width  = W * dpr;
       canvas.height = H * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      buildStars();
-    }
-
-    function buildStars() {
-      stars.length = 0;
-      const density = Math.floor((W * H) / 2200);  // ~realistic density
-      for (let i = 0; i < density; i++) {
-        const layer = Math.random();              // 0..1 → parallax depth
-        const size  = layer < 0.7
-          ? 0.4 + Math.random() * 0.8             // most stars: tiny
-          : 1.0 + Math.random() * 1.6;            // a few: bright
-        stars.push({
-          x: Math.random() * W,
-          y: Math.random() * H,
-          z: layer,
-          r: size,
-          baseAlpha: 0.35 + Math.random() * 0.55,
-          twinkleSpeed: 0.4 + Math.random() * 1.6,
-          twinklePhase: Math.random() * Math.PI * 2,
-          color: STAR_COLORS[(Math.random() * STAR_COLORS.length) | 0],
-        });
-      }
     }
 
     function spawnShootingStar() {
-      // Rolls-Royce headliner style: slow, gentle, soft trail
       const fromLeft = Math.random() < 0.5;
       const startX = fromLeft ? -50 : W + 50;
       const startY = Math.random() * H * 0.6;
-      const angle  = (fromLeft ? 1 : -1) * (0.18 + Math.random() * 0.12); // gentle slope
-      const speed  = 1.2 + Math.random() * 1.4;
+      const angle  = (fromLeft ? 1 : -1) * (0.18 + Math.random() * 0.12);
+      const speed  = 1.4 + Math.random() * 1.6;
       shootingStars.push({
         x: startX,
         y: startY,
@@ -88,47 +81,15 @@ export default function LandingPage({ onComplete }) {
       });
     }
 
-    let t0 = performance.now();
-    let lastShoot = t0;
+    let lastShoot = performance.now();
     let nextShootIn = 1500 + Math.random() * 2000;
 
     function frame(now) {
-      const t = (now - t0) / 1000;
-
-      // Background gradient wash (subtle nebula)
       ctx.clearRect(0, 0, W, H);
-      const grad = ctx.createRadialGradient(W * 0.5, H * 0.55, 0, W * 0.5, H * 0.55, Math.max(W, H) * 0.7);
-      grad.addColorStop(0,   'rgba(20, 25, 50, 0.55)');
-      grad.addColorStop(0.5, 'rgba(8, 10, 25, 0.35)');
-      grad.addColorStop(1,   'rgba(0, 0, 0, 0)');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, W, H);
 
-      // Stars
-      for (let i = 0; i < stars.length; i++) {
-        const s = stars[i];
-        const tw = 0.5 + 0.5 * Math.sin(t * s.twinkleSpeed + s.twinklePhase);
-        const alpha = s.baseAlpha * (0.55 + 0.45 * tw);
-        // soft glow for bigger stars
-        if (s.r > 1.3) {
-          const g = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 6);
-          g.addColorStop(0, s.color + (alpha * 0.9) + ')');
-          g.addColorStop(1, s.color + '0)');
-          ctx.fillStyle = g;
-          ctx.beginPath();
-          ctx.arc(s.x, s.y, s.r * 6, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.fillStyle = s.color + alpha + ')';
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // Shooting stars
+      // Spawn shooting stars
       if (now - lastShoot > nextShootIn) {
         spawnShootingStar();
-        // sometimes spawn a quick pair (Rolls-Royce vibe occasionally has clusters)
         if (Math.random() < 0.25) setTimeout(spawnShootingStar, 250);
         lastShoot = now;
         nextShootIn = 1800 + Math.random() * 2800;
@@ -140,9 +101,8 @@ export default function LandingPage({ onComplete }) {
         sh.y += sh.vy;
         sh.life++;
         sh.trail.push({ x: sh.x, y: sh.y });
-        if (sh.trail.length > 28) sh.trail.shift();
+        if (sh.trail.length > 30) sh.trail.shift();
 
-        // fade in then out
         const lifeRatio = sh.life / sh.maxLife;
         const fade = lifeRatio < 0.15
           ? lifeRatio / 0.15
@@ -150,22 +110,22 @@ export default function LandingPage({ onComplete }) {
             ? Math.max(0, 1 - (lifeRatio - 0.7) / 0.3)
             : 1;
 
-        // trail
+        // Trail
         for (let j = 0; j < sh.trail.length; j++) {
           const p = sh.trail[j];
-          const a = (j / sh.trail.length) * 0.8 * fade;
+          const a = (j / sh.trail.length) * 0.85 * fade;
           ctx.fillStyle = `rgba(255, 240, 220, ${a})`;
           ctx.beginPath();
-          ctx.arc(p.x, p.y, 0.8 + (j / sh.trail.length) * 1.4, 0, Math.PI * 2);
+          ctx.arc(p.x, p.y, 0.6 + (j / sh.trail.length) * 1.6, 0, Math.PI * 2);
           ctx.fill();
         }
-        // head
-        const headG = ctx.createRadialGradient(sh.x, sh.y, 0, sh.x, sh.y, 8);
-        headG.addColorStop(0, `rgba(255, 250, 235, ${0.95 * fade})`);
+        // Head
+        const headG = ctx.createRadialGradient(sh.x, sh.y, 0, sh.x, sh.y, 10);
+        headG.addColorStop(0, `rgba(255, 250, 235, ${1.0 * fade})`);
         headG.addColorStop(1, `rgba(255, 250, 235, 0)`);
         ctx.fillStyle = headG;
         ctx.beginPath();
-        ctx.arc(sh.x, sh.y, 8, 0, Math.PI * 2);
+        ctx.arc(sh.x, sh.y, 10, 0, Math.PI * 2);
         ctx.fill();
 
         if (sh.life >= sh.maxLife || sh.x < -100 || sh.x > W + 100 || sh.y > H + 100) {
@@ -173,7 +133,7 @@ export default function LandingPage({ onComplete }) {
         }
       }
 
-      // Text-dissolve particles
+      // Dissolve particles
       if (dissolvingRef.current && particlesRef.current.length) {
         const ps = particlesRef.current;
         for (let i = ps.length - 1; i >= 0; i--) {
@@ -205,45 +165,35 @@ export default function LandingPage({ onComplete }) {
 
   // ---------- Phase orchestration ----------
   useEffect(() => {
-    // Phase 1: appear (1.6s) → Phase 2: hold (0.6s) → expand (1.6s) → dissolve (1.8s) → done
     const t1 = setTimeout(() => setPhase('expand'), 2200);
     const t2 = setTimeout(() => {
       setBlurStars(true);
       triggerDissolve();
       setPhase('dissolve');
-    }, 2200 + 1100);   // start dissolve mid-expand for overlap
-    const t3 = setTimeout(() => {
-      setDismissing(true);
-    }, 2200 + 1100 + 1800);
-    const t4 = setTimeout(() => {
-      onComplete?.();
-    }, 2200 + 1100 + 1800 + 900);
-
+    }, 2200 + 1100);
+    const t3 = setTimeout(() => setDismissing(true), 2200 + 1100 + 1800);
+    const t4 = setTimeout(() => onComplete?.(), 2200 + 1100 + 1800 + 900);
     return () => { [t1, t2, t3, t4].forEach(clearTimeout); };
   }, [onComplete]);
 
-  // ---------- Build dissolve particles by sampling text pixels ----------
   function triggerDissolve() {
     const textEl = textRef.current;
     if (!textEl) return;
     const rect = textEl.getBoundingClientRect();
 
-    // Render the text to an offscreen canvas, sample pixels → spawn particles
     const off = document.createElement('canvas');
-    const scale = 1;
-    off.width  = Math.ceil(rect.width  * scale);
-    off.height = Math.ceil(rect.height * scale);
+    off.width  = Math.ceil(rect.width);
+    off.height = Math.ceil(rect.height);
     const octx = off.getContext('2d');
     const cs = window.getComputedStyle(textEl);
     octx.fillStyle = '#f4f1e8';
     octx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
     octx.textBaseline = 'middle';
     octx.textAlign = 'center';
-    // letter-spacing isn't supported on canvas reliably, but it's close enough
     octx.fillText(textEl.textContent, off.width / 2, off.height / 2);
 
     const data = octx.getImageData(0, 0, off.width, off.height).data;
-    const step = 4;   // sampling resolution (smaller = more particles)
+    const step = 4;
     const ps = particlesRef.current;
     for (let y = 0; y < off.height; y += step) {
       for (let x = 0; x < off.width; x += step) {
@@ -252,7 +202,7 @@ export default function LandingPage({ onComplete }) {
           ps.push({
             x: rect.left + x,
             y: rect.top  + y,
-            vx: 1.2 + Math.random() * 2.4,           // drift right
+            vx: 1.2 + Math.random() * 2.4,
             vy: (Math.random() - 0.5) * 0.6,
             size: 1 + Math.random() * 1.4,
             life: 0,
@@ -266,14 +216,22 @@ export default function LandingPage({ onComplete }) {
   }
 
   return (
-    <div
-      ref={containerRef}
-      className={`landing-root ${dismissing ? 'dismissing' : ''}`}
-    >
-      <canvas
-        ref={canvasRef}
-        className={`landing-canvas ${blurStars ? 'blur' : ''}`}
-      />
+    <div className={`landing-root ${dismissing ? 'dismissing' : ''}`}>
+      {/* Realistic 3D starfield */}
+      <div className={`landing-three ${blurStars ? 'blur' : ''}`}>
+        <Canvas
+          camera={{ position: [0, 0, 1], fov: 75 }}
+          gl={{ antialias: true, alpha: false }}
+          style={{ background: 'radial-gradient(ellipse at center, #060814 0%, #02030a 60%, #000 100%)' }}
+        >
+          <StarField />
+        </Canvas>
+      </div>
+
+      {/* Overlay canvas: shooting stars + dissolve particles */}
+      <canvas ref={overlayRef} className="landing-overlay" />
+
+      {/* Text */}
       <div className="landing-text-wrap">
         <div
           ref={textRef}
@@ -286,6 +244,7 @@ export default function LandingPage({ onComplete }) {
           Welcome to Settlr
         </div>
       </div>
+
       <button
         className="landing-skip-btn"
         onClick={() => onComplete?.()}
