@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import InputForm from './components/InputForm';
+import OnboardingForm from './components/OnboardingForm';
 import MapView from './components/MapView';
 import VerdictPanel from './components/VerdictPanel';
 import NeighborhoodDrawer from './components/NeighborhoodDrawer';
@@ -8,26 +8,8 @@ import CityComparison from './components/CityComparison';
 import { fetchListings } from './utils/api';
 import './App.css';
 
-const DEFAULT_FORM = {
-  jobTitle: '',
-  salary: 65000,
-  savings: 10000,
-  roommates: 0,
-  hasCar: true,
-  hasPet: false,
-  lifestyle: 'sometimes',
-  maxRent: null,
-  vibe: 'any',
-  workSetup: 'hybrid',
-  workLocation: 'remote',
-  mustHaves: [],
-  proximityPrefs: {},
-  timeline: 'asap',
-};
-
 export default function App() {
-  const [form, setForm]                         = useState(DEFAULT_FORM);
-  const [submittedForm, setSubmittedForm]       = useState(null);
+  const [submittedForm, setSubmittedForm] = useState(null);
   const [selectedNeighborhood, setSelectedNeighborhood] = useState(null);
   const [drawerOpen, setDrawerOpen]             = useState(false);
   const [activePanelTab, setActivePanelTab]     = useState(null); // null = panel closed
@@ -95,14 +77,10 @@ export default function App() {
         <aside className="sidebar">
           <div className="sidebar-brand">
             <img
-              src="/settler-mark.svg"
+              src="/settlr-mark.svg"
               alt="Settlr"
-              className="sidebar-logo"
+              className="sidebar-logo-full"
             />
-            <div className="sidebar-wordmark">
-              <span className="sidebar-name">SETTLR</span>
-              <span className="sidebar-tagline">Your Home Your Way</span>
-            </div>
             {shortlist.length > 0 && (
               <div className="shortlist-badge" title={`${shortlist.length} saved listing${shortlist.length > 1 ? 's' : ''}`}>
                 ★ {shortlist.length}
@@ -110,7 +88,7 @@ export default function App() {
             )}
           </div>
 
-          <InputForm form={form} setForm={setForm} onSubmit={handleFormSubmit} />
+          <OnboardingForm onSubmit={handleFormSubmit} />
 
           {submittedForm && (
             <VerdictPanel
