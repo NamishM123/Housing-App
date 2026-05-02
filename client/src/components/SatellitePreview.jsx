@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 
 const HEADINGS = [
@@ -8,94 +8,155 @@ const HEADINGS = [
   { id: 'w', label: 'W',  bearing: 270 },
 ];
 
+// Newer Mapbox v3 "Standard Satellite" style — sharper imagery, realistic 3D
+// landmarks/lighting. Falls back to satellite-streets-v12 if it errors.
+const STYLE_PRIMARY  = 'mapbox://styles/mapbox/standard-satellite';
+const STYLE_FALLBACK = 'mapbox://styles/mapbox/satellite-streets-v12';
+
 export default function SatellitePreview({ listing, onClose }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const markerRef = useRef(null);
   const rotateFrameRef = useRef(null);
+  const fellBackRef = useRef(false);
+  const initMapRef = useRef(null);
   const [loaded, setLoaded] = useState(false);
   const [bearing, setBearing] = useState(-20);
   const [autoRotate, setAutoRotate] = useState(true);
+  const [firstPerson, setFirstPerson] = useState(false);
 
-  // Init mini satellite map
-  useEffect(() => {
-    if (!listing?.lat || !listing?.lng) return;
-    if (!mapboxgl.accessToken) return;
-    if (mapRef.current) return;
+  const initMap = useCallback((styleUrl) => {
+    if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; }
 
-    mapRef.current = new mapboxgl.Map({
+    const map = new mapboxgl.Map({
       container: containerRef.current,
-      style: 'mapbox://styles/mapbox/satellite-streets-v12',
+      style: styleUrl,
       center: [listing.lng, listing.lat],
-      zoom: 17.2,
-      pitch: 62,
+      zoom: 18.2,
+      pitch: 70,
       bearing: -20,
+      maxPitch: 85,
+      maxZoom: 22,
       antialias: true,
       attributionControl: false,
       interactive: true,
+      dragRotate: true,
+      pitchWithRotate: true,
+      // Render at native device pixel ratio for crisp imagery on retina displays
+      // (capped to avoid GPU stalls on phones with DPR > 2)
+      pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
     });
 
-    mapRef.current.addControl(new mapboxgl.NavigationControl({ showCompass: true, visualizePitch: true }), 'top-right');
+    mapRef.current = map;
 
-    mapRef.current.on('load', () => {
-      mapRef.current.addSource('preview-dem', {
-        type: 'raster-dem',
-        url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
-        tileSize: 512,
-        maxzoom: 14,
-      });
-      mapRef.current.setTerrain({ source: 'preview-dem', exaggeration: 1.3 });
+    map.addControl(new mapboxgl.NavigationControl({ showCompass: true, visualizePitch: true }), 'top-right');
+    // Touch / pinch / two-finger rotate is on by default; make sure keyboard nav is on.
+    map.keyboard.enable();
+    map.scrollZoom.setWheelZoomRate(1 / 200);
+    map.scrollZoom.setZoomRate(1 / 50);
 
-      mapRef.current.addLayer({
-        id: 'preview-sky',
-        type: 'sky',
-        paint: {
-          'sky-type': 'atmosphere',
-          'sky-atmosphere-sun': [0.0, 80.0],
-          'sky-atmosphere-sun-intensity': 12,
-        },
-      });
+    // Fall back to legacy satellite if v3 style fails to load (e.g. token without v3 access)
+    const onError = (e) => {
+      const msg = String(e?.error?.message || e?.message || '');
+      if (!fellBackRef.current && /style|standard/i.test(msg)) {
+        fellBackRef.current = true;
+        initMapRef.current?.(STYLE_FALLBACK);
+      }
+    };
+    map.on('error', onError);
 
-      // 3D buildings for context around the listing
-      const layers = mapRef.current.getStyle().layers;
-      const labelLayer = layers.find(l => l.type === 'symbol' && l.layout?.['text-field']);
-      mapRef.current.addLayer(
-        {
-          id: 'preview-3d-buildings',
-          source: 'composite',
-          'source-layer': 'building',
-          filter: ['==', 'extrude', 'true'],
-          type: 'fill-extrusion',
-          minzoom: 14,
+    map.on('style.load', () => {
+      // Standard style supports config props for lighting/landmarks; older styles ignore these
+      try {
+        map.setConfigProperty('basemap', 'lightPreset', 'day');
+        map.setConfigProperty('basemap', 'show3dObjects', true);
+        map.setConfigProperty('basemap', 'showPointOfInterestLabels', true);
+      } catch { /* style doesn't support config — fine */ }
+
+      // Add terrain (skip if already provided by Standard style)
+      if (!map.getSource('preview-dem')) {
+        map.addSource('preview-dem', {
+          type: 'raster-dem',
+          url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+          tileSize: 512,
+          maxzoom: 14,
+        });
+        map.setTerrain({ source: 'preview-dem', exaggeration: 1.2 });
+      }
+
+      // Sky (only on legacy styles — Standard provides its own atmosphere)
+      const isStandard = (map.getStyle()?.name || '').toLowerCase().includes('standard');
+      if (!isStandard && !map.getLayer('preview-sky')) {
+        map.addLayer({
+          id: 'preview-sky',
+          type: 'sky',
           paint: {
-            'fill-extrusion-color': '#a8b3c7',
-            'fill-extrusion-height': ['get', 'height'],
-            'fill-extrusion-base': ['get', 'min_height'],
-            'fill-extrusion-opacity': 0.75,
+            'sky-type': 'atmosphere',
+            'sky-atmosphere-sun': [0.0, 80.0],
+            'sky-atmosphere-sun-intensity': 12,
           },
-        },
-        labelLayer?.id,
-      );
+        });
+      }
 
-      // Drop a pin at the listing
+      // Add 3D buildings only on legacy style (Standard already renders them in 3D)
+      if (!isStandard && !map.getLayer('preview-3d-buildings')) {
+        const layers = map.getStyle().layers;
+        const labelLayer = layers.find(l => l.type === 'symbol' && l.layout?.['text-field']);
+        try {
+          map.addLayer(
+            {
+              id: 'preview-3d-buildings',
+              source: 'composite',
+              'source-layer': 'building',
+              filter: ['==', 'extrude', 'true'],
+              type: 'fill-extrusion',
+              minzoom: 14,
+              paint: {
+                'fill-extrusion-color': '#a8b3c7',
+                'fill-extrusion-height': ['get', 'height'],
+                'fill-extrusion-base': ['get', 'min_height'],
+                'fill-extrusion-opacity': 0.78,
+              },
+            },
+            labelLayer?.id,
+          );
+        } catch { /* missing source-layer on this style — ignore */ }
+      }
+
+      // Pulsing marker
+      if (markerRef.current) markerRef.current.remove();
       const el = document.createElement('div');
       el.className = 'preview-pin';
       el.innerHTML = '<div class="preview-pin-inner"></div>';
       markerRef.current = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
         .setLngLat([listing.lng, listing.lat])
-        .addTo(mapRef.current);
+        .addTo(map);
 
       setLoaded(true);
     });
 
-    return () => {
-      if (rotateFrameRef.current) cancelAnimationFrame(rotateFrameRef.current);
-      if (markerRef.current) markerRef.current.remove();
-      if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; }
-    };
+    map.on('rotate', () => setBearing(map.getBearing()));
   }, [listing]);
 
-  // Slow auto-rotate for a "drone fly-around" feel
+  // Keep a ref to initMap so the error-handler closure can recurse without
+  // referencing the binding before it's declared
+  useEffect(() => { initMapRef.current = initMap; }, [initMap]);
+
+  // Init mini satellite map
+  useEffect(() => {
+    if (!listing?.lat || !listing?.lng) return;
+    if (!mapboxgl.accessToken) return;
+    fellBackRef.current = false;
+    initMap(STYLE_PRIMARY);
+
+    return () => {
+      if (rotateFrameRef.current) cancelAnimationFrame(rotateFrameRef.current);
+      if (markerRef.current) { markerRef.current.remove(); markerRef.current = null; }
+      if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; }
+    };
+  }, [listing, initMap]);
+
+  // Slow drone-style auto-rotate
   useEffect(() => {
     if (!loaded || !mapRef.current) return;
     if (!autoRotate) {
@@ -107,9 +168,8 @@ export default function SatellitePreview({ listing, onClose }) {
       const dt = (now - last) / 1000;
       last = now;
       if (mapRef.current && !mapRef.current.isMoving()) {
-        const next = (mapRef.current.getBearing() + dt * 6) % 360; // 6°/sec
+        const next = (mapRef.current.getBearing() + dt * 5) % 360; // 5°/sec
         mapRef.current.setBearing(next);
-        setBearing(next);
       }
       rotateFrameRef.current = requestAnimationFrame(tick);
     };
@@ -119,20 +179,63 @@ export default function SatellitePreview({ listing, onClose }) {
     };
   }, [loaded, autoRotate]);
 
-  // ESC to close
+  // Keyboard controls — Street-View-style WASD/arrow nav
   useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    if (!loaded || !mapRef.current) return;
+    const map = mapRef.current;
+
+    const onKey = (e) => {
+      if (e.key === 'Escape') { onClose(); return; }
+      // Don't fight typing in inputs
+      const target = e.target;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return;
+
+      let handled = true;
+      const panStep = 60;     // px
+      const zoomStep = 0.5;
+      const rotateStep = 12;  // deg
+      const pitchStep = 6;    // deg
+
+      switch (e.key) {
+        case 'ArrowUp':    case 'w': case 'W': map.panBy([0, -panStep]); break;
+        case 'ArrowDown':  case 's': case 'S': map.panBy([0,  panStep]); break;
+        case 'ArrowLeft':  case 'a': case 'A': map.panBy([-panStep, 0]); break;
+        case 'ArrowRight': case 'd': case 'D': map.panBy([ panStep, 0]); break;
+        case '+': case '=': map.zoomTo(map.getZoom() + zoomStep, { duration: 200 }); break;
+        case '-': case '_': map.zoomTo(map.getZoom() - zoomStep, { duration: 200 }); break;
+        case 'q': case 'Q': map.easeTo({ bearing: map.getBearing() - rotateStep, duration: 200 }); setAutoRotate(false); break;
+        case 'e': case 'E': map.easeTo({ bearing: map.getBearing() + rotateStep, duration: 200 }); setAutoRotate(false); break;
+        case 'r': case 'R': map.easeTo({ pitch: Math.min(85, map.getPitch() + pitchStep), duration: 200 }); break;
+        case 'f': case 'F': map.easeTo({ pitch: Math.max(0,  map.getPitch() - pitchStep), duration: 200 }); break;
+        default: handled = false;
+      }
+      if (handled) e.preventDefault();
+    };
+
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  }, [loaded, onClose]);
 
   const flyToHeading = (b) => {
     setAutoRotate(false);
-    if (mapRef.current) {
-      mapRef.current.easeTo({ bearing: b, duration: 700 });
-      setBearing(b);
-    }
+    if (mapRef.current) mapRef.current.easeTo({ bearing: b, duration: 700 });
   };
+
+  const toggleFirstPerson = () => {
+    if (!mapRef.current) return;
+    const goingIn = !firstPerson;
+    setFirstPerson(goingIn);
+    setAutoRotate(false);
+    mapRef.current.easeTo(
+      goingIn
+        ? { zoom: 19.6, pitch: 84, duration: 900 }
+        : { zoom: 18.2, pitch: 70, duration: 900 },
+    );
+  };
+
+  const streetViewUrl = listing?.lat && listing?.lng
+    ? `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${listing.lat},${listing.lng}`
+    : null;
 
   if (!listing) return null;
   const hasToken = !!mapboxgl.accessToken;
@@ -162,16 +265,24 @@ export default function SatellitePreview({ listing, onClose }) {
               {!loaded && (
                 <div className="preview-loading">
                   <div className="spinner sm" />
-                  <span>Loading aerial view…</span>
+                  <span>Loading high-res aerial view…</span>
                 </div>
               )}
+
               <div className="preview-controls">
                 <button
                   className={`preview-rotate-btn ${autoRotate ? 'active' : ''}`}
                   onClick={() => setAutoRotate(r => !r)}
                   title="Auto-rotate"
                 >
-                  {autoRotate ? '⏸ Pause rotate' : '↻ Auto-rotate'}
+                  {autoRotate ? '⏸ Pause' : '↻ Auto'}
+                </button>
+                <button
+                  className={`preview-rotate-btn ${firstPerson ? 'active' : ''}`}
+                  onClick={toggleFirstPerson}
+                  title="First-person view (low pitch)"
+                >
+                  {firstPerson ? '🛰 Aerial' : '👁 First-person'}
                 </button>
                 <div className="preview-headings">
                   {HEADINGS.map(h => {
@@ -189,6 +300,18 @@ export default function SatellitePreview({ listing, onClose }) {
                   })}
                 </div>
               </div>
+
+              {streetViewUrl && (
+                <a
+                  className="preview-streetview-btn"
+                  href={streetViewUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  title="Open ground-level Google Street View in a new tab"
+                >
+                  🚶 Street View
+                </a>
+              )}
             </>
           )}
         </div>
@@ -200,9 +323,13 @@ export default function SatellitePreview({ listing, onClose }) {
           {listing.sqft && (<><span className="stat-sep">·</span><span>{listing.sqft.toLocaleString()} sqft</span></>)}
         </div>
 
-        <p className="muted small">
-          Drag to look around · scroll to zoom · use the heading buttons to face N/E/S/W.
-        </p>
+        <div className="preview-hint-row">
+          <span className="kbd-hint"><kbd>WASD</kbd>/<kbd>↑↓←→</kbd> pan</span>
+          <span className="kbd-hint"><kbd>Q</kbd>/<kbd>E</kbd> rotate</span>
+          <span className="kbd-hint"><kbd>R</kbd>/<kbd>F</kbd> tilt</span>
+          <span className="kbd-hint"><kbd>+</kbd>/<kbd>-</kbd> zoom</span>
+          <span className="kbd-hint kbd-muted">drag · scroll · right-drag to tilt</span>
+        </div>
       </div>
     </div>
   );
