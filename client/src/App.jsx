@@ -88,11 +88,11 @@ export default function App() {
           <div className="sidebar-brand">
             <img
               src="/settler-mark.svg"
-              alt="Settler"
+              alt="Settlr"
               className="sidebar-logo"
             />
             <div className="sidebar-wordmark">
-              <span className="sidebar-name">SETTLER</span>
+              <span className="sidebar-name">SETTLR</span>
               <span className="sidebar-tagline">Your Home Your Way</span>
             </div>
             {shortlist.length > 0 && (
