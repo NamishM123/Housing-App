@@ -5,6 +5,7 @@ import VerdictPanel from './components/VerdictPanel';
 import NeighborhoodDrawer from './components/NeighborhoodDrawer';
 import NeighborhoodPanel from './components/NeighborhoodPanel';
 import CityComparison from './components/CityComparison';
+import LandingPage from './components/LandingPage';
 import { fetchListings } from './utils/api';
 import './App.css';
 
@@ -26,6 +27,7 @@ const DEFAULT_FORM = {
 };
 
 export default function App() {
+  const [showLanding, setShowLanding]           = useState(true);
   const [form, setForm]                         = useState(DEFAULT_FORM);
   const [submittedForm, setSubmittedForm]       = useState(null);
   const [selectedNeighborhood, setSelectedNeighborhood] = useState(null);
@@ -91,6 +93,7 @@ export default function App() {
 
   return (
     <div className="app">
+      {showLanding && <LandingPage onComplete={() => setShowLanding(false)} />}
       <div className="app-body">
         <aside className="sidebar">
           <div className="sidebar-brand">
