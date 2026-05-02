@@ -2,6 +2,11 @@
   "name": "can-i-afford-slo",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.52.0",
+    "axios": "^1.7.2"
+  },
   "scripts": {
     "dev:server": "cd server && npm run dev",
     "dev:client": "cd client && npm run dev",
