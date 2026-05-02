@@ -83,7 +83,7 @@ export default function NeighborhoodPanel({ open, activeTab, neighborhood, form,
   const meta         = SECTION_META[activeTab] || {};
 
   return (
-    <div className={`n-panel ${open ? 'open' : ''}`}>
+    <div className="n-panel">
       {/* ── Header ── */}
       <div className="n-panel-header">
         <div className="n-panel-header-left">
