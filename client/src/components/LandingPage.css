@@ -109,19 +109,10 @@
 }
 
 .landing-nav-mark {
-  width: 30px;
-  height: 30px;
-  filter: brightness(0) invert(1);  /* force white on dark bg */
+  width: 52px;
+  height: 52px;
+  filter: brightness(0) invert(1);
   opacity: 0.92;
-}
-
-.landing-nav-wordmark {
-  font-family: 'Montserrat', 'Helvetica Neue', system-ui, sans-serif;
-  font-weight: 500;
-  font-size: 1rem;
-  letter-spacing: 0.32em;
-  color: #f4f1e8;
-  user-select: none;
 }
 
 /* right-side links */
