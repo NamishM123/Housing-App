@@ -23,14 +23,14 @@ const LEGEND = [
 ];
 
 const ROUTE_AMENITIES = [
-  { id: 'grocery',  label: 'Grocery',  icon: '🛒', name: "Trader Joe's SLO",      lng: -120.6681, lat: 35.2792 },
+  { id: 'grocery', label: 'Grocery', icon: '🛒', name: "Trader Joe's SLO", lng: -120.6681, lat: 35.2792 },
   { id: 'hospital', label: 'Hospital', icon: '🏥', name: 'Sierra Vista Regional', lng: -120.6700, lat: 35.2683 },
-  { id: 'gym',      label: 'Gym',      icon: '💪', name: 'Planet Fitness SLO',    lng: -120.6640, lat: 35.2831 },
-  { id: 'beach',    label: 'Beach',    icon: '🏖️', name: 'Avila Beach',           lng: -120.7295, lat: 35.1793 },
-  { id: 'trails',   label: 'Trails',   icon: '🥾', name: 'Bishop Peak Trailhead', lng: -120.6982, lat: 35.3009 },
-  { id: 'downtown', label: 'Downtown', icon: '🏙️', name: 'Downtown SLO',          lng: -120.6606, lat: 35.2800 },
-  { id: 'calpoly',  label: 'Cal Poly', icon: '🎓', name: 'Cal Poly SLO',          lng: -120.6596, lat: 35.3050 },
-  { id: 'airport',  label: 'Airport',  icon: '✈️', name: 'SLO Airport',           lng: -120.6417, lat: 35.2368 },
+  { id: 'gym', label: 'Gym', icon: '💪', name: 'Planet Fitness SLO', lng: -120.6640, lat: 35.2831 },
+  { id: 'beach', label: 'Beach', icon: '🏖️', name: 'Avila Beach', lng: -120.7295, lat: 35.1793 },
+  { id: 'trails', label: 'Trails', icon: '🥾', name: 'Bishop Peak Trailhead', lng: -120.6982, lat: 35.3009 },
+  { id: 'downtown', label: 'Downtown', icon: '🏙️', name: 'Downtown SLO', lng: -120.6606, lat: 35.2800 },
+  { id: 'calpoly', label: 'Cal Poly', icon: '🎓', name: 'Cal Poly SLO', lng: -120.6596, lat: 35.3050 },
+  { id: 'airport', label: 'Airport', icon: '✈️', name: 'SLO Airport', lng: -120.6417, lat: 35.2368 },
 ];
 
 // Route color/style per travel mode
@@ -58,6 +58,7 @@ export default function MapView({
   const mapContainer = useRef(null);
   const map = useRef(null);
   const popupRef = useRef(null);
+  const popupCloseTimer = useRef(null);
   const markersRef = useRef([]);
   const userMarkerRef = useRef(null);
   const destMarkerRef = useRef(null);
@@ -65,6 +66,7 @@ export default function MapView({
   const monthlyIncomeRef = useRef(monthlyIncome);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState(false);
+  const [mapZoom, setMapZoom] = useState(9.5);
 
   // Satellite preview modal target
   const [previewListing, setPreviewListing] = useState(null);
@@ -120,7 +122,17 @@ export default function MapView({
         setMapLoaded(true);
       });
 
+      map.current.on('zoom', () => {
+        setMapZoom(map.current.getZoom());
+      });
+
       map.current.on('error', () => setMapError(true));
+
+      // Close popup when clicking empty map space
+      map.current.on('click', () => {
+        if (popupCloseTimer.current) { clearTimeout(popupCloseTimer.current); popupCloseTimer.current = null; }
+        if (popupRef.current) { popupRef.current.remove(); popupRef.current = null; }
+      });
     } catch { setMapError(true); }
 
     return () => { if (map.current) { map.current.remove(); map.current = null; } };
@@ -131,12 +143,28 @@ export default function MapView({
     if (!mapLoaded || !map.current) return;
 
     NEIGHBORHOODS.forEach((hood) => {
-      const sourceId  = `hood-${hood.id}`;
-      const fillId    = `fill-${hood.id}`;
-      const outlineId = `outline-${hood.id}`;
-      const glowId    = `glow-${hood.id}`;
-      const labelId   = `label-${hood.id}`;
+      const sourceId = `hood-${hood.id}`;
+      const fillId = `fill-${hood.id}`;
+      const glowId = `glow-${hood.id}`;
+      const labelId = `label-${hood.id}`;
       const labelSource = `label-src-${hood.id}`;
+
+      // ── Zoom-gated visibility ──
+      const currentZoom = map.current.getZoom();
+      const belowMin = hood.minZoom && currentZoom < hood.minZoom;
+      const aboveMax = hood.maxZoom && currentZoom >= hood.maxZoom;
+      const zoomHidden = belowMin || aboveMax;
+
+      // If layers exist, just toggle visibility and skip the rest
+      if (map.current.getLayer(fillId)) {
+        const vis = zoomHidden ? 'none' : 'visible';
+        [fillId, glowId, labelId].forEach(id => {
+          if (map.current.getLayer(id)) map.current.setLayoutProperty(id, 'visibility', vis);
+        });
+        if (zoomHidden) return;
+      } else if (zoomHidden) {
+        return; // Don't add layers yet if we're outside zoom range
+      }
 
       const effectiveRent = roommates > 0 ? Math.round(hood.avgRent / (roommates + 1)) : hood.avgRent;
       const vibeMatch = matchesVibe(hood, vibe);
@@ -160,7 +188,7 @@ export default function MapView({
       const glowOpacityBase = vibeMatch ? (isSelected ? 0.82 : 0.52) : 0.06;
       const glowOpacityZoom = [
         'interpolate', ['linear'], ['zoom'],
-        9,  glowOpacityBase,   // full opacity when zoomed out
+        9, glowOpacityBase,   // full opacity when zoomed out
         12, glowOpacityBase,   // start fading
         13.5, 0,               // fully gone when zoomed in
       ];
@@ -173,8 +201,8 @@ export default function MapView({
           paint: {
             // Large enough to blanket the whole neighborhood polygon at low zoom
             'circle-radius': ['interpolate', ['linear'], ['zoom'],
-              7,  60,
-              9,  120,
+              7, 60,
+              9, 120,
               10.5, 200,
               12, 320,
               13.5, 420,
@@ -219,57 +247,83 @@ export default function MapView({
 
         map.current.on('click', fillId, () => {
           onNeighborhoodSelect({ ...hood, avgRent: effectiveRent });
-          map.current.flyTo({ center: hood.center, zoom: 12, pitch: 50, bearing: -8, duration: 900 });
+          map.current.flyTo({ center: hood.center, zoom: 12.5, pitch: 50, bearing: -8, duration: 900 });
         });
 
-        map.current.on('mouseenter', fillId, () => {
-          map.current.getCanvas().style.cursor = 'pointer';
-          const r = roommates > 0 ? Math.round(hood.avgRent / (roommates + 1)) : hood.avgRent;
-          const label = monthlyIncome > 0 ? getAffordabilityLabel(r, monthlyIncome, maxRent) : 'Enter salary';
-          const c     = monthlyIncome > 0 ? getAffordabilityColor(r, monthlyIncome, maxRent) : '#6b7280';
-          const overBudget = maxRent && r > maxRent
-            ? `<div style="font-size:11px;color:#f59e0b;margin-top:3px">⚠️ Over your $${maxRent.toLocaleString()} cap</div>`
-            : '';
-          const dimNote = !vibeMatch
-            ? `<div style="font-size:11px;color:#64748b;margin-top:2px">Outside vibe filter</div>`
-            : '';
+        // Popup only when cursor is within ~40px of the label center
+        map.current.on('mousemove', fillId, (e) => {
+          const projected = map.current.project(hood.center);
+          const dx = e.point.x - projected.x;
+          const dy = e.point.y - projected.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const THRESHOLD = 42; // px
 
-          popupRef.current = new mapboxgl.Popup({ closeButton: false, offset: [0, -8] })
-            .setLngLat(hood.center)
-            .setHTML(`
-              <div style="font-family:system-ui;padding:10px 14px;background:#0f172a;border:1px solid #334155;border-radius:10px;color:#f1f5f9;min-width:180px">
-                <div style="font-weight:700;font-size:14px;margin-bottom:6px">${hood.name}</div>
-                <div style="display:flex;gap:16px;font-size:12px;color:#94a3b8">
-                  <span>Rent <strong style="color:#f1f5f9">$${r.toLocaleString()}/mo</strong></span>
-                  <span>Walk <strong style="color:#f1f5f9">${hood.walkScore}</strong></span>
+          if (dist <= THRESHOLD) {
+            // Cancel any pending close
+            if (popupCloseTimer.current) { clearTimeout(popupCloseTimer.current); popupCloseTimer.current = null; }
+            if (popupRef.current) return; // already open
+            map.current.getCanvas().style.cursor = 'pointer';
+            const r = roommates > 0 ? Math.round(hood.avgRent / (roommates + 1)) : hood.avgRent;
+            const label = monthlyIncome > 0 ? getAffordabilityLabel(r, monthlyIncome, maxRent) : 'Enter salary';
+            const c = monthlyIncome > 0 ? getAffordabilityColor(r, monthlyIncome, maxRent) : '#6b7280';
+            const overBudget = maxRent && r > maxRent
+              ? `<div style="font-size:11px;color:#f59e0b;margin-top:3px">⚠️ Over your $${maxRent.toLocaleString()} cap</div>`
+              : '';
+            const dimNote = !vibeMatch
+              ? `<div style="font-size:11px;color:#64748b;margin-top:2px">Outside vibe filter</div>`
+              : '';
+
+            window.__mapSelectHood = () => {
+              onNeighborhoodSelect({ ...hood, avgRent: r });
+              map.current.flyTo({ center: hood.center, zoom: 12.5, pitch: 50, bearing: -8, duration: 900 });
+              if (popupRef.current) { popupRef.current.remove(); popupRef.current = null; }
+            };
+
+            const popup = new mapboxgl.Popup({ closeButton: false, offset: [0, -8], maxWidth: '240px' })
+              .setLngLat(hood.center)
+              .setHTML(`
+                <div
+                  id="mbpopup-${hood.id}"
+                  onmouseenter="window.__popupMouseEnter()"
+                  onmouseleave="window.__popupMouseLeave()"
+                  style="font-family:system-ui;padding:10px 14px;background:#0f172a;border:1px solid #334155;border-radius:10px;color:#f1f5f9;min-width:180px"
+                >
+                  <div style="font-weight:700;font-size:14px;margin-bottom:6px">${hood.name}</div>
+                  <div style="display:flex;gap:16px;font-size:12px;color:#94a3b8">
+                    <span>Rent <strong style="color:#f1f5f9">$${r.toLocaleString()}/mo</strong></span>
+                    <span>Walk <strong style="color:#f1f5f9">${hood.walkScore}</strong></span>
+                  </div>
+                  ${monthlyIncome > 0 ? `<div style="margin-top:8px;display:inline-block;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700;background:${c}22;color:${c};border:1px solid ${c}55">${label}</div>` : ''}
+                  ${overBudget}${dimNote}
+                  <button
+                    onclick="window.__mapSelectHood()"
+                    style="margin-top:10px;width:100%;padding:7px 0;background:#3b82f6;border:none;border-radius:7px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:0.03em"
+                  >Explore ${hood.name} →</button>
                 </div>
-                ${monthlyIncome > 0 ? `<div style="margin-top:8px;display:inline-block;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700;background:${c}22;color:${c};border:1px solid ${c}55">${label}</div>` : ''}
-                ${overBudget}${dimNote}
-              </div>
-            `)
-            .addTo(map.current);
-        });
+              `)
+              .addTo(map.current);
+            popupRef.current = popup;
 
-        map.current.on('mouseleave', fillId, () => {
-          map.current.getCanvas().style.cursor = '';
-          if (popupRef.current) { popupRef.current.remove(); popupRef.current = null; }
-        });
-      }
-
-      // ── Outline — uses heatmap color for consistent subdued look ──
-      if (map.current.getLayer(outlineId)) {
-        map.current.setPaintProperty(outlineId, 'line-color', heatColor);
-        map.current.setPaintProperty(outlineId, 'line-width', isSelected ? 2.5 : 1.2);
-        map.current.setPaintProperty(outlineId, 'line-opacity', vibeMatch ? (isSelected ? 0.95 : 0.65) : 0.08);
-      } else {
-        map.current.addLayer({
-          id: outlineId, type: 'line', source: sourceId,
-          paint: {
-            'line-color': heatColor,
-            'line-width': isSelected ? 2.5 : 1.2,
-            'line-opacity': vibeMatch ? 0.65 : 0.08,
-            'line-blur': 0.8,
-          },
+            window.__popupMouseEnter = () => {
+              if (popupCloseTimer.current) { clearTimeout(popupCloseTimer.current); popupCloseTimer.current = null; }
+            };
+            window.__popupMouseLeave = () => {
+              popupCloseTimer.current = setTimeout(() => {
+                if (popupRef.current) { popupRef.current.remove(); popupRef.current = null; }
+                map.current.getCanvas().style.cursor = '';
+              }, 120);
+            };
+          } else {
+            // Moved away from label — start close timer
+            if (popupRef.current) {
+              popupCloseTimer.current = popupCloseTimer.current || setTimeout(() => {
+                if (popupRef.current) { popupRef.current.remove(); popupRef.current = null; }
+                map.current.getCanvas().style.cursor = '';
+              }, 200);
+            } else {
+              map.current.getCanvas().style.cursor = '';
+            }
+          }
         });
       }
 
@@ -295,7 +349,7 @@ export default function MapView({
         });
       }
     });
-  }, [mapLoaded, monthlyIncome, roommates, maxRent, vibe, selectedId, onNeighborhoodSelect]);
+  }, [mapLoaded, mapZoom, monthlyIncome, roommates, maxRent, vibe, selectedId, onNeighborhoodSelect]);
 
   // ── Listing price pins ────────────────────────────────
   useEffect(() => {
@@ -340,21 +394,6 @@ export default function MapView({
     });
   }, [mapLoaded, listings, shortlist, onListingSelect, selectedListing]);
 
-  // ── User location dot (when no listing selected) ──
-  useEffect(() => {
-    if (!mapLoaded || !map.current) return;
-    if (userMarkerRef.current) { userMarkerRef.current.remove(); userMarkerRef.current = null; }
-    if (selectedListing) return;
-
-    const selectedHood = NEIGHBORHOODS.find(n => n.id === selectedId);
-    if (!selectedHood) return;
-
-    const el = document.createElement('div');
-    el.className = 'user-location-dot';
-    userMarkerRef.current = new mapboxgl.Marker({ element: el, anchor: 'center' })
-      .setLngLat(selectedHood.center)
-      .addTo(map.current);
-  }, [mapLoaded, selectedId, selectedListing]);
 
   // ── Route rendering ───────────────────────────────────
   const clearRoute = useCallback(() => {
@@ -537,10 +576,10 @@ export default function MapView({
           <p className="muted">Add <code>VITE_MAPBOX_TOKEN</code> in <code>client/.env</code> to enable the 3D map.</p>
           <div className="neighborhood-grid">
             {NEIGHBORHOODS.map(hood => {
-              const r     = roommates > 0 ? Math.round(hood.avgRent / (roommates + 1)) : hood.avgRent;
+              const r = roommates > 0 ? Math.round(hood.avgRent / (roommates + 1)) : hood.avgRent;
               const color = monthlyIncome > 0 ? getAffordabilityColor(r, monthlyIncome, maxRent) : '#6b7280';
               const label = monthlyIncome > 0 ? getAffordabilityLabel(r, monthlyIncome, maxRent) : '—';
-              const vm    = matchesVibe(hood, vibe);
+              const vm = matchesVibe(hood, vibe);
               return (
                 <button key={hood.id}
                   className={`neighborhood-card ${hood.id === selectedId ? 'selected' : ''}`}

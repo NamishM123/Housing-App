@@ -1,0 +1,22 @@
+{
+  "enabled": true,
+  "name": "Auto Commit & Push",
+  "description": "Automatically commits and pushes changes to GitHub whenever a source file is saved, triggering Vercel auto-deploy.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "*.js",
+      "*.jsx",
+      "*.css",
+      "*.html",
+      "*.json",
+      "*.svg",
+      "*.md"
+    ]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "git add -A && git commit -m \"auto: update $(date '+%Y-%m-%d %H:%M:%S')\" && git push || true"
+  }
+}
