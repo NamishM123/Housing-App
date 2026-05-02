@@ -51,4 +51,48 @@ router.get('/all', async (_req, res) => {
   res.json(Object.values(FALLBACK_RENTS));
 });
 
+// Proxy the listings endpoint to the same logic as the Vercel function
+router.get('/listings', async (req, res) => {
+  const { zip, city } = req.query;
+  const apiKey = process.env.RENTCAST_API_KEY;
+  const citySlug = (city || 'San Luis Obispo').toLowerCase().replace(/\s+/g, '-');
+  const urls = {
+    zillow: `https://www.zillow.com/${citySlug}-ca-${zip}/rentals/`,
+    apartments: `https://www.apartments.com/${citySlug}-ca/${zip}/`,
+    craigslist: `https://slo.craigslist.org/search/apa?postal=${zip}`,
+  };
+
+  if (apiKey && apiKey !== 'your_rentcast_key_here') {
+    try {
+      const response = await axios.get('https://api.rentcast.io/v1/listings/rental/long-term', {
+        params: { zipCode: zip, status: 'Active', limit: 8 },
+        headers: { 'X-Api-Key': apiKey },
+      });
+      const listings = (response.data || []).map(l => ({
+        id: l.id, address: l.formattedAddress, city: l.city, zip: l.zipCode,
+        price: l.price, beds: l.bedrooms, baths: l.bathrooms, sqft: l.squareFootage,
+        lat: l.latitude, lng: l.longitude, type: l.propertyType,
+        available: l.listedDate ? new Date(l.listedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Now',
+        features: [], petFriendly: false, image: l.photos?.[0] || null, listingUrl: l.listingUrl || null,
+      }));
+      return res.json({ listings, urls, source: 'rentcast' });
+    } catch (err) {
+      console.error('RentCast listings error:', err.message);
+    }
+  }
+
+  // Inline fallback (abbreviated — full set is in the Vercel function)
+  const FALLBACK = {
+    '93401': [
+      { id: 'dl-1', address: '785 Higuera St', city: 'San Luis Obispo', zip, price: 2100, beds: 1, baths: 1, sqft: 680, lat: 35.2808, lng: -120.6602, type: 'Apartment', available: 'Now', features: ['Parking', 'AC'], petFriendly: false },
+      { id: 'dl-2', address: '1142 Marsh St',   city: 'San Luis Obispo', zip, price: 2350, beds: 2, baths: 1, sqft: 950, lat: 35.2795, lng: -120.6630, type: 'Apartment', available: 'Jun 1', features: ['In-unit laundry', 'Parking'], petFriendly: true },
+    ],
+    '93405': [
+      { id: 'cp-1', address: '1820 California Blvd', city: 'San Luis Obispo', zip, price: 2200, beds: 1, baths: 1, sqft: 700, lat: 35.2970, lng: -120.6620, type: 'Apartment', available: 'Now', features: ['Pool', 'Parking'], petFriendly: false },
+    ],
+  };
+  const listings = (FALLBACK[zip] || FALLBACK['93401']).map(l => ({ ...l, urls }));
+  res.json({ listings, urls, source: 'fallback' });
+});
+
 export default router;

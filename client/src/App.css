@@ -482,6 +482,154 @@ input.error { border-color: var(--red); }
   .neighborhood-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
+/* ── Shortlist badge in header ────────────────────── */
+.shortlist-badge {
+  margin-left: auto; padding: 6px 14px; border-radius: 999px;
+  background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.4);
+  color: var(--amber); font-size: 13px; font-weight: 700;
+}
+
+/* ── Listing price pins on map ────────────────────── */
+.listing-pin {
+  background: #0f172a; border: 2px solid var(--accent);
+  border-radius: 999px; padding: 4px 9px;
+  font-size: 11px; font-weight: 700; color: var(--accent);
+  cursor: pointer; white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+  transition: transform 0.15s, border-color 0.15s;
+  position: relative;
+}
+.listing-pin::after {
+  content: ''; position: absolute; bottom: -6px; left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: var(--accent);
+}
+.listing-pin:hover { transform: scale(1.1); }
+.listing-pin.shortlisted { border-color: var(--amber); color: var(--amber); }
+.listing-pin.shortlisted::after { border-top-color: var(--amber); }
+
+/* ── Listings panel ───────────────────────────────── */
+.listings-toolbar {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 10px; gap: 8px;
+}
+.bed-filters { display: flex; gap: 4px; }
+.bed-btn {
+  padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  border: 1px solid var(--border); background: var(--bg);
+  color: var(--text-muted); cursor: pointer; transition: all 0.15s;
+}
+.bed-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.sort-select {
+  font-size: 12px; padding: 5px 8px; border-radius: var(--radius);
+  border: 1px solid var(--border); background: var(--bg); color: var(--text-muted);
+}
+
+.listings-search-links {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 12px; flex-wrap: wrap;
+}
+.text-link {
+  font-size: 12px; color: var(--accent); text-decoration: none; font-weight: 600;
+}
+.text-link:hover { text-decoration: underline; }
+
+.listings-grid { display: flex; flex-direction: column; gap: 10px; }
+.listings-empty { display: flex; flex-direction: column; gap: 16px; padding: 20px 0; }
+
+.listing-card {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 14px;
+  transition: border-color 0.15s;
+}
+.listing-card:hover { border-color: #475569; }
+.listing-card.over-budget { border-color: rgba(239,68,68,0.4); }
+.listing-card.shortlisted { border-color: rgba(245,158,11,0.5); background: rgba(245,158,11,0.04); }
+
+.listing-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 8px; }
+.listing-address { font-size: 13px; font-weight: 700; line-height: 1.3; }
+.listing-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+.shortlist-btn {
+  background: none; border: none; font-size: 18px; cursor: pointer;
+  color: var(--text-muted); padding: 0 2px; line-height: 1;
+  transition: color 0.15s; flex-shrink: 0;
+}
+.shortlist-btn.active { color: var(--amber); }
+.shortlist-btn:hover { color: var(--amber); }
+
+.listing-price-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.listing-price { font-size: 18px; font-weight: 800; }
+.over-budget-badge {
+  font-size: 10px; padding: 2px 7px; border-radius: 999px;
+  background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3);
+  font-weight: 700;
+}
+
+.listing-stats { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+.stat-sep { color: var(--border); }
+.pet-tag { color: var(--green); }
+
+.listing-features { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
+.feature-tag {
+  font-size: 10px; padding: 2px 7px; border-radius: 999px;
+  background: rgba(59,130,246,0.1); color: #93c5fd;
+  border: 1px solid rgba(59,130,246,0.2);
+}
+
+.listing-actions { display: flex; gap: 6px; }
+.listing-action-btn {
+  flex: 1; padding: 8px; border-radius: var(--radius); font-size: 12px;
+  font-weight: 600; cursor: pointer; text-align: center; text-decoration: none;
+  border: 1px solid var(--border); background: var(--bg-hover); color: var(--text);
+  transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 4px;
+}
+.listing-action-btn:hover { border-color: var(--accent); color: var(--accent); }
+.listing-action-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.listing-action-btn.primary:hover { background: #2563eb; }
+
+/* ── Tour request modal ───────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.modal {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 24px; width: 100%; max-width: 520px;
+  max-height: 90vh; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.modal-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.modal-header h3 { font-size: 15px; font-weight: 700; line-height: 1.3; }
+.modal-subtitle { font-size: 12px; color: var(--text-muted); margin-top: -8px; }
+
+.email-preview {
+  background: var(--bg); border-radius: var(--radius); padding: 14px;
+  border: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px;
+}
+.email-subject { display: flex; flex-direction: column; gap: 3px; }
+.email-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+.email-body { display: flex; flex-direction: column; gap: 3px; }
+.email-body pre {
+  font-family: inherit; font-size: 12px; color: var(--text); line-height: 1.6;
+  white-space: pre-wrap; margin: 0;
+}
+
+.modal-actions { display: flex; gap: 8px; }
+.modal-actions .action-btn { flex: 1; justify-content: center; text-decoration: none; }
+
+.platform-links { display: flex; flex-direction: column; gap: 8px; }
+.platform-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.platform-btn {
+  padding: 6px 12px; border-radius: var(--radius);
+  border: 1px solid var(--border); background: var(--bg-hover);
+  color: var(--text); font-size: 12px; font-weight: 600;
+  text-decoration: none; transition: all 0.15s;
+}
+.platform-btn:hover { border-color: var(--accent); color: var(--accent); }
+
 /* ── Scrollbar ────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg); }

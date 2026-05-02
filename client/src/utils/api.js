@@ -31,3 +31,8 @@ export async function fetchFurnitureList(payload) {
   const { data } = await api.post('/claude/furniture', payload);
   return data;
 }
+
+export async function fetchListings(zip, city) {
+  const { data } = await api.get('/rentcast/listings', { params: { zip, city } });
+  return data;
+}

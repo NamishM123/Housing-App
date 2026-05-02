@@ -3,6 +3,17 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { NEIGHBORHOODS, getAffordabilityColor, getAffordabilityLabel, matchesVibe } from '../data/neighborhoods';
 
+function buildMarkerEl(listing, isShortlisted) {
+  const el = document.createElement('div');
+  el.className = 'listing-pin' + (isShortlisted ? ' shortlisted' : '');
+  el.innerHTML = `<span>$${Math.round(listing.price / 100) * 100 < listing.price ? Math.ceil(listing.price / 100) * 100 : listing.price}`;
+  el.title = listing.address;
+  // Format as $2.1k style for compact display
+  const k = listing.price >= 1000 ? `$${(listing.price / 1000).toFixed(1)}k` : `$${listing.price}`;
+  el.innerHTML = `<span>${k}</span>`;
+  return el;
+}
+
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
 // Height in metres for 3D extrusion: affordable = tall
@@ -23,10 +34,11 @@ const LEGEND = [
   { color: '#ef4444', label: 'Out of range / Over budget' },
 ];
 
-export default function MapView({ monthlyIncome, roommates, maxRent, vibe, onNeighborhoodSelect, selectedId }) {
+export default function MapView({ monthlyIncome, roommates, maxRent, vibe, onNeighborhoodSelect, selectedId, listings, shortlist, onListingSelect }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const popupRef = useRef(null);
+  const markersRef = useRef([]);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState(false);
 
@@ -183,6 +195,48 @@ export default function MapView({ monthlyIncome, roommates, maxRent, vibe, onNei
       }
     });
   }, [mapLoaded, monthlyIncome, roommates, maxRent, vibe, selectedId, onNeighborhoodSelect]);
+
+  // ── Listing price pins ────────────────────────────
+  useEffect(() => {
+    if (!mapLoaded || !map.current) return;
+
+    // Clear old markers
+    markersRef.current.forEach(m => m.remove());
+    markersRef.current = [];
+
+    if (!listings?.length) return;
+
+    listings.forEach(listing => {
+      if (!listing.lat || !listing.lng) return;
+      const isShortlisted = (shortlist || []).some(s => s.id === listing.id);
+      const el = buildMarkerEl(listing, isShortlisted);
+
+      const popup = new mapboxgl.Popup({ offset: [0, -28], closeButton: false })
+        .setHTML(`
+          <div style="font-family:system-ui;padding:8px 12px;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#f1f5f9;min-width:200px">
+            <div style="font-weight:700;font-size:13px;margin-bottom:4px">${listing.address}</div>
+            <div style="display:flex;gap:12px;font-size:12px;color:#94a3b8;margin-bottom:8px">
+              <span><strong style="color:#f1f5f9">$${listing.price?.toLocaleString()}/mo</strong></span>
+              <span>${listing.beds}bd · ${listing.baths}ba${listing.sqft ? ` · ${listing.sqft.toLocaleString()} sqft` : ''}</span>
+            </div>
+            <div style="font-size:11px;color:#64748b">${listing.type} · Available ${listing.available}</div>
+            ${listing.petFriendly ? '<div style="font-size:11px;color:#22c55e;margin-top:3px">🐾 Pet-friendly</div>' : ''}
+          </div>
+        `);
+
+      const marker = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
+        .setLngLat([listing.lng, listing.lat])
+        .setPopup(popup)
+        .addTo(map.current);
+
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (onListingSelect) onListingSelect(listing);
+      });
+
+      markersRef.current.push(marker);
+    });
+  }, [mapLoaded, listings, shortlist, onListingSelect]);
 
   // Reset camera when deselecting
   useEffect(() => {
