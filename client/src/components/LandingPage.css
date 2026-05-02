@@ -42,9 +42,6 @@
   white-space: nowrap;
   opacity: 0;
   transform: scale(0.55);
-  text-shadow:
-    0 0 22px rgba(255, 240, 210, 0.32),
-    0 0 70px rgba(180, 200, 255, 0.18);
   will-change: opacity, transform;
 }
 
@@ -52,14 +49,27 @@
   animation: textFadeExpand 1.8s cubic-bezier(0.22, 0.9, 0.32, 1) forwards;
 }
 
-.landing-text.snap {
-  opacity: 0;       /* DOM text hidden — particles take over */
+/* Crossfade: DOM fades out while canvas particles fade in over identical glyphs */
+.landing-text.fading {
+  opacity: 1;
+  transform: scale(1.05);
+  animation: textCrossfadeOut 380ms linear forwards;
+}
+
+.landing-text.gone {
+  opacity: 0;
+  transform: scale(1.05);
 }
 
 @keyframes textFadeExpand {
   0%   { opacity: 0;    transform: scale(0.55); filter: blur(6px); }
   60%  { opacity: 0.95; filter: blur(0px); }
   100% { opacity: 1;    transform: scale(1.05); filter: blur(0px); }
+}
+
+@keyframes textCrossfadeOut {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 
