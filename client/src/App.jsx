@@ -5,11 +5,13 @@ import VerdictPanel from './components/VerdictPanel';
 import NeighborhoodDrawer from './components/NeighborhoodDrawer';
 import NeighborhoodPanel from './components/NeighborhoodPanel';
 import CityComparison from './components/CityComparison';
+import LandingPage from './components/LandingPage';
 import { fetchListings } from './utils/api';
 import './App.css';
 
 export default function App() {
-  const [submittedForm, setSubmittedForm] = useState(null);
+  const [showLanding, setShowLanding]           = useState(true);
+  const [submittedForm, setSubmittedForm]       = useState(null);
   const [selectedNeighborhood, setSelectedNeighborhood] = useState(null);
   const [drawerOpen, setDrawerOpen]             = useState(false);
   const [activePanelTab, setActivePanelTab]     = useState(null); // null = panel closed
@@ -91,6 +93,7 @@ export default function App() {
 
   return (
     <div className="app">
+      {showLanding && <LandingPage onComplete={() => setShowLanding(false)} />}
       <div className="app-body">
         {/* Map is now full-screen background */}
         <main className="main-content">
