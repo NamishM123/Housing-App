@@ -11,6 +11,7 @@ const TABS = [
   { id: 'listings',  label: '🏠 Listings' },
   { id: 'costs',     label: '💰 Costs' },
   { id: 'walkscore', label: '🚶 Walkability' },
+  { id: 'insights',  label: '📍 Insights' },
   { id: 'layout',    label: '🛋️ Room' },
   { id: 'checklist', label: '✅ Checklist' },
 ];
@@ -209,6 +210,41 @@ export default function NeighborhoodDrawer({ open, neighborhood, form, onClose, 
             </div>
           )}
 
+          {/* ── Insights ──────────────────────────────── */}
+          {activeTab === 'insights' && (
+            <div className="insights-tab">
+              <InsightRow
+                icon="🔊"
+                label="Noise Level"
+                value={neighborhood.noiseLevel}
+                badge={neighborhood.noiseLevel}
+                detail={neighborhood.noiseSources}
+              />
+              <InsightRow
+                icon="🅿️"
+                label="Parking"
+                value={neighborhood.parkingDifficulty}
+                badge={neighborhood.parkingDifficulty}
+              />
+              {neighborhood.localInsights?.length > 0 && (
+                <div className="insight-section">
+                  <div className="insight-section-title">Local Knowledge</div>
+                  <ul className="insight-list">
+                    {neighborhood.localInsights.map((tip, i) => (
+                      <li key={i} className="insight-item">
+                        <span className="insight-bullet">→</span>
+                        <span>{tip}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {!neighborhood.noiseLevel && (
+                <p className="muted">No local insights available for this neighborhood yet.</p>
+              )}
+            </div>
+          )}
+
           {/* ── Room Layout ────────────────────────────── */}
           {activeTab === 'layout' && (
             <div className="layout-tab">
@@ -246,6 +282,28 @@ function ScoreCard({ label, value, icon }) {
       <span className="score-icon">{icon}</span>
       <div className="score-ring" style={{ borderColor: color }}><span style={{ color }}>{value}</span></div>
       <span className="score-card-label">{label}</span>
+    </div>
+  );
+}
+
+function InsightRow({ icon, label, value, badge, detail }) {
+  const badgeClass = {
+    quiet: 'badge-green', moderate: 'badge-amber', loud: 'badge-red',
+    easy: 'badge-green', hard: 'badge-red',
+  }[badge] || 'badge-muted';
+
+  return (
+    <div className="insight-row">
+      <div className="insight-row-header">
+        <span className="insight-icon">{icon}</span>
+        <span className="insight-label">{label}</span>
+        <span className={`insight-badge ${badgeClass}`}>{value}</span>
+      </div>
+      {detail?.length > 0 && (
+        <ul className="insight-sources">
+          {detail.map((d, i) => <li key={i}>{d}</li>)}
+        </ul>
+      )}
     </div>
   );
 }

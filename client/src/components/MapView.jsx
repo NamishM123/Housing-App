@@ -32,6 +32,13 @@ const ROUTE_AMENITIES = [
   { id: 'airport',  label: 'Airport',  icon: '✈️', name: 'SLO Airport',           lng: -120.6417, lat: 35.2368 },
 ];
 
+// Route color/style per travel mode
+const MODE_COLORS = {
+  driving: { glow: '#5B8CF7', casing: '#2B5CE6', line: '#A5C0FF', dash: null },
+  walking: { glow: '#34D399', casing: '#059669', line: '#6EE7B7', dash: [2, 1.5] },
+  transit: { glow: '#2DD4BF', casing: '#0D9488', line: '#99F6E4', dash: [3, 1.2] },
+};
+
 function fmtDist(metres) {
   const miles = metres * 0.000621371;
   return miles < 0.1 ? `${Math.round(metres)} m` : `${miles.toFixed(1)} mi`;
@@ -64,6 +71,7 @@ export default function MapView({
   const [routeInfo, setRouteInfo] = useState(null);
   const [routeError, setRouteError] = useState(null);
   const [stepsOpen, setStepsOpen] = useState(false);
+  const [travelMode, setTravelMode] = useState('driving');
 
   // ── Map init ─────────────────────────────────────────
   useEffect(() => {
@@ -75,7 +83,7 @@ export default function MapView({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/satellite-streets-v12',
         center: [-120.68, 35.28],
-        zoom: 9.8,
+        zoom: 9.5,
         pitch: 58,
         bearing: -18,
         antialias: true,
@@ -113,7 +121,7 @@ export default function MapView({
     return () => { if (map.current) { map.current.remove(); map.current = null; } };
   }, []);
 
-  // ── Neighborhood flat-fill overlays ──────────────────
+  // ── Neighborhood overlays (heatmap-style glow + event fill + outline + label) ──
   useEffect(() => {
     if (!mapLoaded || !map.current) return;
 
@@ -121,33 +129,62 @@ export default function MapView({
       const sourceId  = `hood-${hood.id}`;
       const fillId    = `fill-${hood.id}`;
       const outlineId = `outline-${hood.id}`;
+      const glowId    = `glow-${hood.id}`;
       const labelId   = `label-${hood.id}`;
+      const labelSource = `label-src-${hood.id}`;
 
       const effectiveRent = roommates > 0 ? Math.round(hood.avgRent / (roommates + 1)) : hood.avgRent;
       const vibeMatch = matchesVibe(hood, vibe);
       const isSelected = hood.id === selectedId;
       const color = monthlyIncome > 0 ? getAffordabilityColor(effectiveRent, monthlyIncome, maxRent) : '#64748b';
 
-      // Flat fill opacity — soft, heat-map style
-      const fillOpacity = vibeMatch
-        ? (isSelected ? 0.48 : 0.28)
-        : 0.06;
+      // ── Point source (center) — used for glow circle and label ──
+      const labelGeojson = {
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: hood.center },
+        properties: { name: hood.name },
+      };
+      if (map.current.getSource(labelSource)) {
+        map.current.getSource(labelSource).setData(labelGeojson);
+      } else {
+        map.current.addSource(labelSource, { type: 'geojson', data: labelGeojson });
+      }
 
+      // ── Heatmap-style glow circle (radial gradient effect) ──
+      const glowOpacity = vibeMatch ? (isSelected ? 0.58 : 0.34) : 0.05;
+      if (map.current.getLayer(glowId)) {
+        map.current.setPaintProperty(glowId, 'circle-color', color);
+        map.current.setPaintProperty(glowId, 'circle-opacity', glowOpacity);
+      } else {
+        map.current.addLayer({
+          id: glowId, type: 'circle', source: labelSource,
+          paint: {
+            'circle-radius': ['interpolate', ['linear'], ['zoom'], 8, 28, 9.5, 50, 11, 90, 13, 155],
+            'circle-color': color,
+            'circle-opacity': glowOpacity,
+            'circle-blur': 0.82,
+            'circle-pitch-alignment': 'map',
+            'circle-pitch-scale': 'map',
+          },
+        });
+      }
+
+      // ── Polygon source (used by fill + outline) ──
       const geojson = {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [hood.polygon] },
         properties: { id: hood.id, name: hood.name, rent: effectiveRent },
       };
-
       if (map.current.getSource(sourceId)) {
         map.current.getSource(sourceId).setData(geojson);
       } else {
         map.current.addSource(sourceId, { type: 'geojson', data: geojson });
       }
 
-      // ── Flat fill (replaces blocky 3D extrusion) ──────
+      // ── Transparent fill — invisible but captures click/hover events ──
+      // Keep a minimal opacity so the polygon boundary is interactable
+      const fillOpacity = vibeMatch ? 0.04 : 0.01;
       if (map.current.getLayer(fillId)) {
-        map.current.setPaintProperty(fillId, 'fill-color', color);
         map.current.setPaintProperty(fillId, 'fill-opacity', fillOpacity);
       } else {
         map.current.addLayer({
@@ -163,7 +200,7 @@ export default function MapView({
 
         map.current.on('click', fillId, () => {
           onNeighborhoodSelect({ ...hood, avgRent: effectiveRent });
-          map.current.flyTo({ center: hood.center, zoom: 11.5, pitch: 50, bearing: -8, duration: 900 });
+          map.current.flyTo({ center: hood.center, zoom: 12, pitch: 50, bearing: -8, duration: 900 });
         });
 
         map.current.on('mouseenter', fillId, () => {
@@ -204,33 +241,20 @@ export default function MapView({
       if (map.current.getLayer(outlineId)) {
         map.current.setPaintProperty(outlineId, 'line-color', color);
         map.current.setPaintProperty(outlineId, 'line-width', isSelected ? 3 : 1.5);
-        map.current.setPaintProperty(outlineId, 'line-opacity', vibeMatch ? (isSelected ? 0.9 : 0.55) : 0.12);
+        map.current.setPaintProperty(outlineId, 'line-opacity', vibeMatch ? (isSelected ? 0.9 : 0.55) : 0.10);
       } else {
         map.current.addLayer({
           id: outlineId, type: 'line', source: sourceId,
           paint: {
             'line-color': color,
             'line-width': isSelected ? 3 : 1.5,
-            'line-opacity': vibeMatch ? 0.55 : 0.12,
+            'line-opacity': vibeMatch ? 0.55 : 0.10,
             'line-blur': 0.5,
           },
         });
       }
 
       // ── Label ─────────────────────────────────────────
-      const labelSource = `label-src-${hood.id}`;
-      const labelGeojson = {
-        type: 'Feature',
-        geometry: { type: 'Point', coordinates: hood.center },
-        properties: { name: hood.name },
-      };
-
-      if (map.current.getSource(labelSource)) {
-        map.current.getSource(labelSource).setData(labelGeojson);
-      } else {
-        map.current.addSource(labelSource, { type: 'geojson', data: labelGeojson });
-      }
-
       if (map.current.getLayer(labelId)) {
         map.current.setPaintProperty(labelId, 'text-opacity', vibeMatch ? 1 : 0.2);
       } else {
@@ -296,13 +320,12 @@ export default function MapView({
     });
   }, [mapLoaded, listings, shortlist, onListingSelect, selectedListing]);
 
-  // ── User location marker (only shown when no listing selected) ──
+  // ── User location dot (when no listing selected) ──
   useEffect(() => {
     if (!mapLoaded || !map.current) return;
     if (userMarkerRef.current) { userMarkerRef.current.remove(); userMarkerRef.current = null; }
-    if (selectedListing) return; // listing takes priority
+    if (selectedListing) return;
 
-    // Still show a subtle dot at neighborhood center for context
     const selectedHood = NEIGHBORHOODS.find(n => n.id === selectedId);
     if (!selectedHood) return;
 
@@ -324,9 +347,11 @@ export default function MapView({
     if (destMarkerRef.current) { destMarkerRef.current.remove(); destMarkerRef.current = null; }
   }, []);
 
-  const drawRoute = useCallback((coords, amenity) => {
+  const drawRoute = useCallback((coords, amenity, mode = 'driving') => {
     if (!map.current) return;
     clearRoute();
+
+    const colors = MODE_COLORS[mode] || MODE_COLORS.driving;
 
     const destEl = document.createElement('div');
     destEl.className = 'dest-marker';
@@ -339,20 +364,29 @@ export default function MapView({
       type: 'geojson',
       data: { type: 'FeatureCollection', features: [{ type: 'Feature', geometry: { type: 'LineString', coordinates: [] } }] },
     });
+
     map.current.addLayer({
       id: 'route-glow', type: 'line', source: 'route',
       layout: { 'line-join': 'round', 'line-cap': 'round' },
-      paint: { 'line-color': '#38bdf8', 'line-width': 16, 'line-opacity': 0.18, 'line-blur': 6 },
+      paint: { 'line-color': colors.glow, 'line-width': 16, 'line-opacity': 0.18, 'line-blur': 6 },
     });
     map.current.addLayer({
       id: 'route-casing', type: 'line', source: 'route',
       layout: { 'line-join': 'round', 'line-cap': 'round' },
-      paint: { 'line-color': '#0284c7', 'line-width': 6, 'line-opacity': 0.90 },
+      paint: { 'line-color': colors.casing, 'line-width': 6, 'line-opacity': 0.90 },
     });
     map.current.addLayer({
       id: 'route-line', type: 'line', source: 'route',
-      layout: { 'line-join': 'round', 'line-cap': 'round' },
-      paint: { 'line-color': '#e0f2fe', 'line-width': 2.5, 'line-opacity': 1 },
+      layout: {
+        'line-join': 'round',
+        'line-cap': colors.dash ? 'butt' : 'round',
+      },
+      paint: {
+        'line-color': colors.line,
+        'line-width': 2.5,
+        'line-opacity': 1,
+        ...(colors.dash ? { 'line-dasharray': colors.dash } : {}),
+      },
     });
 
     const bounds = coords.reduce((b, c) => b.extend(c), new mapboxgl.LngLatBounds(coords[0], coords[0]));
@@ -374,14 +408,16 @@ export default function MapView({
     animFrameRef.current = requestAnimationFrame(tick);
   }, [clearRoute]);
 
-  const fetchRoute = useCallback(async (amenity) => {
+  const fetchRoute = useCallback(async (amenity, modeOverride) => {
     if (!mapboxgl.accessToken) return;
     setRouteLoading(true);
     setRouteError(null);
     setRouteInfo(null);
     setStepsOpen(false);
 
-    // Origin: selected listing → neighborhood center → SLO downtown
+    const mode = modeOverride ?? travelMode;
+    const profile = mode === 'transit' ? 'driving' : mode;
+
     const selectedHood = NEIGHBORHOODS.find(n => n.id === selectedId);
     const listingOrigin = selectedListing?.lng && selectedListing?.lat
       ? [selectedListing.lng, selectedListing.lat]
@@ -392,12 +428,13 @@ export default function MapView({
       : (selectedHood?.name ? `${selectedHood.name} area` : 'SLO');
 
     try {
-      const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${origin[0]},${origin[1]};${amenity.lng},${amenity.lat}?geometries=geojson&overview=full&steps=true&access_token=${mapboxgl.accessToken}`;
+      const url = `https://api.mapbox.com/directions/v5/mapbox/${profile}/${origin[0]},${origin[1]};${amenity.lng},${amenity.lat}?geometries=geojson&overview=full&steps=true&access_token=${mapboxgl.accessToken}`;
       const res = await fetch(url);
       const data = await res.json();
       if (!data.routes?.length) throw new Error('No route found');
 
       const route = data.routes[0];
+      const rawDuration = mode === 'transit' ? route.duration * 3 : route.duration;
       const steps = route.legs[0]?.steps?.map(s => ({
         instruction: s.maneuver.instruction,
         distance: fmtDist(s.distance),
@@ -405,23 +442,32 @@ export default function MapView({
 
       setRouteInfo({
         distance: fmtDist(route.distance),
-        duration: fmtDur(route.duration),
+        duration: fmtDur(rawDuration),
+        modeLabel: mode === 'transit' ? 'Via SLO Transit (est.)' : null,
         destination: amenity.name,
         originLabel,
         steps,
       });
-      drawRoute(route.geometry.coordinates, amenity);
+      drawRoute(route.geometry.coordinates, amenity, mode);
     } catch {
       setRouteError('Could not fetch route. Check your Mapbox token.');
     } finally {
       setRouteLoading(false);
     }
-  }, [selectedId, selectedListing, drawRoute]);
+  }, [selectedId, selectedListing, travelMode, drawRoute]);
 
   const handleAmenityClick = useCallback((amenity) => {
     setActiveAmenity(amenity.id);
     fetchRoute(amenity);
   }, [fetchRoute]);
+
+  const handleModeChange = useCallback((newMode) => {
+    setTravelMode(newMode);
+    if (activeAmenity) {
+      const amenity = ROUTE_AMENITIES.find(a => a.id === activeAmenity);
+      if (amenity) fetchRoute(amenity, newMode);
+    }
+  }, [activeAmenity, fetchRoute]);
 
   const handleClearRoute = useCallback(() => {
     clearRoute();
@@ -434,7 +480,7 @@ export default function MapView({
   // Reset camera when deselecting
   useEffect(() => {
     if (!mapLoaded || !map.current || selectedId) return;
-    map.current.flyTo({ center: [-120.68, 35.30], zoom: 9.2, pitch: 58, bearing: -18, duration: 700 });
+    map.current.flyTo({ center: [-120.68, 35.30], zoom: 9.5, pitch: 58, bearing: -18, duration: 700 });
   }, [mapLoaded, selectedId]);
 
   // ── Fallback (no token) ───────────────────────────────
@@ -475,11 +521,13 @@ export default function MapView({
       ? (NEIGHBORHOODS.find(n => n.id === selectedId)?.name ?? 'SLO') + ' area'
       : 'SLO area';
 
+  const modeColors = MODE_COLORS[travelMode] || MODE_COLORS.driving;
+
   return (
     <div className="map-wrapper">
       <div ref={mapContainer} className="map-container" />
 
-      {/* Affordability legend — bottom RIGHT to avoid directions panel */}
+      {/* Affordability legend — bottom RIGHT */}
       <div className="map-legend">
         <div className="legend-title">Affordability</div>
         {LEGEND.map(({ color, label }) => (
@@ -502,6 +550,7 @@ export default function MapView({
 
         {routeOpen && (
           <div className="route-panel-body">
+            {/* Origin label */}
             <div className="route-origin-label">
               <span className="route-origin-dot" />
               <span>
@@ -512,11 +561,31 @@ export default function MapView({
               </span>
             </div>
 
+            {/* Travel mode toggle */}
+            <div className="route-mode-toggle">
+              {[
+                { id: 'driving', label: '🚗 Drive' },
+                { id: 'walking', label: '🚶 Walk' },
+                { id: 'transit', label: '🚌 Transit' },
+              ].map(m => (
+                <button
+                  key={m.id}
+                  className={`mode-btn ${travelMode === m.id ? 'active' : ''}`}
+                  style={travelMode === m.id ? { borderColor: modeColors.casing, background: `${modeColors.casing}22`, color: modeColors.line } : {}}
+                  onClick={() => handleModeChange(m.id)}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Destination buttons */}
             <div className="route-amenity-grid">
               {ROUTE_AMENITIES.map(a => (
                 <button
                   key={a.id}
                   className={`route-amenity-btn ${activeAmenity === a.id ? 'active' : ''}`}
+                  style={activeAmenity === a.id ? { borderColor: modeColors.casing, background: `${modeColors.casing}22` } : {}}
                   onClick={() => handleAmenityClick(a)}
                   disabled={routeLoading}
                 >
@@ -538,10 +607,13 @@ export default function MapView({
             {routeInfo && !routeLoading && (
               <div className="route-result">
                 <div className="route-summary">
-                  <span className="route-dur">{routeInfo.duration}</span>
+                  <span className="route-dur" style={{ color: modeColors.line }}>{routeInfo.duration}</span>
                   <span className="route-sep">·</span>
                   <span className="route-dist">{routeInfo.distance}</span>
                 </div>
+                {routeInfo.modeLabel && (
+                  <div className="route-mode-note" style={{ color: modeColors.glow }}>{routeInfo.modeLabel}</div>
+                )}
                 <div className="route-dest-name">to {routeInfo.destination}</div>
                 <div className="route-origin-note">from {routeInfo.originLabel}</div>
 
