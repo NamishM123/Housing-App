@@ -4,7 +4,7 @@ import MapView from './components/MapView';
 import VerdictPanel from './components/VerdictPanel';
 import NeighborhoodDrawer from './components/NeighborhoodDrawer';
 import NeighborhoodPanel from './components/NeighborhoodPanel';
-import CityComparison from './components/CityComparison';
+
 import LandingPage from './components/LandingPage';
 import { fetchListings } from './utils/api';
 import './App.css';
@@ -144,7 +144,7 @@ export default function App() {
               />
             )}
 
-            <CityComparison />
+
           </aside>
         </div>
 
