@@ -5,11 +5,22 @@ import { NEIGHBORHOODS, getAffordabilityColor, getAffordabilityLabel, matchesVib
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
+// Height in metres for 3D extrusion: affordable = tall
+function extrusionHeight(rent, monthlyIncome, maxRent) {
+  if (!monthlyIncome) return 300;
+  if (maxRent && rent > maxRent) return 80;
+  const pct = rent / monthlyIncome;
+  if (pct < 0.28) return 1800;
+  if (pct < 0.35) return 1200;
+  if (pct < 0.45) return 600;
+  return 180;
+}
+
 const LEGEND = [
-  { color: '#22c55e', label: 'Comfortable (<28%)' },
-  { color: '#14b8a6', label: 'Manageable (28–35%)' },
-  { color: '#f59e0b', label: 'Tight (35–45%)' },
-  { color: '#ef4444', label: 'Out of Range / Over Budget' },
+  { color: '#22c55e', label: 'Comfortable  <28%' },
+  { color: '#14b8a6', label: 'Manageable  28–35%' },
+  { color: '#f59e0b', label: 'Tight  35–45%' },
+  { color: '#ef4444', label: 'Out of range / Over budget' },
 ];
 
 export default function MapView({ monthlyIncome, roommates, maxRent, vibe, onNeighborhoodSelect, selectedId }) {
@@ -27,9 +38,13 @@ export default function MapView({ monthlyIncome, roommates, maxRent, vibe, onNei
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/dark-v11',
-        center: [-120.66, 35.28],
-        zoom: 9.5,
+        center: [-120.68, 35.30],
+        zoom: 9.2,
+        pitch: 48,
+        bearing: -12,
+        antialias: true,
       });
+
       map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
       map.current.on('load', () => setMapLoaded(true));
       map.current.on('error', () => setMapError(true));
@@ -42,98 +57,161 @@ export default function MapView({ monthlyIncome, roommates, maxRent, vibe, onNei
     if (!mapLoaded || !map.current) return;
 
     NEIGHBORHOODS.forEach((hood) => {
-      const sourceId = `hood-${hood.id}`;
-      const layerId = `layer-${hood.id}`;
+      const sourceId  = `hood-${hood.id}`;
+      const extrudeId = `extrude-${hood.id}`;
       const outlineId = `outline-${hood.id}`;
+      const labelId   = `label-${hood.id}`;
 
       const effectiveRent = roommates > 0 ? Math.round(hood.avgRent / (roommates + 1)) : hood.avgRent;
       const vibeMatch = matchesVibe(hood, vibe);
-      const color = monthlyIncome > 0
-        ? getAffordabilityColor(effectiveRent, monthlyIncome, maxRent)
-        : '#6b7280';
-      const opacity = vibeMatch ? (hood.id === selectedId ? 0.75 : 0.55) : 0.15;
+      const isSelected = hood.id === selectedId;
+      const color   = monthlyIncome > 0 ? getAffordabilityColor(effectiveRent, monthlyIncome, maxRent) : '#475569';
+      const height  = extrusionHeight(effectiveRent, monthlyIncome, maxRent);
+      const opacity = vibeMatch ? (isSelected ? 0.92 : 0.72) : 0.18;
 
       const geojson = {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [hood.polygon] },
-        properties: { id: hood.id, name: hood.name },
+        properties: { id: hood.id, name: hood.name, rent: effectiveRent },
       };
 
       if (map.current.getSource(sourceId)) {
         map.current.getSource(sourceId).setData(geojson);
-        if (map.current.getLayer(layerId)) {
-          map.current.setPaintProperty(layerId, 'fill-color', color);
-          map.current.setPaintProperty(layerId, 'fill-opacity', opacity);
-        }
       } else {
         map.current.addSource(sourceId, { type: 'geojson', data: geojson });
-        map.current.addLayer({ id: layerId, type: 'fill', source: sourceId, paint: { 'fill-color': color, 'fill-opacity': opacity } });
-        map.current.addLayer({ id: outlineId, type: 'line', source: sourceId, paint: { 'line-color': color, 'line-width': hood.id === selectedId ? 3 : 1.5, 'line-opacity': vibeMatch ? 0.9 : 0.2 } });
+      }
 
-        map.current.on('click', layerId, () => {
-          onNeighborhoodSelect({ ...hood, avgRent: effectiveRent });
+      // ── 3D extrusion ─────────────────────────────────
+      if (map.current.getLayer(extrudeId)) {
+        map.current.setPaintProperty(extrudeId, 'fill-extrusion-color', color);
+        map.current.setPaintProperty(extrudeId, 'fill-extrusion-height', height);
+        map.current.setPaintProperty(extrudeId, 'fill-extrusion-opacity', opacity);
+      } else {
+        map.current.addLayer({
+          id: extrudeId,
+          type: 'fill-extrusion',
+          source: sourceId,
+          paint: {
+            'fill-extrusion-color': color,
+            'fill-extrusion-height': height,
+            'fill-extrusion-base': 0,
+            'fill-extrusion-opacity': opacity,
+          },
         });
 
-        map.current.on('mouseenter', layerId, () => {
+        map.current.on('click', extrudeId, () => {
+          onNeighborhoodSelect({ ...hood, avgRent: effectiveRent });
+          map.current.flyTo({ center: hood.center, zoom: 11.5, pitch: 55, bearing: -8, duration: 900 });
+        });
+
+        map.current.on('mouseenter', extrudeId, () => {
           map.current.getCanvas().style.cursor = 'pointer';
           const r = roommates > 0 ? Math.round(hood.avgRent / (roommates + 1)) : hood.avgRent;
-          const label = monthlyIncome > 0 ? getAffordabilityLabel(r, monthlyIncome, maxRent) : 'Enter your salary';
-          const c = monthlyIncome > 0 ? getAffordabilityColor(r, monthlyIncome, maxRent) : '#6b7280';
-          const budgetWarn = maxRent && r > maxRent ? `<div style="font-size:11px;color:#f59e0b;margin-top:2px">⚠️ Over your $${maxRent.toLocaleString()} budget</div>` : '';
-          const vibeNote = !matchesVibe(hood, vibe) ? `<div style="font-size:11px;color:#94a3b8;margin-top:2px">Doesn't match vibe filter</div>` : '';
-          popupRef.current = new mapboxgl.Popup({ closeButton: false, offset: 10 })
+          const label = monthlyIncome > 0 ? getAffordabilityLabel(r, monthlyIncome, maxRent) : 'Enter salary';
+          const c     = monthlyIncome > 0 ? getAffordabilityColor(r, monthlyIncome, maxRent) : '#6b7280';
+          const overBudget = maxRent && r > maxRent
+            ? `<div style="font-size:11px;color:#f59e0b;margin-top:3px">⚠️ Over your $${maxRent.toLocaleString()} cap</div>`
+            : '';
+          const dimNote = !vibeMatch
+            ? `<div style="font-size:11px;color:#64748b;margin-top:2px">Outside vibe filter</div>`
+            : '';
+
+          popupRef.current = new mapboxgl.Popup({ closeButton: false, offset: [0, -8] })
             .setLngLat(hood.center)
             .setHTML(`
-              <div style="font-family:system-ui;padding:8px 12px;background:#1e293b;border-radius:8px;color:#f1f5f9;min-width:170px">
-                <div style="font-weight:700;font-size:14px;margin-bottom:4px">${hood.name}</div>
-                <div style="color:#94a3b8;font-size:12px">Avg Rent: <strong style="color:#f1f5f9">$${r.toLocaleString()}/mo</strong></div>
-                <div style="color:#94a3b8;font-size:12px">Walk Score: <strong style="color:#f1f5f9">${hood.walkScore}</strong></div>
-                ${monthlyIncome > 0 ? `<div style="margin-top:6px;font-size:12px;font-weight:600;color:${c}">${label}</div>` : ''}
-                ${budgetWarn}${vibeNote}
+              <div style="font-family:system-ui;padding:10px 14px;background:#0f172a;border:1px solid #334155;border-radius:10px;color:#f1f5f9;min-width:180px">
+                <div style="font-weight:700;font-size:14px;margin-bottom:6px">${hood.name}</div>
+                <div style="display:flex;gap:16px;font-size:12px;color:#94a3b8">
+                  <span>Rent <strong style="color:#f1f5f9">$${r.toLocaleString()}/mo</strong></span>
+                  <span>Walk <strong style="color:#f1f5f9">${hood.walkScore}</strong></span>
+                </div>
+                ${monthlyIncome > 0 ? `<div style="margin-top:8px;display:inline-block;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700;background:${c}22;color:${c};border:1px solid ${c}55">${label}</div>` : ''}
+                ${overBudget}${dimNote}
               </div>
             `)
             .addTo(map.current);
         });
 
-        map.current.on('mouseleave', layerId, () => {
+        map.current.on('mouseleave', extrudeId, () => {
           map.current.getCanvas().style.cursor = '';
           if (popupRef.current) { popupRef.current.remove(); popupRef.current = null; }
         });
       }
 
+      // ── Outline ───────────────────────────────────────
       if (map.current.getLayer(outlineId)) {
-        map.current.setPaintProperty(outlineId, 'line-width', hood.id === selectedId ? 3 : 1.5);
         map.current.setPaintProperty(outlineId, 'line-color', color);
-        map.current.setPaintProperty(outlineId, 'line-opacity', vibeMatch ? 0.9 : 0.2);
+        map.current.setPaintProperty(outlineId, 'line-width', isSelected ? 3 : 1);
+        map.current.setPaintProperty(outlineId, 'line-opacity', vibeMatch ? (isSelected ? 1 : 0.6) : 0.15);
+      } else {
+        map.current.addLayer({
+          id: outlineId, type: 'line', source: sourceId,
+          paint: { 'line-color': color, 'line-width': isSelected ? 3 : 1, 'line-opacity': vibeMatch ? 0.6 : 0.15 },
+        });
+      }
+
+      // ── Label ─────────────────────────────────────────
+      const labelSource = `label-src-${hood.id}`;
+      const labelGeojson = { type: 'Feature', geometry: { type: 'Point', coordinates: hood.center }, properties: { name: hood.name } };
+
+      if (map.current.getSource(labelSource)) {
+        map.current.getSource(labelSource).setData(labelGeojson);
+      } else {
+        map.current.addSource(labelSource, { type: 'geojson', data: labelGeojson });
+      }
+
+      if (map.current.getLayer(labelId)) {
+        map.current.setPaintProperty(labelId, 'text-opacity', vibeMatch ? 1 : 0.25);
+        map.current.setPaintProperty(labelId, 'text-color', isSelected ? '#ffffff' : '#cbd5e1');
+      } else {
+        map.current.addLayer({
+          id: labelId, type: 'symbol', source: labelSource,
+          layout: {
+            'text-field': ['get', 'name'],
+            'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'],
+            'text-size': 12,
+            'text-anchor': 'center',
+            'text-allow-overlap': false,
+          },
+          paint: {
+            'text-color': isSelected ? '#ffffff' : '#cbd5e1',
+            'text-halo-color': '#0f172a',
+            'text-halo-width': 1.5,
+            'text-opacity': vibeMatch ? 1 : 0.25,
+          },
+        });
       }
     });
   }, [mapLoaded, monthlyIncome, roommates, maxRent, vibe, selectedId, onNeighborhoodSelect]);
+
+  // Reset camera when deselecting
+  useEffect(() => {
+    if (!mapLoaded || !map.current || selectedId) return;
+    map.current.flyTo({ center: [-120.68, 35.30], zoom: 9.2, pitch: 48, bearing: -12, duration: 700 });
+  }, [mapLoaded, selectedId]);
 
   if (mapError || !mapboxgl.accessToken) {
     return (
       <div className="map-fallback">
         <div className="map-fallback-inner">
           <h3>Neighborhoods</h3>
-          <p>Add your <code>VITE_MAPBOX_TOKEN</code> to enable the interactive map.</p>
+          <p className="muted">Add <code>VITE_MAPBOX_TOKEN</code> in <code>client/.env</code> to enable the 3D map.</p>
           <div className="neighborhood-grid">
             {NEIGHBORHOODS.map(hood => {
-              const effectiveRent = roommates > 0 ? Math.round(hood.avgRent / (roommates + 1)) : hood.avgRent;
-              const color = monthlyIncome > 0 ? getAffordabilityColor(effectiveRent, monthlyIncome, maxRent) : '#6b7280';
-              const label = monthlyIncome > 0 ? getAffordabilityLabel(effectiveRent, monthlyIncome, maxRent) : '—';
-              const vibeMatch = matchesVibe(hood, vibe);
+              const r     = roommates > 0 ? Math.round(hood.avgRent / (roommates + 1)) : hood.avgRent;
+              const color = monthlyIncome > 0 ? getAffordabilityColor(r, monthlyIncome, maxRent) : '#6b7280';
+              const label = monthlyIncome > 0 ? getAffordabilityLabel(r, monthlyIncome, maxRent) : '—';
+              const vm    = matchesVibe(hood, vibe);
               return (
-                <button
-                  key={hood.id}
-                  className={`neighborhood-card ${hood.id === selectedId ? 'selected' : ''} ${!vibeMatch ? 'dimmed' : ''}`}
-                  style={{ borderColor: color, opacity: vibeMatch ? 1 : 0.35 }}
-                  onClick={() => onNeighborhoodSelect({ ...hood, avgRent: effectiveRent })}
+                <button key={hood.id}
+                  className={`neighborhood-card ${hood.id === selectedId ? 'selected' : ''}`}
+                  style={{ borderColor: color, opacity: vm ? 1 : 0.35 }}
+                  onClick={() => onNeighborhoodSelect({ ...hood, avgRent: r })}
                 >
                   <div className="neighborhood-card-name">{hood.name}</div>
-                  <div className="neighborhood-card-rent">${effectiveRent.toLocaleString()}/mo</div>
+                  <div className="neighborhood-card-rent">${r.toLocaleString()}/mo</div>
                   <div className="neighborhood-card-label" style={{ color }}>{label}</div>
-                  {maxRent && effectiveRent > maxRent && (
-                    <div className="neighborhood-card-warn">Over budget</div>
-                  )}
+                  {maxRent && r > maxRent && <div className="neighborhood-card-warn">Over budget</div>}
                 </button>
               );
             })}
@@ -146,6 +224,7 @@ export default function MapView({ monthlyIncome, roommates, maxRent, vibe, onNei
   return (
     <div className="map-wrapper">
       <div ref={mapContainer} className="map-container" />
+
       <div className="map-legend">
         <div className="legend-title">Affordability</div>
         {LEGEND.map(({ color, label }) => (
@@ -154,14 +233,14 @@ export default function MapView({ monthlyIncome, roommates, maxRent, vibe, onNei
             <span>{label}</span>
           </div>
         ))}
-        {vibe && vibe !== 'any' && (
-          <div className="legend-filter">Vibe filter: <strong>{vibe}</strong></div>
-        )}
+        <div className="legend-hint">Taller = more affordable</div>
+        {vibe && vibe !== 'any' && <div className="legend-filter">Vibe: <strong>{vibe}</strong></div>}
       </div>
+
       {!mapLoaded && (
         <div className="map-loading">
           <div className="spinner" />
-          <span>Loading map…</span>
+          <span>Loading 3D map…</span>
         </div>
       )}
     </div>

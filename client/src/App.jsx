@@ -16,9 +16,10 @@ const DEFAULT_FORM = {
   lifestyle: 'sometimes',
   maxRent: null,
   vibe: 'any',
-  commute: 'medium',
   workSetup: 'hybrid',
+  workLocation: 'remote',
   mustHaves: [],
+  proximityPrefs: {},
   timeline: 'asap',
 };
 

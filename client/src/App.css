@@ -79,6 +79,52 @@ body {
 /* ── Form ─────────────────────────────────────────── */
 .input-form { display: flex; flex-direction: column; gap: 12px; }
 
+.pref-hint { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; }
+
+.tab-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: #fff; color: var(--accent); font-size: 10px; font-weight: 800;
+  margin-left: 4px;
+}
+
+/* Work location grid */
+.work-location-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.work-loc-btn {
+  display: flex; flex-direction: column; align-items: flex-start;
+  padding: 8px 10px; border-radius: var(--radius);
+  border: 1px solid var(--border); background: var(--bg);
+  cursor: pointer; transition: all 0.15s; text-align: left; gap: 2px;
+}
+.work-loc-btn.active { border-color: var(--accent); background: var(--accent-dim); }
+.work-loc-label { font-size: 12px; font-weight: 600; color: var(--text); }
+.work-loc-desc { font-size: 10px; color: var(--text-muted); }
+
+/* Amenity proximity rows */
+.amenity-list { display: flex; flex-direction: column; gap: 6px; }
+.amenity-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; padding: 8px 10px;
+  background: var(--bg); border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.amenity-info { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
+.amenity-label { font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.amenity-examples { font-size: 10px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.amenity-opts { display: flex; gap: 3px; flex-shrink: 0; }
+.dist-btn {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 4px 7px; border-radius: 6px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--text-muted); cursor: pointer; font-size: 10px;
+  font-weight: 600; transition: all 0.15s; line-height: 1.2;
+}
+.dist-btn.active { border-color: var(--accent); background: var(--accent-dim); color: var(--text); }
+.dist-sub { font-size: 9px; font-weight: 400; color: inherit; opacity: 0.7; }
+
+/* Legend extras */
+.legend-hint { font-size: 10px; color: #475569; margin-top: 4px; font-style: italic; }
+
 .form-tabs { display: flex; gap: 4px; margin-bottom: 2px; }
 .form-tab {
   flex: 1; padding: 7px; border-radius: var(--radius);
