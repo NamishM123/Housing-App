@@ -52,7 +52,7 @@ function fmtDur(seconds) {
 
 export default function MapView({
   monthlyIncome, roommates, maxRent, vibe,
-  onNeighborhoodSelect, selectedId,
+  onNeighborhoodSelect, onNeighborhoodHover, selectedId,
   listings, shortlist, onListingSelect,
   selectedListing,
   landingActive = false,
@@ -65,6 +65,8 @@ export default function MapView({
   const animFrameRef = useRef(null);
   const monthlyIncomeRef = useRef(monthlyIncome);
   const flownRef = useRef(false);
+  const onNeighborhoodHoverRef = useRef(onNeighborhoodHover);
+  useEffect(() => { onNeighborhoodHoverRef.current = onNeighborhoodHover; }, [onNeighborhoodHover]);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState(false);
   const [mapZoom, setMapZoom] = useState(9.5);
@@ -339,9 +341,13 @@ export default function MapView({
           map.current.flyTo({ center: hood.center, zoom: 12.5, pitch: 50, bearing: -8, duration: 900 });
         });
 
-        // Simple hover effects
+        // Simple hover effects + dock-peek: hovering a polygon previews the city
+        // in the bottom dock without firing API calls or camera moves.
         map.current.on('mouseenter', fillId, () => {
           map.current.getCanvas().style.cursor = 'pointer';
+          if (onNeighborhoodHoverRef.current) {
+            onNeighborhoodHoverRef.current({ ...hood, avgRent: effectiveRent });
+          }
         });
 
         map.current.on('mouseleave', fillId, () => {

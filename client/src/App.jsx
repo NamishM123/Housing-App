@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Stars } from '@react-three/drei';
 import OnboardingForm from './components/OnboardingForm';
@@ -45,6 +45,7 @@ export default function App() {
   const [showLanding, setShowLanding]           = useState(true);
   const [submittedForm, setSubmittedForm]       = useState(null);
   const [selectedNeighborhood, setSelectedNeighborhood] = useState(null);
+  const [hoveredNeighborhood, setHoveredNeighborhood]   = useState(null);
   const [drawerOpen, setDrawerOpen]             = useState(false);
   const [activePanelTab, setActivePanelTab]     = useState(null); // null = panel closed
   const [verdict, setVerdict]                   = useState(null);
@@ -102,6 +103,15 @@ export default function App() {
     loadNeighborhood(neighborhood);
   }, [loadNeighborhood]);
 
+  // Lightweight hover preview: just shows the bottom dock with the city's
+  // header info. Skipped while a city is fully selected so the dock keeps
+  // matching the selection (and we don't churn UI on stray cursor sweeps).
+  const handleNeighborhoodHover = useCallback((neighborhood) => {
+    if (selectedNeighborhood) return;
+    setHoveredNeighborhood(neighborhood);
+    setBottomPinned(true);
+  }, [selectedNeighborhood]);
+
   // Prev / Next city cycling — driven by the chevrons in the bottom dock.
   // Uses the canonical NEIGHBORHOODS order and wraps around at both ends.
   // We preserve the active tab so users browsing "Listings" can flip
@@ -122,14 +132,37 @@ export default function App() {
   const handlePrevCity = useCallback(() => cycleNeighborhood(-1), [cycleNeighborhood]);
   const handleNextCity = useCallback(() => cycleNeighborhood(+1), [cycleNeighborhood]);
 
+  // Edge-swipe: cursor tucked into the very left strip brings the sidebar back
+  // and stows the bottom bar so the form is the focus again.
+  useEffect(() => {
+    const EDGE_PX = 8;
+    let nearEdge = false;
+    const onMove = (e) => {
+      const within = e.clientX <= EDGE_PX;
+      if (within && !nearEdge) {
+        setLeftPinned(true);
+        setBottomPinned(false);
+        setHoveredNeighborhood(null);
+      }
+      nearEdge = within;
+    };
+    window.addEventListener('mousemove', onMove);
+    return () => window.removeEventListener('mousemove', onMove);
+  }, []);
+
   const handleTileClick = useCallback((tileId) => {
+    // If the dock is showing a hover-only preview, promote to a real selection
+    // so the right panel has listings/data to render.
+    if (!selectedNeighborhood && hoveredNeighborhood) {
+      loadNeighborhood(hoveredNeighborhood);
+    }
     setActivePanelTab(prev => {
       const next = prev === tileId ? null : tileId;
       setRightPinned(!!next);
       if (next) setBottomPinned(false); // Auto-hide bottom bar when right panel opens
       return next;
     });
-  }, []);
+  }, [selectedNeighborhood, hoveredNeighborhood, loadNeighborhood]);
 
   const handlePanelClose = useCallback(() => {
     setActivePanelTab(null);
@@ -172,6 +205,7 @@ export default function App() {
             maxRent={maxRent}
             vibe={submittedForm?.vibe ?? 'any'}
             onNeighborhoodSelect={handleNeighborhoodSelect}
+            onNeighborhoodHover={handleNeighborhoodHover}
             selectedId={selectedNeighborhood?.id}
             listings={displayedListings}
             shortlist={shortlist}
@@ -235,14 +269,14 @@ export default function App() {
       </div>
 
       {/* Bottom tile bar Wrapper */}
-      {selectedNeighborhood && (
+      {(selectedNeighborhood || hoveredNeighborhood) && (
         <div className={`nbr-bar-wrapper ${bottomPinned ? 'pinned' : ''}`}>
           <div className="nbr-bar-edge-tab" onClick={() => setBottomPinned(true)}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 15l-6-6-6 6"/></svg>
           </div>
           <NeighborhoodDrawer
             open={true}
-            neighborhood={selectedNeighborhood}
+            neighborhood={selectedNeighborhood || hoveredNeighborhood}
             onTileClick={handleTileClick}
             activeTile={activePanelTab}
             onPrev={handlePrevCity}
