@@ -79,9 +79,19 @@ function MapboxGlobe({ active }) {
         'star-intensity': 0,
       });
 
-      // Hide every label/symbol layer (no country or city names)
+      // Hide labels AND admin/border line layers (no country names or outlines)
       map.getStyle().layers.forEach(layer => {
-        if (layer.type === 'symbol') {
+        const id = layer.id.toLowerCase();
+        if (
+          layer.type === 'symbol' ||
+          (layer.type === 'line' && (
+            id.includes('admin') ||
+            id.includes('border') ||
+            id.includes('boundary') ||
+            id.includes('state') ||
+            id.includes('country')
+          ))
+        ) {
           map.setLayoutProperty(layer.id, 'visibility', 'none');
         }
       });

@@ -126,6 +126,22 @@ export default function MapView({
           'star-intensity': 0,
         });
 
+        // Hide admin/country/state border line layers so outlines don't show
+        map.current.getStyle().layers.forEach(layer => {
+          const id = layer.id.toLowerCase();
+          if (
+            layer.type === 'line' && (
+              id.includes('admin') ||
+              id.includes('border') ||
+              id.includes('boundary') ||
+              id.includes('state-line') ||
+              id.includes('country')
+            )
+          ) {
+            map.current.setLayoutProperty(layer.id, 'visibility', 'none');
+          }
+        });
+
         setMapLoaded(true);
       });
 

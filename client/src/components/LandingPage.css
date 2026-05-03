@@ -88,17 +88,16 @@
 }
 
 /* Wordmark sized so the "Settlr" letter cap-height matches the "Welcome to"
-   font size on the same line. The SVG viewBox includes the orange mark
-   above the letters (~34% of total height), so total SVG height is set to
-   ~3x the target letter height. */
+   font size. The SVG viewBox includes the orange house above the letters
+   (~34% of total height), so total SVG height ≈ 3× target letter height. */
 .landing-wordmark-img {
-  height: clamp(5.5rem, 13vw, 12rem);
+  height: clamp(3rem, 7vw, 9rem);
   width: auto;
   display: block;
   user-select: none;
   pointer-events: none;
-  /* nudge baseline so the letters sit on the same line as "Welcome to" */
-  transform: translateY(0.18em);
+  /* shift down slightly so the Settlr letters baseline-align with "Welcome to" */
+  transform: translateY(0.22em);
 }
 
 /* fade in + scale out from center */
@@ -155,9 +154,14 @@
 }
 
 .landing-nav-mark {
-  width: 140px;
-  height: 140px;
-  /* keep the SVG's native colors — orange house + white wordmark */
+  /* same sizing as the dashboard sidebar logo */
+  width: auto;
+  height: auto;
+  max-height: 72px;
+  max-width: 200px;
+  object-fit: contain;
+  display: block;
+  /* keep native colors — orange house + white wordmark */
   opacity: 1;
 }
 
