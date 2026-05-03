@@ -138,23 +138,53 @@ export default function OnboardingForm({ onSubmit, loading }) {
         />
       </section>
 
-      {/* Q2 — Housing strategy */}
+      {/* Q2 — Rent allocation % */}
       <section className="q-section">
-        <label className="q-label">How do you want to spend on rent?</label>
-        <span className="hint">Pick the one that sounds most like you.</span>
-        <div className="seg-stack">
-          {STRATEGIES.map(s => (
-            <button
-              key={s.id}
-              type="button"
-              className={`seg-row ${strategy === s.id ? 'active' : ''}`}
-              onClick={() => setStrategy(s.id)}
-            >
-              <span className="seg-label">{s.label}</span>
-              <span className="seg-sub">{s.sub}</span>
-            </button>
-          ))}
+        <label className="q-label">What % of income do you want to spend on rent?</label>
+        <span className="hint">Most people spend 25–35%. Type any number that works for you.</span>
+        <div className="rent-pct-input">
+          <input
+            type="number"
+            inputMode="numeric"
+            min={MIN_RENT_PCT}
+            max={MAX_RENT_PCT}
+            placeholder={String(DEFAULT_RENT_PCT)}
+            value={rentPct}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (v === '') { setRentPct(''); return; }
+              const n = parseInt(v, 10);
+              if (!Number.isNaN(n)) setRentPct(n);
+            }}
+            onBlur={() => {
+              if (rentPct === '' || rentPct < MIN_RENT_PCT) setRentPct(MIN_RENT_PCT);
+              if (rentPct > MAX_RENT_PCT) setRentPct(MAX_RENT_PCT);
+            }}
+          />
+          <span className="pct-suffix">%</span>
         </div>
+        {combinedAnnual > 0 && (
+          <div className="rent-estimate-box">
+            <div className="rent-estimate-row">
+              <span>Est. monthly rent budget</span>
+              <strong>${fmt(maxRent)}/mo</strong>
+            </div>
+            <div className="rent-estimate-row">
+              <span>Est. annual housing cost</span>
+              <strong>${fmt(annualHousingEst)}/yr</strong>
+            </div>
+            <div className="rent-estimate-row">
+              <span>That's</span>
+              <strong>{housingPctOfIncome}% of your income</strong>
+            </div>
+            {strategyPct > 0.40 && (
+              <span className="rent-warn">⚠️ Over 40% is considered cost-burdened</span>
+            )}
+            {strategyPct <= 0.28 && (
+              <span className="rent-good">✓ Under 28% — comfortable range</span>
+            )}
+          </div>
+        )}
       </section>
 
       {/* Q3 — Living situation */}
