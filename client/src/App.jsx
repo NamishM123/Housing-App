@@ -4,28 +4,29 @@ import MapView from './components/MapView';
 import VerdictPanel from './components/VerdictPanel';
 import NeighborhoodDrawer from './components/NeighborhoodDrawer';
 import NeighborhoodPanel from './components/NeighborhoodPanel';
+import IncomeSlider from './components/IncomeSlider';
 
 import LandingPage from './components/LandingPage';
 import { fetchListings } from './utils/api';
 import './App.css';
 
 export default function App() {
-  const [showLanding, setShowLanding]           = useState(true);
-  const [submittedForm, setSubmittedForm]       = useState(null);
+  const [showLanding, setShowLanding] = useState(true);
+  const [submittedForm, setSubmittedForm] = useState(null);
   const [selectedNeighborhood, setSelectedNeighborhood] = useState(null);
-  const [drawerOpen, setDrawerOpen]             = useState(false);
-  const [activePanelTab, setActivePanelTab]     = useState(null); // null = panel closed
-  const [verdict, setVerdict]                   = useState(null);
-  const [verdictLoading, setVerdictLoading]     = useState(false);
-  const [listings, setListings]                 = useState([]);
-  const [listingsLoading, setListingsLoading]   = useState(false);
-  const [searchUrls, setSearchUrls]             = useState(null);
-  const [shortlist, setShortlist]               = useState([]);
-  const [selectedListing, setSelectedListing]   = useState(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [activePanelTab, setActivePanelTab] = useState(null); // null = panel closed
+  const [verdict, setVerdict] = useState(null);
+  const [verdictLoading, setVerdictLoading] = useState(false);
+  const [listings, setListings] = useState([]);
+  const [listingsLoading, setListingsLoading] = useState(false);
+  const [searchUrls, setSearchUrls] = useState(null);
+  const [shortlist, setShortlist] = useState([]);
+  const [selectedListing, setSelectedListing] = useState(null);
 
-  const [leftPinned, setLeftPinned]             = useState(true);
-  const [rightPinned, setRightPinned]           = useState(false);
-  const [bottomPinned, setBottomPinned]         = useState(false);
+  const [leftPinned, setLeftPinned] = useState(true);
+  const [rightPinned, setRightPinned] = useState(false);
+  const [bottomPinned, setBottomPinned] = useState(false);
 
   const handleFormSubmit = useCallback((formData) => {
     setSubmittedForm(formData);
@@ -87,9 +88,9 @@ export default function App() {
     setDrawerOpen(true);
   }, []);
 
-  const monthlyIncome   = submittedForm ? Math.round(submittedForm.salary / 12) : 0;
-  const maxRent         = submittedForm?.maxRent ?? null;
-  const rightPanelOpen  = !!activePanelTab;
+  const monthlyIncome = submittedForm ? Math.round(submittedForm.salary / 12) : 0;
+  const maxRent = submittedForm?.maxRent ?? null;
+  const rightPanelOpen = !!activePanelTab;
 
   // Scale the visible inventory with the user's income & housing-percentage
   // strategy: as the cap rises, more listings pass the filter. Before the
@@ -123,7 +124,7 @@ export default function App() {
         <div className={`sidebar-wrapper ${leftPinned ? 'pinned' : ''}`}>
           <div className="sidebar-sphere-bg" />
           <div className="sidebar-edge-tab" onClick={() => setLeftPinned(true)}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>
           </div>
           <aside className="sidebar">
             <div className="sidebar-brand">
@@ -162,7 +163,7 @@ export default function App() {
       {selectedNeighborhood && (
         <div className={`nbr-bar-wrapper ${bottomPinned ? 'pinned' : ''}`}>
           <div className="nbr-bar-edge-tab" onClick={() => setBottomPinned(true)}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 15l-6-6-6 6"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 15l-6-6-6 6" /></svg>
           </div>
           <NeighborhoodDrawer
             open={true}
@@ -178,7 +179,7 @@ export default function App() {
       {selectedNeighborhood && activePanelTab && (
         <div className={`n-panel-wrapper ${rightPinned ? 'pinned' : ''} ${activePanelTab === 'listings' ? 'wide' : ''}`}>
           <div className="n-panel-edge-tab" onClick={() => setRightPinned(true)}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
           </div>
           <NeighborhoodPanel
             open={true}
