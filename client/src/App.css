@@ -76,12 +76,13 @@ body {
 ─────────────────────────────────────────────────── */
 .sidebar-brand {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
-  padding: 20px 2px 18px;
+  padding: 24px 0 18px;
   border-bottom: 1px solid var(--border);
   margin-bottom: 4px;
   flex-shrink: 0;
+  justify-content: flex-start;
 }
 
 .sidebar-logo {
@@ -137,9 +138,17 @@ body {
   z-index: 100;
   transform: translateX(-100%);
   transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+  overflow: hidden;
 }
 .sidebar-wrapper.pinned {
   transform: translateX(0);
+}
+
+/* Celestial sphere background layer */
+.sidebar-sphere-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
 }
 
 .sidebar-edge-tab {
@@ -190,11 +199,12 @@ body {
 }
 
 .sidebar {
+  position: relative;
+  z-index: 1;
   width: 100%;
   height: 100%;
-  background: linear-gradient(160deg, rgba(12, 21, 36, 0.95) 0%, rgba(8, 16, 26, 0.95) 55%, rgba(12, 20, 33, 0.95) 100%);
+  background: linear-gradient(160deg, rgba(6, 10, 22, 0.72) 0%, rgba(4, 10, 20, 0.68) 55%, rgba(6, 10, 20, 0.72) 100%);
   border-right: 1px solid rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(20px);
   overflow-y: auto;
   overflow-x: hidden;
   padding: 0 16px 18px;
@@ -3213,12 +3223,13 @@ input.error {
 
 /* ── Settlr full wordmark logo ────────────────────── */
 .sidebar-logo-full {
-  width: 100%;
+  width: auto;
   height: auto;
-  max-height: 56px;
+  max-height: 80px;
+  max-width: 240px;
   object-fit: contain;
   display: block;
-  flex: 1;
+  flex-shrink: 0;
 }
 
 /* ── Onboarding form ──────────────────────────────── */
@@ -3557,6 +3568,13 @@ input.error {
 
 .submit-btn:hover:not(:disabled) {
   background: var(--accent-hover);
+}
+
+/* ── Hide Mapbox attribution & logo ──────────────── */
+.mapboxgl-ctrl-attrib-container,
+.mapboxgl-ctrl-attrib,
+.mapboxgl-ctrl-logo {
+  display: none !important;
 }
 
 .submit-btn:disabled {
