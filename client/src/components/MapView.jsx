@@ -134,12 +134,6 @@ export default function MapView({
       });
 
       map.current.on('error', () => setMapError(true));
-
-      // Close popup when clicking empty map space
-      map.current.on('click', () => {
-        if (popupCloseTimer.current) { clearTimeout(popupCloseTimer.current); popupCloseTimer.current = null; }
-        if (popupRef.current) { popupRef.current.remove(); popupRef.current = null; }
-      });
     } catch { setMapError(true); }
 
     return () => { if (map.current) { map.current.remove(); map.current = null; } };
