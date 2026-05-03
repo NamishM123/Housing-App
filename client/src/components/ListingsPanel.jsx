@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import ListingDetailModal from './ListingDetailModal';
+import { GlowCard } from './GlowCard';
 import { pickHousePhoto } from '../utils/housePhotos';
 
 const BED_FILTERS = ['All', '1', '2', '3+'];
@@ -154,7 +155,11 @@ export default function ListingsPanel({ listings, loading, searchUrls, form, sho
               : null;
 
           return (
-            <div key={listing.id} className={`listing-card ${overBudget ? 'over-budget' : ''} ${isShortlisted ? 'shortlisted' : ''}`}>
+            <GlowCard
+              key={listing.id}
+              className={`listing-card ${overBudget ? 'over-budget' : ''} ${isShortlisted ? 'shortlisted' : ''}`}
+              radius={22}
+            >
               {thumb && (
                 <button
                   className="listing-thumb-btn"
@@ -221,7 +226,7 @@ export default function ListingsPanel({ listings, loading, searchUrls, form, sho
                   📅 Request Tour
                 </button>
               </div>
-            </div>
+            </GlowCard>
           );
         })}
       </div>
