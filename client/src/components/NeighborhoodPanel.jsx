@@ -7,15 +7,6 @@ import ListingsPanel from './ListingsPanel';
 const UTILITIES = { pge: 95, water: 45, internet: 70 };
 const TOTAL_UTILITIES = Object.values(UTILITIES).reduce((a, b) => a + b, 0);
 
-const SECTION_META = {
-  listings:  { icon: '🏠', label: 'Listings' },
-  costs:     { icon: '💰', label: 'Move-in Costs' },
-  walkscore: { icon: '🚶', label: 'Walkability' },
-  insights:  { icon: '📍', label: 'Area Insights' },
-  layout:    { icon: '🛋️', label: 'Room Layout' },
-  checklist: { icon: '✅', label: 'Move-in Checklist' },
-};
-
 export default function NeighborhoodPanel({ open, activeTab, neighborhood, form, onClose, listings, listingsLoading, searchUrls, shortlist, onShortlist, onEditProfile }) {
   const [walkScore, setWalkScore]         = useState(null);
   const [checklist, setChecklist]         = useState(null);
@@ -99,18 +90,13 @@ export default function NeighborhoodPanel({ open, activeTab, neighborhood, form,
   const totalMoveIn  = firstMonth + deposit + TOTAL_UTILITIES + 300;
   const savingsAfter = form ? form.savings - totalMoveIn : 0;
   const savingsPct   = form ? Math.min(100, Math.round((totalMoveIn / form.savings) * 100)) : 0;
-  const meta         = SECTION_META[activeTab] || {};
 
   return (
     <div className="n-panel">
       {/* ── Header ── */}
       <div className="n-panel-header">
         <div className="n-panel-header-left">
-          <span className="n-panel-hdr-icon">{meta.icon}</span>
-          <div>
-            <div className="n-panel-section-label">{meta.label}</div>
-            <div className="n-panel-neighborhood">{neighborhood.name}</div>
-          </div>
+          <div className="n-panel-neighborhood">{neighborhood.name}</div>
         </div>
         <button className="n-panel-close-btn" onClick={onClose} aria-label="Close panel">✕</button>
       </div>

@@ -936,73 +936,33 @@ input.error {
 }
 
 /* ── Bottom tile bar ──────────────────────────────── */
+/* Invisible hover zone at the bottom edge — replaces the visible reopen tab.
+   Centered on the dock's footprint so hovering map widgets in the corners
+   doesn't trigger the dock. */
+.nbr-bar-hover-zone {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  max-width: 80vw;
+  height: 24px;
+  z-index: 89;
+  pointer-events: auto;
+  background: transparent;
+}
+
 .nbr-bar-wrapper {
   position: fixed;
   bottom: 0;
-  left: 0;
-  right: 0;
-  height: 40px;
-  z-index: 90;
-  pointer-events: none; /* let clicks fall through to the map by default */
-}
-.nbr-bar-wrapper > * { pointer-events: auto; }
-
-/* Reopen pull-tab on the bottom edge of the screen.
-   Mirrors `.sidebar-reopen-tab` (30px thickness × 120px length, swapped axes)
-   so both reopen tabs read as the same component in different orientations. */
-.nbr-bar-edge-tab {
-  position: absolute;
-  bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 120px;
-  height: 30px;
-  background: rgba(8, 12, 24, 0.92);
-  border: 1px solid #1e293b;
-  border-bottom: none;
-  border-radius: 12px 12px 0 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #cbd5e1;
-  cursor: pointer;
-  backdrop-filter: blur(10px);
-  opacity: 1;
-  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.45);
-  transition: opacity 0.3s, background 0.2s, color 0.2s, height 0.2s, box-shadow 0.25s;
-  animation: reopen-tab-pulse-bottom 2.6s ease-in-out infinite;
-}
-.nbr-bar-edge-tab:hover {
-  background: rgba(91, 140, 247, 0.22);
-  color: #fff;
-  height: 36px;
-  animation-play-state: paused;
-  box-shadow: 0 -2px 18px rgba(0, 0, 0, 0.55), 0 -6px 22px rgba(91, 140, 247, 0.45);
-}
-.nbr-bar-wrapper.pinned .nbr-bar-edge-tab {
-  opacity: 0;
-  pointer-events: none;
-}
-
-@keyframes reopen-tab-pulse-bottom {
-  0%, 100% {
-    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.45),
-                0 0 0 0 rgba(91, 140, 247, 0);
-    border-color: #1e293b;
-  }
-  50% {
-    box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.55),
-                0 -4px 22px 4px rgba(91, 140, 247, 0.38);
-    border-color: rgba(91, 140, 247, 0.55);
-  }
+  z-index: 90;
+  pointer-events: auto;
 }
 
 .nbr-bar {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  right: auto;
-  transform: translateX(-50%);
+  position: relative;
   width: auto;
   min-width: 480px;
   background: rgba(8, 12, 24, 0.97);
@@ -1012,9 +972,6 @@ input.error {
   backdrop-filter: blur(20px);
   transition: border-color 0.25s ease;
   isolation: isolate;
-}
-.nbr-bar-wrapper:not(.pinned) .nbr-bar {
-  display: none;
 }
 
 /* Spotlight glow on the drawer — same effect as <GlowCard>, scoped here so
@@ -1274,9 +1231,9 @@ input.error {
 /* ── Right detail panel ───────────────────────────── */
 .n-panel-wrapper {
   position: fixed;
-  right: 0;
-  top: 0;
-  bottom: 0;
+  right: 18px;
+  top: 18px;
+  bottom: 18px;
   width: 440px;
   z-index: 95;
   transition: width 0.3s ease;
@@ -1287,7 +1244,7 @@ input.error {
   width: clamp(480px, 50vw, 760px);
 }
 @media (max-width: 720px) {
-  .n-panel-wrapper.wide { width: 100vw; }
+  .n-panel-wrapper.wide { width: calc(100vw - 36px); }
 }
 .n-panel-wrapper:not(.pinned) {
   display: none;
@@ -1296,14 +1253,13 @@ input.error {
 .n-panel-edge-tab {
   position: absolute;
   top: 50%;
-  left: -24px;
+  left: -34px;
   width: 24px;
   height: 60px;
   transform: translateY(-50%);
   background: rgba(8, 12, 24, 0.85);
   border: 1px solid #1e293b;
-  border-right: none;
-  border-radius: 8px 0 0 8px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1326,11 +1282,13 @@ input.error {
   width: 100%;
   height: 100%;
   background: rgba(10, 15, 30, 0.96);
-  border-left: 1px solid #1e293b;
-  box-shadow: -8px 0 40px rgba(0, 0, 0, 0.6);
+  border: 1px solid #1e293b;
+  border-radius: 22px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(20px);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .n-panel-header {
@@ -1347,20 +1305,6 @@ input.error {
   display: flex;
   align-items: center;
   gap: 12px;
-}
-
-.n-panel-hdr-icon {
-  font-size: 28px;
-  line-height: 1;
-}
-
-.n-panel-section-label {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #3b82f6;
-  margin-bottom: 2px;
 }
 
 .n-panel-neighborhood {

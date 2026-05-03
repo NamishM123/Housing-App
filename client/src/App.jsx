@@ -160,7 +160,6 @@ export default function App() {
     setActivePanelTab(prev => {
       const next = prev === tileId ? null : tileId;
       setRightPinned(!!next);
-      if (next) setBottomPinned(false); // Auto-hide bottom bar when right panel opens
       return next;
     });
   }, [selectedNeighborhood, hoveredNeighborhood, loadNeighborhood]);
@@ -279,13 +278,20 @@ export default function App() {
 
       </div>
 
-      {/* Bottom tile bar Wrapper — hidden whenever the sidebar is open so
-          the user editing their income gets a clean canvas. */}
-      {!leftPinned && (selectedNeighborhood || hoveredNeighborhood) && (
-        <div className={`nbr-bar-wrapper ${bottomPinned ? 'pinned' : ''}`}>
-          <div className="nbr-bar-edge-tab" onClick={() => setBottomPinned(true)}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 15l-6-6-6 6"/></svg>
-          </div>
+      {/* Bottom tile bar — hover-revealed. The visible reopen tab is replaced
+          with an invisible hover zone at the bottom edge. */}
+      {!leftPinned && (selectedNeighborhood || hoveredNeighborhood) && !bottomPinned && (
+        <div
+          className="nbr-bar-hover-zone"
+          onMouseEnter={() => setBottomPinned(true)}
+          aria-hidden="true"
+        />
+      )}
+      {!leftPinned && (selectedNeighborhood || hoveredNeighborhood) && bottomPinned && (
+        <div
+          className="nbr-bar-wrapper pinned"
+          onMouseLeave={() => setBottomPinned(false)}
+        >
           <NeighborhoodDrawer
             open={true}
             neighborhood={selectedNeighborhood || hoveredNeighborhood}
