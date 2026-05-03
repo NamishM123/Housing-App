@@ -53,7 +53,18 @@ export default function ListingDetailModal({
   return (
     <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal listing-detail-modal">
-        <button className="close-btn listing-detail-close" onClick={onClose} aria-label="Close">✕</button>
+        <button
+          className="listing-detail-back"
+          onClick={onClose}
+          aria-label="Back to listings"
+          title="Back to listings"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5" />
+            <path d="M12 19l-7-7 7-7" />
+          </svg>
+          <span>Back</span>
+        </button>
 
         {/* Hero gallery */}
         <div className="listing-gallery">

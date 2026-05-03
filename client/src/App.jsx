@@ -327,6 +327,7 @@ export default function App() {
             shortlist={shortlist}
             onShortlist={handleShortlist}
             onEditProfile={handleEditProfile}
+            onShowBottomBar={() => setBottomPinned(true)}
           />
         </div>
       )}

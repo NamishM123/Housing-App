@@ -2448,20 +2448,36 @@ input.error {
   overflow: hidden;
   position: relative;
 }
-.listing-detail-close {
+.listing-detail-back {
   position: absolute;
-  top: 12px; right: 12px;
+  top: 14px; right: 14px;
   z-index: 10;
-  background: rgba(8, 12, 24, 0.7);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px 8px 12px;
+  border-radius: 999px;
+  background: rgba(8, 12, 24, 0.78);
   border: 1px solid #334155;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(10px);
   color: #f1f5f9;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
 }
+.listing-detail-back:hover {
+  background: rgba(8, 12, 24, 0.92);
+  border-color: #475569;
+}
+.listing-detail-back:active { transform: translateY(1px); }
+.listing-detail-back svg { display: block; }
 
 .listing-gallery {
   position: relative;
   width: 100%;
-  height: clamp(280px, 48vh, 460px);
+  height: clamp(420px, 62vh, 620px);
   background: #0b1220;
   overflow: hidden;
 }

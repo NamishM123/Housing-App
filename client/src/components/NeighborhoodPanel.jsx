@@ -5,7 +5,7 @@ import ListingsPanel from './ListingsPanel';
 const UTILITIES = { pge: 95, water: 45, internet: 70 };
 const TOTAL_UTILITIES = Object.values(UTILITIES).reduce((a, b) => a + b, 0);
 
-export default function NeighborhoodPanel({ open, activeTab, neighborhood, form, onClose, listings, listingsLoading, searchUrls, shortlist, onShortlist, onEditProfile }) {
+export default function NeighborhoodPanel({ open, activeTab, neighborhood, form, onClose, listings, listingsLoading, searchUrls, shortlist, onShortlist, onEditProfile, onShowBottomBar }) {
   const [reviews, setReviews]                 = useState(null);
   const [reviewsLoading, setReviewsLoading]   = useState(false);
   const [reviewsError, setReviewsError]       = useState(null);
@@ -50,7 +50,8 @@ export default function NeighborhoodPanel({ open, activeTab, neighborhood, form,
         {/* Listings */}
         {activeTab === 'listings' && (
           <ListingsPanel listings={listings} loading={listingsLoading} searchUrls={searchUrls}
-            form={form} shortlist={shortlist} onShortlist={onShortlist} onEditProfile={onEditProfile} />
+            form={form} shortlist={shortlist} onShortlist={onShortlist} onEditProfile={onEditProfile}
+            onShowBottomBar={onShowBottomBar} />
         )}
 
         {/* Costs */}

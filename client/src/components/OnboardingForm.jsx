@@ -4,7 +4,7 @@ import WorkLocationField from './WorkLocationField';
 import { GlowCard } from './GlowCard';
 
 const DEFAULT_RENT_PCT = 30;
-const MIN_RENT_PCT = 5;
+const MIN_RENT_PCT = 25;
 const MAX_RENT_PCT = 80;
 
 const SITUATIONS = [
@@ -183,6 +183,9 @@ export default function OnboardingForm({ onSubmit, loading }) {
             </div>
             {strategyPct > 0.40 && (
               <span className="rent-warn">⚠️ Over 40% Is Considered Cost-Burdened</span>
+            )}
+            {strategyPct <= 0.28 && (
+              <span className="rent-good">✓ Comfortably Within Your Means</span>
             )}
           </div>
         )}

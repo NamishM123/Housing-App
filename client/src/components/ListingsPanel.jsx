@@ -78,7 +78,7 @@ function TourModal({ listing, form, onClose }) {
   );
 }
 
-export default function ListingsPanel({ listings, loading, searchUrls, form, shortlist, onShortlist, onEditProfile }) {
+export default function ListingsPanel({ listings, loading, searchUrls, form, shortlist, onShortlist, onEditProfile, onShowBottomBar }) {
   const [bedFilter, setBedFilter] = useState('All');
   const [tourTarget, setTourTarget] = useState(null);
   const [detailTarget, setDetailTarget] = useState(null);
@@ -250,7 +250,7 @@ export default function ListingsPanel({ listings, loading, searchUrls, form, sho
           isShortlisted={shortlist.some(s => s.id === detailTarget.id)}
           onShortlist={onShortlist}
           onRequestTour={(l) => { setDetailTarget(null); setTourTarget(l); }}
-          onClose={() => setDetailTarget(null)}
+          onClose={() => { setDetailTarget(null); onShowBottomBar?.(); }}
         />
       )}
     </>
