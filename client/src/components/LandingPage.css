@@ -4,7 +4,7 @@
   inset: 0;
   z-index: 9999;
   overflow: hidden;
-  background: radial-gradient(ellipse at center, #0c1830 0%, #060f1e 55%, #000 100%);
+  background: #02050d;
 }
 
 .landing-root.dismissing {
@@ -45,24 +45,6 @@
 .landing-mapbox .mapboxgl-ctrl-top-right,
 .landing-mapbox .mapboxgl-ctrl-top-left {
   display: none;
-}
-
-/* ── Atmospheric glow ring around globe ─────────────────────── */
-.landing-globe-glow {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 50% 50%,
-    rgba(160, 200, 255, 0.09) 0%,
-    rgba(110, 160, 240, 0.05) 40%,
-    transparent 60%);
-  pointer-events: none;
-  z-index: 2;
-  animation: fadeInGlow 1.6s ease forwards;
-}
-
-@keyframes fadeInGlow {
-  from { opacity: 0; }
-  to   { opacity: 1; }
 }
 
 /* ── Shooting-star overlay ───────────────────────────────────── */

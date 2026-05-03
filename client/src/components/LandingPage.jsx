@@ -69,11 +69,12 @@ function MapboxGlobe({ active, globeScreenRef }) {
     mapRef.current = map;
 
     map.on('style.load', () => {
+      // Match the dashboard's globe atmosphere exactly
       map.setFog({
-        color:            'rgb(5, 10, 28)',    // near-black — no visible rim
-        'high-color':     'rgb(8, 18, 50)',   // dark upper atmosphere
-        'horizon-blend':  0.03,              // barely perceptible edge
-        'space-color':    'rgb(0, 0, 0)',
+        color:            'rgba(140, 185, 245, 0.18)',
+        'high-color':     'rgba(50, 100, 200, 0.10)',
+        'horizon-blend':  0.03,
+        'space-color':    'rgb(2, 6, 18)',
         'star-intensity': 0,
       });
     });
@@ -273,11 +274,8 @@ export default function LandingPage({ onComplete }) {
         <StarField />
       </Canvas>
 
-      {/* Mapbox globe — screen-blend so black space = transparent → stars show through */}
+      {/* Mapbox globe — clip-path keeps stars visible around it (not through it) */}
       <MapboxGlobe active={earthActive} globeScreenRef={globeScreenRef} />
-
-      {/* Atmospheric glow ring — fades in with the globe */}
-      {earthActive && <div className="landing-globe-glow" />}
 
       {/* Shooting-star overlay */}
       <canvas ref={overlayRef} className="landing-overlay" />
