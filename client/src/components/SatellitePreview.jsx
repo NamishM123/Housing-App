@@ -26,7 +26,7 @@ export default function SatellitePreview({ listing, onClose }) {
   const [bearing, setBearing] = useState(-20);
   const [autoRotate, setAutoRotate] = useState(true);
   const [firstPerson, setFirstPerson] = useState(false);
-  const [view, setView] = useState('aerial'); // 'aerial' | 'street'
+  const [view, setView] = useState('street'); // only 'street' now
 
   const initMap = useCallback((styleUrl) => {
     if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; }
