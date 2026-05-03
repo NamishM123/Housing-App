@@ -10,6 +10,7 @@ import NeighborhoodPanel from './components/NeighborhoodPanel';
 import LandingPage from './components/LandingPage';
 import { fetchListings } from './utils/api';
 import { geocodeAddress } from './utils/mapbox';
+import { NEIGHBORHOODS } from './data/neighborhoods';
 import './App.css';
 
 // Refine listing coordinates by forward-geocoding their addresses, so pins
@@ -69,12 +70,17 @@ export default function App() {
     setLeftPinned(false); // Auto-hide sidebar after searching
   }, []);
 
-  const handleNeighborhoodSelect = useCallback((neighborhood) => {
+  // Internal: load a neighborhood's listings + side-effects.
+  // `preserveTab` keeps the right-side panel open on the same tab when the
+  // user is cycling between cities (prev / next arrows in the dock).
+  const loadNeighborhood = useCallback((neighborhood, { preserveTab = false } = {}) => {
     setSelectedNeighborhood(neighborhood);
     setDrawerOpen(true);
-    setActivePanelTab(null);
     setBottomPinned(true);
-    setRightPinned(false);
+    if (!preserveTab) {
+      setActivePanelTab(null);
+      setRightPinned(false);
+    }
     setListings([]);
     setListingsLoading(true);
     setSelectedListing(null);
@@ -92,13 +98,29 @@ export default function App() {
       .finally(() => setListingsLoading(false));
   }, []);
 
-  const handleDrawerClose = useCallback(() => {
-    setSelectedNeighborhood(null);
-    setDrawerOpen(false);
-    setActivePanelTab(null);
-    setBottomPinned(false);
-    setRightPinned(false);
-  }, []);
+  const handleNeighborhoodSelect = useCallback((neighborhood) => {
+    loadNeighborhood(neighborhood);
+  }, [loadNeighborhood]);
+
+  // Prev / Next city cycling — driven by the chevrons in the bottom dock.
+  // Uses the canonical NEIGHBORHOODS order and wraps around at both ends.
+  // We preserve the active tab so users browsing "Listings" can flip
+  // through cities without losing the panel they were looking at.
+  const cycleNeighborhood = useCallback((delta) => {
+    setSelectedNeighborhood((curr) => {
+      if (!curr) return curr;
+      const idx = NEIGHBORHOODS.findIndex(n => n.id === curr.id);
+      if (idx === -1) return curr;
+      const nextIdx = (idx + delta + NEIGHBORHOODS.length) % NEIGHBORHOODS.length;
+      const next = NEIGHBORHOODS[nextIdx];
+      // Defer side-effects so they run with the new neighborhood selected.
+      queueMicrotask(() => loadNeighborhood(next, { preserveTab: true }));
+      return next;
+    });
+  }, [loadNeighborhood]);
+
+  const handlePrevCity = useCallback(() => cycleNeighborhood(-1), [cycleNeighborhood]);
+  const handleNextCity = useCallback(() => cycleNeighborhood(+1), [cycleNeighborhood]);
 
   const handleTileClick = useCallback((tileId) => {
     setActivePanelTab(prev => {
@@ -220,9 +242,10 @@ export default function App() {
           <NeighborhoodDrawer
             open={true}
             neighborhood={selectedNeighborhood}
-            onClose={handleDrawerClose}
             onTileClick={handleTileClick}
             activeTile={activePanelTab}
+            onPrev={handlePrevCity}
+            onNext={handleNextCity}
           />
         </div>
       )}

@@ -1049,11 +1049,11 @@ input.error {
   right: auto;
   transform: translate(-50%, 100%);
   width: auto;
-  min-width: 400px;
+  min-width: 480px;
   background: rgba(8, 12, 24, 0.97);
   border: 1px solid #1e293b;
   border-bottom: none;
-  border-radius: 16px 16px 0 0;
+  border-radius: 18px 18px 0 0;
   backdrop-filter: blur(20px);
   transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
 }
@@ -1065,7 +1065,8 @@ input.error {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 20px 6px;
+  padding: 18px 24px 10px;
+  gap: 16px;
 }
 
 .nbr-info {
@@ -1112,20 +1113,41 @@ input.error {
   text-transform: capitalize;
 }
 
-.nbr-close-btn {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid #1e293b;
-  border-radius: 8px;
-  color: #94a3b8;
-  font-size: 14px;
-  cursor: pointer;
-  padding: 6px 10px;
-  transition: all 0.15s;
+/* ── Prev / Next city navigation (replaces the close-X) ── */
+.nbr-nav-arrows {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.nbr-close-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
+.nbr-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, transform 0.15s, border-color 0.15s;
+}
+
+.nbr-nav-btn:hover {
+  background: rgba(99, 102, 241, 0.18);
+  border-color: rgba(99, 102, 241, 0.4);
   color: #f1f5f9;
+  transform: scale(1.05);
+}
+
+.nbr-nav-btn:active {
+  transform: scale(0.95);
+}
+
+.nbr-nav-icon {
+  width: 18px;
+  height: 18px;
 }
 
 /* ── DockMorph tile row ───────────────────────────── */
@@ -1133,20 +1155,21 @@ input.error {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6px 12px 14px;
+  padding: 12px 18px 22px;
 }
 
 .nbr-dock-pill {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 10px;
+  gap: 24px;
+  padding: 12px 18px;
   border-radius: 28px;
   background: rgba(15, 23, 42, 0.3);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
 }
 
 .nbr-dock-item {
@@ -1156,76 +1179,71 @@ input.error {
   justify-content: center;
 }
 
+/* Morphic glass bubble — appears on hover OR when the tab is active. */
 .nbr-dock-bubble {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(99,102,241,0.4), rgba(99,102,241,0.2), transparent);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 4px 16px rgba(99,102,241,0.2);
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.40),
+    rgba(99, 102, 241, 0.20),
+    transparent
+  );
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.25);
   z-index: 0;
   pointer-events: none;
 }
 
+/* Hover-only tooltip — replaces the under-icon labels. */
 .nbr-dock-tooltip {
   position: absolute;
-  top: -32px;
+  top: -34px;
   left: 50%;
   transform: translateX(-50%);
-  padding: 3px 8px;
-  border-radius: 6px;
-  background: rgba(15, 23, 42, 0.9);
-  border: 1px solid rgba(255,255,255,0.08);
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   color: #e2e8f0;
   font-size: 11px;
+  font-weight: 500;
   white-space: nowrap;
   pointer-events: none;
   z-index: 20;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
+/* Icon-only circular button (DockMorph style). */
 .nbr-dock-btn {
   position: relative;
   z-index: 10;
-  display: flex;
-  flex-direction: column;
+  display: inline-flex;
   align-items: center;
-  gap: 3px;
-  padding: 10px 14px;
-  min-width: 64px;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
   border: none;
   border-radius: 50%;
-  background: none;
+  background: transparent;
   cursor: pointer;
   user-select: none;
-}
-
-.nbr-dock-btn.active {
-  background: rgba(99, 102, 241, 0.15);
-  border-radius: 16px;
+  transition: color 0.15s;
 }
 
 .nbr-dock-icon-svg {
-  width: 22px;
-  height: 22px;
-  color: #94a3b8;
+  width: 24px;
+  height: 24px;
+  color: #cbd5e1;
   transition: color 0.15s;
 }
 
+.nbr-dock-btn:hover .nbr-dock-icon-svg,
 .nbr-dock-btn.active .nbr-dock-icon-svg {
-  color: #818cf8;
-}
-
-.nbr-dock-label {
-  font-size: 10px;
-  color: #475569;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  transition: color 0.15s;
-}
-
-.nbr-dock-btn.active .nbr-dock-label {
-  color: #818cf8;
+  color: #f1f5f9;
 }
 
 /* ── Right detail panel ───────────────────────────── */
