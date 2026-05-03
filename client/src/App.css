@@ -234,10 +234,14 @@ body {
   border-right: 1px solid rgba(255, 255, 255, 0.05);
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0 16px 18px;
+  padding: 64px 16px 18px;
   display: flex;
   flex-direction: column;
   gap: 14px;
+  /* Fade content at the top so cards scrolling past the back-chip area
+     don't visually collide with the chip. */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, rgba(0,0,0,0.4) 36px, #000 64px);
+  mask-image: linear-gradient(to bottom, transparent 0, rgba(0,0,0,0.4) 36px, #000 64px);
 }
 
 .main-content {
