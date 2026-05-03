@@ -282,27 +282,18 @@ export default function MapView({
               if (popupRef.current) { popupRef.current.remove(); popupRef.current = null; }
             };
 
-            const popup = new mapboxgl.Popup({ closeButton: false, offset: [0, -8], maxWidth: '240px' })
+            const popup = new mapboxgl.Popup({ closeButton: false, offset: [0, -8], maxWidth: 'none' })
               .setLngLat(hood.center)
               .setHTML(`
-                <div
+                <button
                   id="mbpopup-${hood.id}"
                   onmouseenter="window.__popupMouseEnter()"
                   onmouseleave="window.__popupMouseLeave()"
-                  style="font-family:system-ui;padding:10px 14px;background:#0f172a;border:1px solid #334155;border-radius:10px;color:#f1f5f9;min-width:180px"
-                >
-                  <div style="font-weight:700;font-size:14px;margin-bottom:6px">${hood.name}</div>
-                  <div style="display:flex;gap:16px;font-size:12px;color:#94a3b8">
-                    <span>Rent <strong style="color:#f1f5f9">$${r.toLocaleString()}/mo</strong></span>
-                    <span>Walk <strong style="color:#f1f5f9">${hood.walkScore}</strong></span>
-                  </div>
-                  ${monthlyIncome > 0 ? `<div style="margin-top:8px;display:inline-block;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700;background:${c}22;color:${c};border:1px solid ${c}55">${label}</div>` : ''}
-                  ${overBudget}${dimNote}
-                  <button
-                    onclick="window.__mapSelectHood()"
-                    style="margin-top:10px;width:100%;padding:7px 0;background:#3b82f6;border:none;border-radius:7px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:0.03em"
-                  >Explore ${hood.name} →</button>
-                </div>
+                  onclick="window.__mapSelectHood()"
+                  style="font-family:system-ui;padding:10px 16px;background:#3b82f6;border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:0.03em;box-shadow:0 4px 12px rgba(59,130,246,0.4);transition:all 0.2s"
+                  onmouseover="this.style.background='#2563eb';this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 16px rgba(59,130,246,0.5)'"
+                  onmouseout="this.style.background='#3b82f6';this.style.transform='translateY(0)';this.style.boxShadow='0 4px 12px rgba(59,130,246,0.4)'"
+                >Explore ${hood.name} →</button>
               `)
               .addTo(map.current);
             popupRef.current = popup;
