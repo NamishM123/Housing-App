@@ -3692,6 +3692,16 @@ input.error {
 .q-section .input-prefix input {
   border-radius: 0 var(--radius) var(--radius) 0;
 }
+/* Match the income input's number to the % field — same scale, same weight. */
+.q-section .income-input .input-prefix input {
+  font-size: 20px;
+  font-weight: 700;
+}
+.q-section .income-input .input-prefix span {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
 .q-section .situation-btn,
 .q-section .seg-row,
 .q-section .seg-pill {
