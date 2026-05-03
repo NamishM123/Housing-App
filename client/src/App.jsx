@@ -89,7 +89,16 @@ export default function App() {
   }, []);
 
   const monthlyIncome   = submittedForm ? Math.round(submittedForm.salary / 12) : 0;
+  const maxRent         = submittedForm?.maxRent ?? null;
   const rightPanelOpen  = !!activePanelTab;
+
+  // Scale the visible inventory with the user's income & housing-percentage
+  // strategy: as the cap rises, more listings pass the filter. Before the
+  // form is submitted (no maxRent yet) we show the full set so the listings
+  // grid never looks broken.
+  const displayedListings = maxRent
+    ? listings.filter(l => l.price <= maxRent)
+    : listings;
 
   return (
     <div className="app">
@@ -100,11 +109,11 @@ export default function App() {
           <MapView
             monthlyIncome={monthlyIncome}
             roommates={submittedForm?.roommates ?? 0}
-            maxRent={submittedForm?.maxRent ?? null}
+            maxRent={maxRent}
             vibe={submittedForm?.vibe ?? 'any'}
             onNeighborhoodSelect={handleNeighborhoodSelect}
             selectedId={selectedNeighborhood?.id}
-            listings={listings}
+            listings={displayedListings}
             shortlist={shortlist}
             onListingSelect={handleListingSelect}
             selectedListing={selectedListing}
@@ -178,7 +187,7 @@ export default function App() {
             neighborhood={selectedNeighborhood}
             form={submittedForm}
             onClose={handlePanelClose}
-            listings={listings}
+            listings={displayedListings}
             listingsLoading={listingsLoading}
             searchUrls={searchUrls}
             shortlist={shortlist}

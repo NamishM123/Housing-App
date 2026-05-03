@@ -157,7 +157,10 @@ export default function MapView({
       }
 
       // ── Heatmap-style glow circle — dark atmospheric colors, heavy blur ──
-      const glowOpacity = vibeMatch ? (isSelected ? 0.82 : 0.52) : 0.06;
+      // Hide the entire heatmap until the user submits the "Show me what fits"
+      // form (monthlyIncome > 0). Keeps the map clean by default.
+      const heatmapVisible = monthlyIncome > 0;
+      const glowOpacity = !heatmapVisible ? 0 : (vibeMatch ? (isSelected ? 0.82 : 0.52) : 0.06);
       if (map.current.getLayer(glowId)) {
         map.current.setPaintProperty(glowId, 'circle-color', heatColor);
         map.current.setPaintProperty(glowId, 'circle-opacity', glowOpacity);
@@ -189,7 +192,7 @@ export default function MapView({
 
       // ── Transparent fill — invisible but captures click/hover events ──
       // Keep a minimal opacity so the polygon boundary is interactable
-      const fillOpacity = vibeMatch ? 0.04 : 0.01;
+      const fillOpacity = !heatmapVisible ? 0.01 : (vibeMatch ? 0.04 : 0.01);
       if (map.current.getLayer(fillId)) {
         map.current.setPaintProperty(fillId, 'fill-opacity', fillOpacity);
       } else {
@@ -244,17 +247,18 @@ export default function MapView({
       }
 
       // ── Outline — uses heatmap color for consistent subdued look ──
+      const outlineOpacity = !heatmapVisible ? 0 : (vibeMatch ? (isSelected ? 0.95 : 0.65) : 0.08);
       if (map.current.getLayer(outlineId)) {
         map.current.setPaintProperty(outlineId, 'line-color', heatColor);
         map.current.setPaintProperty(outlineId, 'line-width', isSelected ? 2.5 : 1.2);
-        map.current.setPaintProperty(outlineId, 'line-opacity', vibeMatch ? (isSelected ? 0.95 : 0.65) : 0.08);
+        map.current.setPaintProperty(outlineId, 'line-opacity', outlineOpacity);
       } else {
         map.current.addLayer({
           id: outlineId, type: 'line', source: sourceId,
           paint: {
             'line-color': heatColor,
             'line-width': isSelected ? 2.5 : 1.2,
-            'line-opacity': vibeMatch ? 0.65 : 0.08,
+            'line-opacity': outlineOpacity,
             'line-blur': 0.8,
           },
         });
