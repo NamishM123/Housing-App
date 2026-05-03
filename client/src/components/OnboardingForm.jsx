@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import IncomeInput, { validateIncome } from './IncomeInput';
 import WorkLocationField from './WorkLocationField';
+import { GlowCard } from './GlowCard';
 
 const DEFAULT_RENT_PCT = 30;
 const MIN_RENT_PCT = 5;
@@ -16,7 +17,7 @@ const SITUATIONS = [
 const TOLERANCE = [
   { id: 'walk', label: 'Walk or bike', sub: 'under 10 min' },
   { id: 'short', label: 'Short drive', sub: '10–20 min' },
-  { id: 'long', label: 'Worth it for savings', sub: '20–35 min' },
+  { id: 'long', label: "Don't mind a drive", sub: '20–35 min' },
   { id: 'remote', label: 'Remote', sub: 'I work from home' },
 ];
 
@@ -130,18 +131,18 @@ export default function OnboardingForm({ onSubmit, loading }) {
   return (
     <form className="onboarding-form" onSubmit={handleSubmit}>
       {/* Q1 — Income */}
-      <section className="q-section">
+      <GlowCard className="q-section">
         <IncomeInput
           value={annualIncome}
           onChange={setAnnualIncome}
           error={errors.annualIncome}
         />
-      </section>
+      </GlowCard>
 
       {/* Q2 — Rent allocation % */}
-      <section className="q-section">
+      <GlowCard className="q-section">
         <label className="q-label">How much of your income feels comfortable for rent?</label>
-        <span className="hint">Most people spend 25–35%. Type any number that works for you.</span>
+        <span className="hint">Most people land between 25–35%. Pick whatever feels right.</span>
         <div className="rent-pct-input">
           <input
             type="number"
@@ -185,10 +186,10 @@ export default function OnboardingForm({ onSubmit, loading }) {
             )}
           </div>
         )}
-      </section>
+      </GlowCard>
 
       {/* Q3 — Living situation */}
-      <section className="q-section">
+      <GlowCard className="q-section">
         <label className="q-label">Who's moving with you?</label>
         <span className="hint">This changes the math — combined income, rent splits, the whole map.</span>
         <div className="situation-grid">
@@ -268,11 +269,11 @@ export default function OnboardingForm({ onSubmit, loading }) {
             Combined household: ~{fmt(combinedMonthly)}/mo gross
           </div>
         )}
-      </section>
+      </GlowCard>
 
       {/* Q4 — Work locations */}
       {!isRemoteOnly && (
-        <section className="q-section">
+        <GlowCard className="q-section">
           <label className="q-label">{workLabel(situation)}</label>
           <span className="hint">Type an address, or pick a common one. Working from home? Skip this.</span>
           <WorkLocationField
@@ -299,13 +300,12 @@ export default function OnboardingForm({ onSubmit, loading }) {
                 onChange={(v) => setRoommateWorks(s => ({ ...s, [i]: v }))}
               />
             ))}
-        </section>
+        </GlowCard>
       )}
 
       {/* Q5 — Commute tolerance */}
-      <section className="q-section">
-        <label className="q-label">How far are you willing to drive?</label>
-        <span className="hint">One way, in normal traffic. Be honest with yourself.</span>
+      <GlowCard className="q-section">
+        <label className="q-label">What's your commute limit?</label>
         <div className="seg-stack">
           {TOLERANCE.map(t => (
             <button
@@ -319,7 +319,7 @@ export default function OnboardingForm({ onSubmit, loading }) {
             </button>
           ))}
         </div>
-      </section>
+      </GlowCard>
 
       <div className="budget-preview">
         Allocating {Math.round(strategyPct * 100)}% → <strong>{fmt(maxRent)}/mo</strong> max rent

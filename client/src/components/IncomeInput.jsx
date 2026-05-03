@@ -2,9 +2,6 @@ const MIN = 10_000;
 const MAX = 1_000_000;
 
 export default function IncomeInput({ value, onChange, error }) {
-  const numeric = Number(value) || 0;
-  const monthly = numeric > 0 ? Math.round(numeric / 12) : 0;
-
   const handleChange = (e) => {
     const raw = e.target.value;
     if (raw === '') { onChange(null); return; }
@@ -28,11 +25,6 @@ export default function IncomeInput({ value, onChange, error }) {
         />
       </div>
       {error && <span className="error-msg">{error}</span>}
-      {numeric > 0 && !error && (
-        <span className="income-monthly">
-          That's about ${monthly.toLocaleString()} a month coming in.
-        </span>
-      )}
     </div>
   );
 }
