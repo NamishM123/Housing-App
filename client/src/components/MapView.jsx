@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { NEIGHBORHOODS, getAffordabilityColor, getAffordabilityLabel, getHeatmapColor, matchesVibe } from '../data/neighborhoods';
+import SatellitePreview from './SatellitePreview';
 
 function buildMarkerEl(listing, isShortlisted) {
   const el = document.createElement('div');
@@ -22,14 +23,14 @@ const LEGEND = [
 ];
 
 const ROUTE_AMENITIES = [
-  { id: 'grocery',  label: 'Grocery',  icon: '🛒', name: "Trader Joe's SLO",      lng: -120.6681, lat: 35.2792 },
+  { id: 'grocery', label: 'Grocery', icon: '🛒', name: "Trader Joe's SLO", lng: -120.6681, lat: 35.2792 },
   { id: 'hospital', label: 'Hospital', icon: '🏥', name: 'Sierra Vista Regional', lng: -120.6700, lat: 35.2683 },
-  { id: 'gym',      label: 'Gym',      icon: '💪', name: 'Planet Fitness SLO',    lng: -120.6640, lat: 35.2831 },
-  { id: 'beach',    label: 'Beach',    icon: '🏖️', name: 'Avila Beach',           lng: -120.7295, lat: 35.1793 },
-  { id: 'trails',   label: 'Trails',   icon: '🥾', name: 'Bishop Peak Trailhead', lng: -120.6982, lat: 35.3009 },
-  { id: 'downtown', label: 'Downtown', icon: '🏙️', name: 'Downtown SLO',          lng: -120.6606, lat: 35.2800 },
-  { id: 'calpoly',  label: 'Cal Poly', icon: '🎓', name: 'Cal Poly SLO',          lng: -120.6596, lat: 35.3050 },
-  { id: 'airport',  label: 'Airport',  icon: '✈️', name: 'SLO Airport',           lng: -120.6417, lat: 35.2368 },
+  { id: 'gym', label: 'Gym', icon: '💪', name: 'Planet Fitness SLO', lng: -120.6640, lat: 35.2831 },
+  { id: 'beach', label: 'Beach', icon: '🏖️', name: 'Avila Beach', lng: -120.7295, lat: 35.1793 },
+  { id: 'trails', label: 'Trails', icon: '🥾', name: 'Bishop Peak Trailhead', lng: -120.6982, lat: 35.3009 },
+  { id: 'downtown', label: 'Downtown', icon: '🏙️', name: 'Downtown SLO', lng: -120.6606, lat: 35.2800 },
+  { id: 'calpoly', label: 'Cal Poly', icon: '🎓', name: 'Cal Poly SLO', lng: -120.6596, lat: 35.3050 },
+  { id: 'airport', label: 'Airport', icon: '✈️', name: 'SLO Airport', lng: -120.6417, lat: 35.2368 },
 ];
 
 // Route color/style per travel mode
@@ -57,6 +58,7 @@ export default function MapView({
   const mapContainer = useRef(null);
   const map = useRef(null);
   const popupRef = useRef(null);
+  const popupCloseTimer = useRef(null);
   const markersRef = useRef([]);
   const userMarkerRef = useRef(null);
   const destMarkerRef = useRef(null);
@@ -64,6 +66,10 @@ export default function MapView({
   const monthlyIncomeRef = useRef(monthlyIncome);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState(false);
+  const [mapZoom, setMapZoom] = useState(9.5);
+
+  // Satellite preview modal target
+  const [previewListing, setPreviewListing] = useState(null);
 
   // Routing state
   const [routeOpen, setRouteOpen] = useState(false);
@@ -116,7 +122,17 @@ export default function MapView({
         setMapLoaded(true);
       });
 
+      map.current.on('zoom', () => {
+        setMapZoom(map.current.getZoom());
+      });
+
       map.current.on('error', () => setMapError(true));
+
+      // Close popup when clicking empty map space
+      map.current.on('click', () => {
+        if (popupCloseTimer.current) { clearTimeout(popupCloseTimer.current); popupCloseTimer.current = null; }
+        if (popupRef.current) { popupRef.current.remove(); popupRef.current = null; }
+      });
     } catch { setMapError(true); }
 
     return () => { if (map.current) { map.current.remove(); map.current = null; } };
@@ -127,12 +143,28 @@ export default function MapView({
     if (!mapLoaded || !map.current) return;
 
     NEIGHBORHOODS.forEach((hood) => {
-      const sourceId  = `hood-${hood.id}`;
-      const fillId    = `fill-${hood.id}`;
-      const outlineId = `outline-${hood.id}`;
-      const glowId    = `glow-${hood.id}`;
-      const labelId   = `label-${hood.id}`;
+      const sourceId = `hood-${hood.id}`;
+      const fillId = `fill-${hood.id}`;
+      const glowId = `glow-${hood.id}`;
+      const labelId = `label-${hood.id}`;
       const labelSource = `label-src-${hood.id}`;
+
+      // ── Zoom-gated visibility ──
+      const currentZoom = map.current.getZoom();
+      const belowMin = hood.minZoom && currentZoom < hood.minZoom;
+      const aboveMax = hood.maxZoom && currentZoom >= hood.maxZoom;
+      const zoomHidden = belowMin || aboveMax;
+
+      // If layers exist, just toggle visibility and skip the rest
+      if (map.current.getLayer(fillId)) {
+        const vis = zoomHidden ? 'none' : 'visible';
+        [fillId, glowId, labelId].forEach(id => {
+          if (map.current.getLayer(id)) map.current.setLayoutProperty(id, 'visibility', vis);
+        });
+        if (zoomHidden) return;
+      } else if (zoomHidden) {
+        return; // Don't add layers yet if we're outside zoom range
+      }
 
       const effectiveRent = roommates > 0 ? Math.round(hood.avgRent / (roommates + 1)) : hood.avgRent;
       const vibeMatch = matchesVibe(hood, vibe);
@@ -152,19 +184,35 @@ export default function MapView({
         map.current.addSource(labelSource, { type: 'geojson', data: labelGeojson });
       }
 
-      // ── Heatmap-style glow circle — dark atmospheric colors, heavy blur ──
-      const glowOpacity = vibeMatch ? (isSelected ? 0.82 : 0.52) : 0.06;
+      // ── Heatmap-style glow circle — covers full area at low zoom, fades on zoom-in ──
+      // Gated on monthlyIncome > 0 so the map is clean until the user
+      // submits the "Show me what fits" form.
+      const heatmapVisible = monthlyIncome > 0;
+      const glowOpacityBase = vibeMatch ? (isSelected ? 0.82 : 0.52) : 0.06;
+      const glowOpacityZoom = !heatmapVisible ? 0 : [
+        'interpolate', ['linear'], ['zoom'],
+        9, glowOpacityBase,   // full opacity when zoomed out
+        12, glowOpacityBase,   // start fading
+        13.5, 0,               // fully gone when zoomed in
+      ];
       if (map.current.getLayer(glowId)) {
         map.current.setPaintProperty(glowId, 'circle-color', heatColor);
-        map.current.setPaintProperty(glowId, 'circle-opacity', glowOpacity);
+        map.current.setPaintProperty(glowId, 'circle-opacity', glowOpacityZoom);
       } else {
         map.current.addLayer({
           id: glowId, type: 'circle', source: labelSource,
           paint: {
-            'circle-radius': ['interpolate', ['linear'], ['zoom'], 7.5, 22, 9, 44, 10.5, 80, 12, 140, 14, 210],
+            // Large enough to blanket the whole neighborhood polygon at low zoom
+            'circle-radius': ['interpolate', ['linear'], ['zoom'],
+              7, 60,
+              9, 120,
+              10.5, 200,
+              12, 320,
+              13.5, 420,
+            ],
             'circle-color': heatColor,
-            'circle-opacity': glowOpacity,
-            'circle-blur': 0.88,
+            'circle-opacity': glowOpacityZoom,
+            'circle-blur': 0.92,
             'circle-pitch-alignment': 'map',
             'circle-pitch-scale': 'map',
           },
@@ -185,7 +233,7 @@ export default function MapView({
 
       // ── Transparent fill — invisible but captures click/hover events ──
       // Keep a minimal opacity so the polygon boundary is interactable
-      const fillOpacity = vibeMatch ? 0.04 : 0.01;
+      const fillOpacity = !heatmapVisible ? 0.01 : (vibeMatch ? 0.04 : 0.01);
       if (map.current.getLayer(fillId)) {
         map.current.setPaintProperty(fillId, 'fill-opacity', fillOpacity);
       } else {
@@ -202,57 +250,74 @@ export default function MapView({
 
         map.current.on('click', fillId, () => {
           onNeighborhoodSelect({ ...hood, avgRent: effectiveRent });
-          map.current.flyTo({ center: hood.center, zoom: 12, pitch: 50, bearing: -8, duration: 900 });
+          map.current.flyTo({ center: hood.center, zoom: 12.5, pitch: 50, bearing: -8, duration: 900 });
         });
 
-        map.current.on('mouseenter', fillId, () => {
-          map.current.getCanvas().style.cursor = 'pointer';
-          const r = roommates > 0 ? Math.round(hood.avgRent / (roommates + 1)) : hood.avgRent;
-          const label = monthlyIncome > 0 ? getAffordabilityLabel(r, monthlyIncome, maxRent) : 'Enter salary';
-          const c     = monthlyIncome > 0 ? getAffordabilityColor(r, monthlyIncome, maxRent) : '#6b7280';
-          const overBudget = maxRent && r > maxRent
-            ? `<div style="font-size:11px;color:#f59e0b;margin-top:3px">⚠️ Over your $${maxRent.toLocaleString()} cap</div>`
-            : '';
-          const dimNote = !vibeMatch
-            ? `<div style="font-size:11px;color:#64748b;margin-top:2px">Outside vibe filter</div>`
-            : '';
+        // Popup only when cursor is within ~40px of the label center
+        map.current.on('mousemove', fillId, (e) => {
+          const projected = map.current.project(hood.center);
+          const dx = e.point.x - projected.x;
+          const dy = e.point.y - projected.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const THRESHOLD = 42; // px
 
-          popupRef.current = new mapboxgl.Popup({ closeButton: false, offset: [0, -8] })
-            .setLngLat(hood.center)
-            .setHTML(`
-              <div style="font-family:system-ui;padding:10px 14px;background:#0f172a;border:1px solid #334155;border-radius:10px;color:#f1f5f9;min-width:180px">
-                <div style="font-weight:700;font-size:14px;margin-bottom:6px">${hood.name}</div>
-                <div style="display:flex;gap:16px;font-size:12px;color:#94a3b8">
-                  <span>Rent <strong style="color:#f1f5f9">$${r.toLocaleString()}/mo</strong></span>
-                  <span>Walk <strong style="color:#f1f5f9">${hood.walkScore}</strong></span>
-                </div>
-                ${monthlyIncome > 0 ? `<div style="margin-top:8px;display:inline-block;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700;background:${c}22;color:${c};border:1px solid ${c}55">${label}</div>` : ''}
-                ${overBudget}${dimNote}
-              </div>
-            `)
-            .addTo(map.current);
-        });
+          if (dist <= THRESHOLD) {
+            // Cancel any pending close
+            if (popupCloseTimer.current) { clearTimeout(popupCloseTimer.current); popupCloseTimer.current = null; }
+            if (popupRef.current) return; // already open
+            map.current.getCanvas().style.cursor = 'pointer';
+            const r = roommates > 0 ? Math.round(hood.avgRent / (roommates + 1)) : hood.avgRent;
+            const label = monthlyIncome > 0 ? getAffordabilityLabel(r, monthlyIncome, maxRent) : 'Enter salary';
+            const c = monthlyIncome > 0 ? getAffordabilityColor(r, monthlyIncome, maxRent) : '#6b7280';
+            const overBudget = maxRent && r > maxRent
+              ? `<div style="font-size:11px;color:#f59e0b;margin-top:3px">⚠️ Over your $${maxRent.toLocaleString()} cap</div>`
+              : '';
+            const dimNote = !vibeMatch
+              ? `<div style="font-size:11px;color:#64748b;margin-top:2px">Outside vibe filter</div>`
+              : '';
 
-        map.current.on('mouseleave', fillId, () => {
-          map.current.getCanvas().style.cursor = '';
-          if (popupRef.current) { popupRef.current.remove(); popupRef.current = null; }
-        });
-      }
+            window.__mapSelectHood = () => {
+              onNeighborhoodSelect({ ...hood, avgRent: r });
+              map.current.flyTo({ center: hood.center, zoom: 12.5, pitch: 50, bearing: -8, duration: 900 });
+              if (popupRef.current) { popupRef.current.remove(); popupRef.current = null; }
+            };
 
-      // ── Outline — uses heatmap color for consistent subdued look ──
-      if (map.current.getLayer(outlineId)) {
-        map.current.setPaintProperty(outlineId, 'line-color', heatColor);
-        map.current.setPaintProperty(outlineId, 'line-width', isSelected ? 2.5 : 1.2);
-        map.current.setPaintProperty(outlineId, 'line-opacity', vibeMatch ? (isSelected ? 0.95 : 0.65) : 0.08);
-      } else {
-        map.current.addLayer({
-          id: outlineId, type: 'line', source: sourceId,
-          paint: {
-            'line-color': heatColor,
-            'line-width': isSelected ? 2.5 : 1.2,
-            'line-opacity': vibeMatch ? 0.65 : 0.08,
-            'line-blur': 0.8,
-          },
+            const popup = new mapboxgl.Popup({ closeButton: false, offset: [0, -8], maxWidth: 'none' })
+              .setLngLat(hood.center)
+              .setHTML(`
+                <button
+                  id="mbpopup-${hood.id}"
+                  onmouseenter="window.__popupMouseEnter()"
+                  onmouseleave="window.__popupMouseLeave()"
+                  onclick="window.__mapSelectHood()"
+                  style="font-family:system-ui;padding:10px 16px;background:#3b82f6;border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:0.03em;box-shadow:0 4px 12px rgba(59,130,246,0.4);transition:all 0.2s"
+                  onmouseover="this.style.background='#2563eb';this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 16px rgba(59,130,246,0.5)'"
+                  onmouseout="this.style.background='#3b82f6';this.style.transform='translateY(0)';this.style.boxShadow='0 4px 12px rgba(59,130,246,0.4)'"
+                >Explore ${hood.name} →</button>
+              `)
+              .addTo(map.current);
+            popupRef.current = popup;
+
+            window.__popupMouseEnter = () => {
+              if (popupCloseTimer.current) { clearTimeout(popupCloseTimer.current); popupCloseTimer.current = null; }
+            };
+            window.__popupMouseLeave = () => {
+              popupCloseTimer.current = setTimeout(() => {
+                if (popupRef.current) { popupRef.current.remove(); popupRef.current = null; }
+                map.current.getCanvas().style.cursor = '';
+              }, 120);
+            };
+          } else {
+            // Moved away from label — start close timer
+            if (popupRef.current) {
+              popupCloseTimer.current = popupCloseTimer.current || setTimeout(() => {
+                if (popupRef.current) { popupRef.current.remove(); popupRef.current = null; }
+                map.current.getCanvas().style.cursor = '';
+              }, 200);
+            } else {
+              map.current.getCanvas().style.cursor = '';
+            }
+          }
         });
       }
 
@@ -278,7 +343,7 @@ export default function MapView({
         });
       }
     });
-  }, [mapLoaded, monthlyIncome, roommates, maxRent, vibe, selectedId, onNeighborhoodSelect]);
+  }, [mapLoaded, mapZoom, monthlyIncome, roommates, maxRent, vibe, selectedId, onNeighborhoodSelect]);
 
   // ── Listing price pins ────────────────────────────────
   useEffect(() => {
@@ -294,18 +359,13 @@ export default function MapView({
       const el = buildMarkerEl(listing, isShortlisted);
       if (isSelected) el.classList.add('origin-pin');
 
-      const popup = new mapboxgl.Popup({ offset: [0, -28], closeButton: false })
+      const popup = new mapboxgl.Popup({ offset: [0, -28], closeButton: false, maxWidth: 'none' })
         .setHTML(`
-          <div style="font-family:system-ui;padding:8px 12px;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#f1f5f9;min-width:200px">
-            <div style="font-weight:700;font-size:13px;margin-bottom:4px">${listing.address}</div>
-            <div style="display:flex;gap:12px;font-size:12px;color:#94a3b8;margin-bottom:8px">
-              <span><strong style="color:#f1f5f9">$${listing.price?.toLocaleString()}/mo</strong></span>
-              <span>${listing.beds}bd · ${listing.baths}ba${listing.sqft ? ` · ${listing.sqft.toLocaleString()} sqft` : ''}</span>
-            </div>
-            <div style="font-size:11px;color:#64748b">${listing.type} · Available ${listing.available}</div>
-            ${listing.petFriendly ? '<div style="font-size:11px;color:#22c55e;margin-top:3px">🐾 Pet-friendly</div>' : ''}
-            <div style="font-size:10px;color:#38bdf8;margin-top:4px">Click to use as route origin</div>
-          </div>
+          <button
+            style="font-family:system-ui;padding:10px 16px;background:#3b82f6;border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:0.03em;box-shadow:0 4px 12px rgba(59,130,246,0.4);transition:all 0.2s;white-space:nowrap"
+            onmouseover="this.style.background='#2563eb';this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 16px rgba(59,130,246,0.5)'"
+            onmouseout="this.style.background='#3b82f6';this.style.transform='translateY(0)';this.style.boxShadow='0 4px 12px rgba(59,130,246,0.4)'"
+          >🛰️ View Details</button>
         `);
 
       const marker = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
@@ -316,27 +376,13 @@ export default function MapView({
       el.addEventListener('click', (e) => {
         e.stopPropagation();
         if (onListingSelect) onListingSelect(listing);
+        setPreviewListing(listing);
       });
 
       markersRef.current.push(marker);
     });
   }, [mapLoaded, listings, shortlist, onListingSelect, selectedListing]);
 
-  // ── User location dot (when no listing selected) ──
-  useEffect(() => {
-    if (!mapLoaded || !map.current) return;
-    if (userMarkerRef.current) { userMarkerRef.current.remove(); userMarkerRef.current = null; }
-    if (selectedListing) return;
-
-    const selectedHood = NEIGHBORHOODS.find(n => n.id === selectedId);
-    if (!selectedHood) return;
-
-    const el = document.createElement('div');
-    el.className = 'user-location-dot';
-    userMarkerRef.current = new mapboxgl.Marker({ element: el, anchor: 'center' })
-      .setLngLat(selectedHood.center)
-      .addTo(map.current);
-  }, [mapLoaded, selectedId, selectedListing]);
 
   // ── Route rendering ───────────────────────────────────
   const clearRoute = useCallback(() => {
@@ -487,12 +533,12 @@ export default function MapView({
     if (!mapLoaded || !map.current || !monthlyIncome) return;
     map.current.flyTo({
       center: [-120.68, 35.27],
-      zoom: 10.8,
+      zoom: 9.5,
       pitch: 54,
       bearing: -14,
       duration: 3200,
       essential: true,
-      curve: 1.8,   // tighter arc = more dramatic deceleration at target
+      curve: 1.8,
       speed: 0.8,
     });
   }, [mapLoaded, monthlyIncome]);
@@ -503,7 +549,7 @@ export default function MapView({
     const hasForm = monthlyIncomeRef.current > 0;
     map.current.flyTo({
       center: hasForm ? [-120.68, 35.30] : [-108, 32],
-      zoom: hasForm ? 10.8 : 2.8,
+      zoom: hasForm ? 9.5 : 2.8,
       pitch: hasForm ? 54 : 0,
       bearing: hasForm ? -14 : 0,
       duration: 1200,
@@ -519,10 +565,10 @@ export default function MapView({
           <p className="muted">Add <code>VITE_MAPBOX_TOKEN</code> in <code>client/.env</code> to enable the 3D map.</p>
           <div className="neighborhood-grid">
             {NEIGHBORHOODS.map(hood => {
-              const r     = roommates > 0 ? Math.round(hood.avgRent / (roommates + 1)) : hood.avgRent;
+              const r = roommates > 0 ? Math.round(hood.avgRent / (roommates + 1)) : hood.avgRent;
               const color = monthlyIncome > 0 ? getAffordabilityColor(r, monthlyIncome, maxRent) : '#6b7280';
               const label = monthlyIncome > 0 ? getAffordabilityLabel(r, monthlyIncome, maxRent) : '—';
-              const vm    = matchesVibe(hood, vibe);
+              const vm = matchesVibe(hood, vibe);
               return (
                 <button key={hood.id}
                   className={`neighborhood-card ${hood.id === selectedId ? 'selected' : ''}`}
@@ -672,6 +718,13 @@ export default function MapView({
           <div className="spinner" />
           <span>Loading 3D map…</span>
         </div>
+      )}
+
+      {previewListing && (
+        <SatellitePreview
+          listing={previewListing}
+          onClose={() => setPreviewListing(null)}
+        />
       )}
     </div>
   );
