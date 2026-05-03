@@ -117,11 +117,11 @@ export default function MapView({
           },
         });
 
-        // Globe atmosphere — very light, transparent blue rim
+        // Globe atmosphere — soft medium-blue rim
         map.current.setFog({
-          color:            'rgba(200, 225, 255, 0.18)', // light blue, mostly transparent
-          'high-color':     'rgba(140, 185, 235, 0.10)', // dimmer upper atmosphere
-          'horizon-blend':  0.04,                        // tight rim, not bloomy
+          color:            'rgba(120, 165, 220, 0.32)', // medium blue
+          'high-color':     'rgba(60, 110, 190, 0.22)',  // darker upper atmosphere
+          'horizon-blend':  0.04,
           'space-color':    'rgb(2, 6, 18)',
           'star-intensity': 0,
         });

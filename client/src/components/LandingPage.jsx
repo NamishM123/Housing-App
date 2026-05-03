@@ -46,7 +46,7 @@ function StarField() {
   );
 }
 
-function MapboxGlobe({ active, globeScreenRef }) {
+function MapboxGlobe({ active }) {
   const containerRef = useRef(null);
   const mapRef       = useRef(null);
   const rafRef       = useRef(null);
@@ -58,7 +58,7 @@ function MapboxGlobe({ active, globeScreenRef }) {
 
     const map = new mapboxgl.Map({
       container:          containerRef.current,
-      style:              'mapbox://styles/mapbox/satellite-v9',
+      style:              'mapbox://styles/mapbox/satellite-streets-v12',
       projection:         'globe',
       center:             GLOBE_START,
       zoom:               GLOBE_ZOOM,
@@ -69,30 +69,22 @@ function MapboxGlobe({ active, globeScreenRef }) {
     mapRef.current = map;
 
     map.on('style.load', () => {
-      // Match the main-page globe — light, transparent blue atmosphere
+      // Same atmosphere as dashboard globe
       map.setFog({
-        color:            'rgba(200, 225, 255, 0.18)',
-        'high-color':     'rgba(140, 185, 235, 0.10)',
+        color:            'rgba(120, 165, 220, 0.32)',
+        'high-color':     'rgba(60, 110, 190, 0.22)',
         'horizon-blend':  0.04,
-        'space-color':    'rgb(0, 0, 0)',
+        'space-color':    'rgb(2, 6, 18)',
         'star-intensity': 0,
       });
-    });
 
-    function updateGlobeScreen() {
-      if (!mapRef.current || !globeScreenRef) return;
-      try {
-        const center    = mapRef.current.project(mapRef.current.getCenter());
-        const northPole = mapRef.current.project([mapRef.current.getCenter().lng, 85]);
-        const radius    = Math.abs(center.y - northPole.y) * 1.08;
-        globeScreenRef.current = { active: true, x: center.x, y: center.y, radius };
-        // Clip Mapbox container to globe circle — Three.js stars fill the space around it
-        if (containerRef.current) {
-          containerRef.current.style.clipPath =
-            `circle(${radius}px at ${center.x}px ${center.y}px)`;
+      // Hide every label/symbol layer (no country or city names)
+      map.getStyle().layers.forEach(layer => {
+        if (layer.type === 'symbol') {
+          map.setLayoutProperty(layer.id, 'visibility', 'none');
         }
-      } catch (_) {}
-    }
+      });
+    });
 
     let startTime = null;
 
@@ -101,24 +93,13 @@ function MapboxGlobe({ active, globeScreenRef }) {
       const t    = Math.min(1, (now - startTime) / GLOBE_DURATION);
       const ease = easeOutQuart(t);
 
-      // Sweep eastward: 120°E → 265°E (which normalizes to -95°W when > 180)
       const lng           = GLOBE_START[0] + (GLOBE_END_LNG - GLOBE_START[0]) * ease;
       const lat           = GLOBE_START[1] + (GLOBE_END_LAT  - GLOBE_START[1]) * ease;
       const normalizedLng = lng > 180 ? lng - 360 : lng;
 
       map.setCenter([normalizedLng, lat]);
-      updateGlobeScreen();
 
-      if (t < 1) {
-        rafRef.current = requestAnimationFrame(animate);
-      } else {
-        // Keep clip in sync while globe idles
-        function keepSync() {
-          updateGlobeScreen();
-          rafRef.current = requestAnimationFrame(keepSync);
-        }
-        keepSync();
-      }
+      if (t < 1) rafRef.current = requestAnimationFrame(animate);
     }
 
     map.once('load', () => {
@@ -274,8 +255,8 @@ export default function LandingPage({ onComplete }) {
         <StarField />
       </Canvas>
 
-      {/* Mapbox globe — clip-path keeps stars visible around it (not through it) */}
-      <MapboxGlobe active={earthActive} globeScreenRef={globeScreenRef} />
+      {/* Mapbox globe — same as dashboard, no labels, fills screen */}
+      <MapboxGlobe active={earthActive} />
 
       {/* Shooting-star overlay */}
       <canvas ref={overlayRef} className="landing-overlay" />

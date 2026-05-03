@@ -4,7 +4,7 @@
   inset: 0;
   z-index: 9999;
   overflow: hidden;
-  background: radial-gradient(ellipse at center, #0c1830 0%, #060f1e 55%, #000 100%);
+  background: #02050d;
 }
 
 .landing-root.dismissing {
@@ -22,15 +22,12 @@
   z-index: 0;
 }
 
-/* ── Mapbox satellite globe ──────────────────────────────────── */
-/* clip-path is updated per-frame via JS to match the exact globe circle,
-   so Three.js stars show in the space around the globe (not through it) */
+/* ── Mapbox satellite globe — fills the screen, same look as dashboard ── */
 .landing-mapbox {
   position: absolute;
   inset: 0;
   z-index: 1;
   opacity: 0;
-  clip-path: circle(42vmin at 50% 50%); /* approx initial; JS corrects each frame */
   transition: opacity 0.9s ease;
   pointer-events: none;
 }
@@ -72,9 +69,9 @@
 .landing-text {
   margin: 0;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 0.45em;
+  gap: 0.35em;
   opacity: 0;
   transform: scale(0.55);
   will-change: opacity, transform;
@@ -90,11 +87,11 @@
   display: block;
 }
 
-/* Height is tuned so the white letter cap-height matches the "Welcome to" font size.
-   The SVG viewBox includes the orange mark above the letters (~35% of total height),
-   so we scale up by 1/0.354 relative to the desired cap-height. */
+/* Wordmark sized so the "Settlr" letter cap-height matches the "Welcome to"
+   font size on the same line. The SVG viewBox includes the orange mark
+   above the letters (~35% of total height). */
 .landing-wordmark-img {
-  height: clamp(4.5rem, 10vw, 9rem);
+  height: clamp(3rem, 7vw, 6.2rem);
   width: auto;
   display: block;
   user-select: none;
