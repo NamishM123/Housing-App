@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import ListingDetailModal from './ListingDetailModal';
 
 const BED_FILTERS = ['All', '1', '2', '3+'];
 
@@ -70,6 +71,7 @@ function TourModal({ listing, form, onClose }) {
 export default function ListingsPanel({ listings, loading, searchUrls, form, shortlist, onShortlist }) {
   const [bedFilter, setBedFilter] = useState('All');
   const [tourTarget, setTourTarget] = useState(null);
+  const [detailTarget, setDetailTarget] = useState(null);
   const [sortBy, setSortBy] = useState('price');
 
   if (loading) {
@@ -139,7 +141,13 @@ export default function ListingsPanel({ listings, loading, searchUrls, form, sho
             <div key={listing.id} className={`listing-card ${overBudget ? 'over-budget' : ''} ${isShortlisted ? 'shortlisted' : ''}`}>
               <div className="listing-header">
                 <div>
-                  <div className="listing-address">{listing.address}</div>
+                  <button
+                    className="listing-address listing-address-btn"
+                    onClick={() => setDetailTarget(listing)}
+                    title="View full details"
+                  >
+                    {listing.address}
+                  </button>
                   <div className="listing-meta">{listing.type} · Available {listing.available}</div>
                 </div>
                 <button
@@ -173,17 +181,12 @@ export default function ListingsPanel({ listings, loading, searchUrls, form, sho
               )}
 
               <div className="listing-actions">
-                <button className="listing-action-btn primary" onClick={() => setTourTarget(listing)}>
+                <button className="listing-action-btn primary" onClick={() => setDetailTarget(listing)}>
+                  🏠 View Details
+                </button>
+                <button className="listing-action-btn" onClick={() => setTourTarget(listing)}>
                   📅 Request Tour
                 </button>
-                <a
-                  href={listing.listingUrl || listing.urls?.zillow || searchUrls?.zillow || '#'}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="listing-action-btn"
-                >
-                  🔗 View Listing
-                </a>
               </div>
             </div>
           );
@@ -192,6 +195,17 @@ export default function ListingsPanel({ listings, loading, searchUrls, form, sho
 
       {tourTarget && (
         <TourModal listing={tourTarget} form={form} onClose={() => setTourTarget(null)} />
+      )}
+
+      {detailTarget && (
+        <ListingDetailModal
+          listing={detailTarget}
+          form={form}
+          isShortlisted={shortlist.some(s => s.id === detailTarget.id)}
+          onShortlist={onShortlist}
+          onRequestTour={(l) => { setDetailTarget(null); setTourTarget(l); }}
+          onClose={() => setDetailTarget(null)}
+        />
       )}
     </>
   );
