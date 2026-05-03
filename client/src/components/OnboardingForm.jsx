@@ -2,24 +2,22 @@ import { useMemo, useState } from 'react';
 import IncomeInput, { validateIncome } from './IncomeInput';
 import WorkLocationField from './WorkLocationField';
 
-const STRATEGIES = [
-  { id: 'splurge',  label: "I'll pay more for the right spot", sub: 'Up to 40%', pct: 0.40 },
-  { id: 'balanced', label: 'Comfortable middle ground',          sub: 'Around 30%', pct: 0.30 },
-  { id: 'aggressive', label: 'Save aggressively',                sub: 'Under 25%', pct: 0.22 },
-];
+const DEFAULT_RENT_PCT = 30;
+const MIN_RENT_PCT = 5;
+const MAX_RENT_PCT = 80;
 
 const SITUATIONS = [
-  { id: 'solo',      label: 'Solo',       sub: 'Just me' },
-  { id: 'partner',   label: 'Partner',    sub: 'Me and my person' },
-  { id: 'roommates', label: 'Roommates',  sub: 'Splitting rent' },
-  { id: 'family',    label: 'Family',     sub: 'Kids in the mix' },
+  { id: 'solo', label: 'Solo', sub: 'Just me' },
+  { id: 'partner', label: 'Partner', sub: 'Me and my person' },
+  { id: 'roommates', label: 'Roommates', sub: 'Splitting rent' },
+  { id: 'family', label: 'Family', sub: 'Kids in the mix' },
 ];
 
 const TOLERANCE = [
-  { id: 'walk',   label: 'Walk or bike',          sub: 'under 10 min' },
-  { id: 'short',  label: 'Short drive',           sub: '10–20 min' },
-  { id: 'long',   label: 'Worth it for savings',  sub: '20–35 min' },
-  { id: 'remote', label: 'Remote',                sub: 'I work from home' },
+  { id: 'walk', label: 'Walk or bike', sub: 'under 10 min' },
+  { id: 'short', label: 'Short drive', sub: '10–20 min' },
+  { id: 'long', label: 'Worth it for savings', sub: '20–35 min' },
+  { id: 'remote', label: 'Remote', sub: 'I work from home' },
 ];
 
 const ROOMMATE_OPTS = [1, 2, 3];
@@ -27,14 +25,14 @@ const ROOMMATE_OPTS = [1, 2, 3];
 const fmt = (n) => `$${Math.round(n).toLocaleString()}`;
 
 const workLabel = (situation) => {
-  if (situation === 'partner')   return 'Where do you both work?';
+  if (situation === 'partner') return 'Where do you both work?';
   if (situation === 'roommates') return 'Where does everyone work?';
   return 'Where do you work?';
 };
 
 export default function OnboardingForm({ onSubmit, loading }) {
   const [annualIncome, setAnnualIncome] = useState(65000);
-  const [strategy, setStrategy] = useState('balanced');
+  const [rentPct, setRentPct] = useState(DEFAULT_RENT_PCT);
   const [situation, setSituation] = useState('solo');
   const [partnerIncome, setPartnerIncome] = useState(null);
   const [roommateCount, setRoommateCount] = useState(1);
