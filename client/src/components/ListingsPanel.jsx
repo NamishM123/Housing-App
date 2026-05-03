@@ -1,19 +1,15 @@
 import { useState } from 'react';
 import ListingDetailModal from './ListingDetailModal';
+import { pickHousePhoto } from '../utils/housePhotos';
 
 const BED_FILTERS = ['All', '1', '2', '3+'];
-const GOOGLE_KEY = import.meta.env.VITE_GOOGLE_MAPS_EMBED_KEY || '';
 
-// Build a thumbnail URL: prefer the real RentCast listing photo, then a
-// Google Street View Static photo of the actual building at the address
-// (street-level real-world image, not a satellite top-down).
+// Thumbnail: prefer the real RentCast listing photo when present; otherwise
+// pick a stable pre-generated SLO-style house photo deterministically from
+// the listing's ID so the same listing always gets the same image.
 function thumbUrl(listing) {
   if (listing.image) return { src: listing.image, kind: 'photo' };
-  if (listing.lat && listing.lng && GOOGLE_KEY) {
-    const sv = `https://maps.googleapis.com/maps/api/streetview?size=720x260&location=${listing.lat},${listing.lng}&fov=80&pitch=5&source=outdoor&key=${GOOGLE_KEY}`;
-    return { src: sv, kind: 'streetview' };
-  }
-  return null;
+  return { src: pickHousePhoto(listing, 0, 'thumb'), kind: 'preset' };
 }
 
 function buildTourEmail({ listing, form }) {
@@ -153,8 +149,8 @@ export default function ListingsPanel({ listings, loading, searchUrls, form, sho
           const thumb = thumbUrl(listing);
           const badgeLabel = thumb?.kind === 'photo'
             ? '📸 Listing photo'
-            : thumb?.kind === 'streetview'
-              ? '🏠 Street view photo'
+            : thumb?.kind === 'preset'
+              ? '🏡 Sample exterior'
               : null;
 
           return (

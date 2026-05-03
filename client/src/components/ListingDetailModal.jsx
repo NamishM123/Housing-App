@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
+import { pickHouseGallery } from '../utils/housePhotos';
 
-const GOOGLE_KEY = import.meta.env.VITE_GOOGLE_MAPS_EMBED_KEY || '';
+const GALLERY_LABELS = ['Front exterior', 'Side view', 'Yard / back', 'Approach'];
 
-// Build a multi-image gallery of REAL building photos:
-//   1. The real RentCast listing photo (when present).
-//   2. Google Street View Static photos of the actual building from
-//      multiple compass headings — real-world street-level imagery.
+// Build a gallery for a listing:
+//   1. Real RentCast listing photo when present.
+//   2. Pre-generated SLO-style house exterior photos from a curated pool,
+//      picked deterministically from the listing's id so the same listing
+//      always shows the same set.
 function buildGallery(listing) {
   const out = [];
 
@@ -13,18 +15,9 @@ function buildGallery(listing) {
     out.push({ src: listing.image, label: 'Listing photo', kind: 'photo' });
   }
 
-  if (listing.lat && listing.lng && GOOGLE_KEY) {
-    const loc = `${listing.lat},${listing.lng}`;
-    const sv = (heading, label) => ({
-      src: `https://maps.googleapis.com/maps/api/streetview?size=900x540&location=${loc}&heading=${heading}&fov=80&pitch=5&source=outdoor&key=${GOOGLE_KEY}`,
-      label,
-      kind: 'streetview',
-    });
-    out.push(sv(0,   'Front of building (N)'));
-    out.push(sv(90,  'East side'));
-    out.push(sv(180, 'Back / opposite side (S)'));
-    out.push(sv(270, 'West side'));
-  }
+  pickHouseGallery(listing, 4, 'hero').forEach((src, i) => {
+    out.push({ src, label: GALLERY_LABELS[i] || `View ${i + 1}`, kind: 'preset' });
+  });
 
   return out;
 }
