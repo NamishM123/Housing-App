@@ -85,18 +85,14 @@ export default function NeighborhoodDrawer({
             </div>
           </div>
           <div className="nbr-quick-stats">
-            <span className="nbr-stat">${neighborhood.avgRent.toLocaleString()}<span className="nbr-stat-unit">/mo avg</span></span>
             {neighborhood.noiseLevel && (
-              <>
-                <span className="nbr-sep">|</span>
-                <span className={`nbr-quick-badge ${noiseCls}`}>{neighborhood.noiseLevel} noise</span>
-              </>
+              <span className={`nbr-quick-badge ${noiseCls}`}>{neighborhood.noiseLevel} noise</span>
+            )}
+            {neighborhood.noiseLevel && neighborhood.parkingDifficulty && (
+              <span className="nbr-sep">|</span>
             )}
             {neighborhood.parkingDifficulty && (
-              <>
-                <span className="nbr-sep">|</span>
-                <span className={`nbr-quick-badge ${parkingCls}`}>{neighborhood.parkingDifficulty} parking</span>
-              </>
+              <span className={`nbr-quick-badge ${parkingCls}`}>{neighborhood.parkingDifficulty} parking</span>
             )}
           </div>
         </div>

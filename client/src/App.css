@@ -1085,6 +1085,14 @@ input.error {
   gap: 8px;
 }
 
+/* Name + nav arrows share a single baseline row. */
+.nbr-name-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
 /* City name — bigger than the sidebar's 17px label so it owns the drawer. */
 .nbr-name {
   font-size: 28px;
