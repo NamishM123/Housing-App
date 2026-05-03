@@ -212,6 +212,7 @@ export default function App() {
             onListingSelect={handleListingSelect}
             selectedListing={selectedListing}
             landingActive={showLanding}
+            sidebarOpen={leftPinned}
           />
         </main>
 
@@ -278,8 +279,9 @@ export default function App() {
 
       </div>
 
-      {/* Bottom tile bar Wrapper */}
-      {(selectedNeighborhood || hoveredNeighborhood) && (
+      {/* Bottom tile bar Wrapper — hidden whenever the sidebar is open so
+          the user editing their income gets a clean canvas. */}
+      {!leftPinned && (selectedNeighborhood || hoveredNeighborhood) && (
         <div className={`nbr-bar-wrapper ${bottomPinned ? 'pinned' : ''}`}>
           <div className="nbr-bar-edge-tab" onClick={() => setBottomPinned(true)}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 15l-6-6-6 6"/></svg>
@@ -295,8 +297,8 @@ export default function App() {
         </div>
       )}
 
-      {/* Right-side detail panel Wrapper */}
-      {selectedNeighborhood && activePanelTab && (
+      {/* Right-side detail panel Wrapper — also hidden when the sidebar is open. */}
+      {!leftPinned && selectedNeighborhood && activePanelTab && (
         <div className={`n-panel-wrapper ${rightPinned ? 'pinned' : ''} ${activePanelTab === 'listings' ? 'wide' : ''}`}>
           <div className="n-panel-edge-tab" onClick={() => setRightPinned(true)}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>

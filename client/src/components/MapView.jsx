@@ -56,6 +56,7 @@ export default function MapView({
   listings, shortlist, onListingSelect,
   selectedListing,
   landingActive = false,
+  sidebarOpen = false,
 }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
@@ -656,7 +657,10 @@ export default function MapView({
         {vibe && vibe !== 'any' && <div className="legend-filter">Vibe: <strong>{vibe}</strong></div>}
       </GlowCard>
 
-      {/* Directions floating panel — top LEFT (expands downward) */}
+      {/* Directions floating panel — top LEFT (expands downward).
+          Hidden whenever the sidebar is open so the user editing their
+          income sees only the form on a clean map. */}
+      {!sidebarOpen && (
       <div className={`route-panel ${routeOpen ? 'open' : ''}`}>
         {!routeOpen ? (
           <GlowCard
@@ -778,6 +782,7 @@ export default function MapView({
           </GlowCard>
         )}
       </div>
+      )}
 
       {!mapLoaded && (
         <div className="map-loading">
