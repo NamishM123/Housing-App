@@ -3535,21 +3535,76 @@ input.error {
 .onboarding-form {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
   padding: 4px 0 8px;
 }
 
 .q-section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 18px 18px 16px;
+  gap: 10px;
+  padding: 20px 20px 18px;
 }
 
-/* When q-section is rendered inside a GlowCard wrapper, the wrapper handles
-   background/border/blur — q-section just provides internal layout + padding. */
-.glow-card.q-section > .glow-inner {
-  /* keep the inner glow positioned correctly */
+/* ─── Onboarding-card text + control overrides ─────────
+   Make every label/hint white-readable, bump the question size,
+   and round all interactive surfaces inside the card. */
+.q-section .q-label {
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  color: #fff !important;
+  line-height: 1.3;
+  text-transform: none !important;
+  letter-spacing: 0.005em;
+}
+.q-section .hint {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.78);
+}
+.q-section .form-group label {
+  color: #fff;
+  font-size: 12px;
+}
+.q-section input[type="text"],
+.q-section input[type="number"] {
+  border-radius: 12px;
+  color: #fff;
+}
+.q-section .input-prefix span {
+  border-radius: 12px 0 0 12px;
+  color: rgba(255, 255, 255, 0.85);
+}
+.q-section .input-prefix input {
+  border-radius: 0 12px 12px 0;
+}
+.q-section .situation-btn,
+.q-section .seg-row,
+.q-section .seg-pill {
+  border-radius: 14px;
+}
+.q-section .situation-label,
+.q-section .seg-label {
+  color: #fff;
+  font-weight: 600;
+}
+.q-section .situation-sub,
+.q-section .seg-sub {
+  color: rgba(255, 255, 255, 0.72);
+}
+.q-section .situation-btn.active .situation-sub,
+.q-section .seg-row.active .seg-sub {
+  color: #fff;
+}
+.q-section .rent-estimate-box {
+  border-radius: 14px;
+  color: #fff;
+}
+.q-section .combined-display {
+  border-radius: 12px;
+  color: #fff;
+}
+.q-section .rent-pct-input input {
+  border-radius: 14px;
 }
 
 .q-label {

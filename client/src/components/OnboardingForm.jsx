@@ -26,7 +26,7 @@ const ROOMMATE_OPTS = [1, 2, 3];
 const fmt = (n) => `$${Math.round(n).toLocaleString()}`;
 
 const workLabel = (situation) => {
-  if (situation === 'partner')   return 'Where do you both need to be most days?';
+  if (situation === 'partner' || situation === 'family') return 'Where do you both need to be most days?';
   if (situation === 'roommates') return 'Where does everyone need to be most days?';
   return 'Where do you need to be most days?';
 };
@@ -41,6 +41,7 @@ export default function OnboardingForm({ onSubmit, loading }) {
   const [primaryWork, setPrimaryWork] = useState(null);
   const [partnerWork, setPartnerWork] = useState(null);
   const [roommateWorks, setRoommateWorks] = useState({});
+  const [kidsCount, setKidsCount] = useState(1);
   const [tolerance, setTolerance] = useState('short');
   const [errors, setErrors] = useState({});
 
@@ -48,7 +49,9 @@ export default function OnboardingForm({ onSubmit, loading }) {
 
   const incomes = useMemo(() => {
     const list = [annualIncome || 0];
-    if (situation === 'partner' && partnerIncome) list.push(Number(partnerIncome));
+    if ((situation === 'partner' || situation === 'family') && partnerIncome) {
+      list.push(Number(partnerIncome));
+    }
     if (situation === 'roommates') {
       Object.values(roommateIncomes).forEach(v => {
         if (v) list.push(Number(v));
@@ -60,7 +63,7 @@ export default function OnboardingForm({ onSubmit, loading }) {
   const combinedAnnual = incomes.reduce((a, b) => a + b, 0);
   const combinedMonthly = Math.round(combinedAnnual / 12);
   const showCombined =
-    (situation === 'partner' && partnerIncome) ||
+    ((situation === 'partner' || situation === 'family') && partnerIncome) ||
     (situation === 'roommates' && Object.values(roommateIncomes).some(v => v));
 
   const strategyPct = Math.max(MIN_RENT_PCT, Math.min(MAX_RENT_PCT, rentPct || DEFAULT_RENT_PCT)) / 100;
@@ -89,7 +92,7 @@ export default function OnboardingForm({ onSubmit, loading }) {
 
     const workLocations = [];
     if (primaryWork && !primaryWork.remote) workLocations.push(primaryWork);
-    if (situation === 'partner' && partnerWork && !partnerWork.remote) {
+    if ((situation === 'partner' || situation === 'family') && partnerWork && !partnerWork.remote) {
       workLocations.push(partnerWork);
     }
     if (situation === 'roommates') {
@@ -103,7 +106,8 @@ export default function OnboardingForm({ onSubmit, loading }) {
       housingStrategy: `custom-${rentPct}pct`,
       strategyPct,
       livingSituation: situation,
-      partnerIncome: situation === 'partner' ? Number(partnerIncome) || null : null,
+      partnerIncome: (situation === 'partner' || situation === 'family') ? Number(partnerIncome) || null : null,
+      kidsCount: situation === 'family' ? kidsCount : 0,
       roommateCount: situation === 'roommates' ? roommateCount : 0,
       roommateIncomes: situation === 'roommates' ? roommateIncomes : {},
       combinedAnnualIncome: combinedAnnual || annualIncome,
@@ -206,7 +210,7 @@ export default function OnboardingForm({ onSubmit, loading }) {
           ))}
         </div>
 
-        {situation === 'partner' && (
+        {(situation === 'partner' || situation === 'family') && (
           <div className="form-group nested">
             <label>Your partner's income</label>
             <div className="input-prefix">
@@ -223,6 +227,24 @@ export default function OnboardingForm({ onSubmit, loading }) {
               />
             </div>
             {errors.partnerIncome && <span className="error-msg">{errors.partnerIncome}</span>}
+          </div>
+        )}
+
+        {situation === 'family' && (
+          <div className="form-group nested">
+            <label>How many kids?</label>
+            <div className="seg-row-h">
+              {[1, 2, 3].map(n => (
+                <button
+                  key={n}
+                  type="button"
+                  className={`seg-pill ${kidsCount === n ? 'active' : ''}`}
+                  onClick={() => setKidsCount(n)}
+                >
+                  {n === 3 ? '3+' : n}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
@@ -283,7 +305,7 @@ export default function OnboardingForm({ onSubmit, loading }) {
           />
           {errors.primaryWork && <span className="error-msg">{errors.primaryWork}</span>}
 
-          {situation === 'partner' && (
+          {(situation === 'partner' || situation === 'family') && (
             <WorkLocationField
               label="And your partner?"
               value={partnerWork}

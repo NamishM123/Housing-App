@@ -11,7 +11,7 @@ export default function IncomeInput({ value, onChange, error }) {
 
   return (
     <div className="form-group income-input">
-      <label>What's your annual income?</label>
+      <label className="q-label">What's your annual income?</label>
       <span className="hint">Pre-tax. Round numbers are fine.</span>
       <div className="input-prefix">
         <span>$</span>
