@@ -690,7 +690,7 @@ export default function MapView({
             radius={18}
             border={2}
             size={220}
-            glowColor="blue"
+            glowColor="orange"
             onClick={() => setRouteOpen(true)}
           >
             Directions

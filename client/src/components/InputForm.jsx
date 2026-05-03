@@ -28,7 +28,7 @@ const WORK_LOCATIONS = [
 
 const AMENITIES = [
   { id: 'groceries', label: '🛒 Grocery store', examples: 'Trader Joe\'s, Vons, Sprouts' },
-  { id: 'hospital',  label: '🏥 Hospital / Urgent care', examples: 'Sierra Vista, French Hospital' },
+  { id: 'hospital',  label: '🏥 Hospital / Urgent care', examples: 'Sierra Vista, Adventist Health' },
   { id: 'beach',     label: '🏖️ Beach access', examples: 'Pismo, Morro Bay, Avila' },
   { id: 'dining',    label: '🍽️ Restaurants & bars', examples: 'Downtown SLO, Pismo strip' },
   { id: 'gym',       label: '💪 Gym / Fitness', examples: 'Planet Fitness, CrossFit, YMCA' },

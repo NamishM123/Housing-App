@@ -761,7 +761,7 @@ input.error {
 
 .submit-btn:hover {
   background: linear-gradient(135deg, #ff9a55 0%, #ff8230 100%);
-  box-shadow: 0 6px 20px var(--accent-glow);
+  box-shadow: 0 6px 22px rgba(91, 140, 247, 0.55), 0 0 0 1px rgba(91, 140, 247, 0.45);
   transform: translateY(-1px);
 }
 
@@ -2975,10 +2975,12 @@ input.error {
 .route-panel:not(.open) { width: auto; }
 .route-panel.open { width: 380px; }
 
-/* Closed state: solid brand-blue pill for high visibility against the
-   dark map. White text + subtle border keep the call-to-action obvious. */
+/* Closed state: solid brand-orange pill matching the "Find My Dream Home"
+   submit button — orange gradient with a blue hover glow for high
+   visibility against the dark map. */
 .route-panel .route-toggle-btn.glow-card {
-  background-color: #5B8CF7 !important;
+  background: linear-gradient(135deg, #ff8a3d 0%, #ff751f 100%) !important;
+  background-color: #ff751f !important;
   color: #fff;
   border-color: rgba(255, 255, 255, 0.35);
   padding: 10px 22px;
@@ -2987,16 +2989,17 @@ input.error {
   font-weight: 700;
   letter-spacing: 0.02em;
   cursor: pointer;
-  box-shadow: 0 4px 18px rgba(91, 140, 247, 0.45);
-  transition: transform 0.1s ease, box-shadow 0.2s ease, background-color 0.18s ease;
+  box-shadow: 0 4px 16px rgba(255, 117, 31, 0.32);
+  transition: transform 0.1s ease, box-shadow 0.2s ease, background 0.18s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 .route-panel .route-toggle-btn.glow-card:hover {
   transform: translateY(-1px);
-  background-color: #7BA3F9 !important;
-  box-shadow: 0 6px 22px rgba(91, 140, 247, 0.6);
+  background: linear-gradient(135deg, #ff9a55 0%, #ff8230 100%) !important;
+  background-color: #ff8a3d !important;
+  box-shadow: 0 6px 22px rgba(91, 140, 247, 0.55), 0 0 0 1px rgba(91, 140, 247, 0.45);
 }
 
 /* Open state: tall panel that grows to fit its contents (origin label,
@@ -4083,7 +4086,7 @@ input.error {
 }
 
 .submit-btn {
-  background: #ff751f;
+  background: linear-gradient(135deg, #ff8a3d 0%, #ff751f 100%);
   color: #fff;
   border: none;
   border-radius: var(--radius);
@@ -4092,12 +4095,15 @@ input.error {
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
-  transition: all 0.15s ease;
+  transition: all 0.18s ease;
   letter-spacing: 0.01em;
+  box-shadow: 0 4px 16px rgba(255, 117, 31, 0.32);
 }
 
 .submit-btn:hover:not(:disabled) {
-  background: #ff8a3d;
+  background: linear-gradient(135deg, #ff9a55 0%, #ff8230 100%);
+  box-shadow: 0 6px 22px rgba(91, 140, 247, 0.55), 0 0 0 1px rgba(91, 140, 247, 0.45);
+  transform: translateY(-1px);
 }
 
 /* ── Hide Mapbox attribution & logo ──────────────── */
