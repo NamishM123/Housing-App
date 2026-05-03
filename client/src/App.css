@@ -1098,26 +1098,18 @@ input.error {
 .nbr-header {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   padding: 22px 26px 12px;
   gap: 18px;
 }
 
 .nbr-info {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  width: 100%;
-}
-
-/* Name + nav arrows share a single baseline row. */
-.nbr-name-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  flex-wrap: wrap;
+  min-width: 0;
 }
 
 /* City name — bigger than the sidebar's 17px label so it owns the drawer. */
@@ -1175,24 +1167,23 @@ input.error {
 }
 
 /* ── Prev / Next city navigation (replaces the close-X) ── */
-.nbr-nav-arrows {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
 .nbr-nav-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 44px;
+  height: 44px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: #cbd5e1;
   cursor: pointer;
   transition: background 0.15s, color 0.15s, transform 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+
+.nbr-nav-btn-side {
+  align-self: center;
 }
 
 .nbr-nav-btn:hover {

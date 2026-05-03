@@ -59,29 +59,16 @@ export default function NeighborhoodDrawer({
     <div className="nbr-bar nbr-bar-glow" ref={barRef}>
       {/* Name + quick stats */}
       <div className="nbr-header">
+        <button
+          className="nbr-nav-btn nbr-nav-btn-side"
+          onClick={onPrev}
+          aria-label="Previous city"
+          title="Previous city"
+        >
+          <ChevronLeft className="nbr-nav-icon" />
+        </button>
         <div className="nbr-info">
-          <div className="nbr-name-row">
-            <h2 className="nbr-name">{neighborhood.name}</h2>
-            {/* Prev / Next city navigation (replaces the close-X) */}
-            <div className="nbr-nav-arrows">
-              <button
-                className="nbr-nav-btn"
-                onClick={onPrev}
-                aria-label="Previous city"
-                title="Previous city"
-              >
-                <ChevronLeft className="nbr-nav-icon" />
-              </button>
-              <button
-                className="nbr-nav-btn"
-                onClick={onNext}
-                aria-label="Next city"
-                title="Next city"
-              >
-                <ChevronRight className="nbr-nav-icon" />
-              </button>
-            </div>
-          </div>
+          <h2 className="nbr-name">{neighborhood.name}</h2>
           <div className="nbr-quick-stats">
             {neighborhood.noiseLevel && (
               <span className={`nbr-quick-badge ${noiseCls}`}>{neighborhood.noiseLevel} noise</span>
@@ -94,6 +81,14 @@ export default function NeighborhoodDrawer({
             )}
           </div>
         </div>
+        <button
+          className="nbr-nav-btn nbr-nav-btn-side"
+          onClick={onNext}
+          aria-label="Next city"
+          title="Next city"
+        >
+          <ChevronRight className="nbr-nav-icon" />
+        </button>
       </div>
 
       {/* DockMorph tile row */}
