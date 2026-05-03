@@ -15,6 +15,14 @@ function buildMarkerEl(listing, isShortlisted) {
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
+// Listing pins are only meaningful inside this zoom band. Outside it Mapbox's
+// HTML markers can misproject (especially at low zoom / globe range), so we
+// hide them entirely. PIN_ZOOM_MIN sits just under the neighborhood-detail
+// zoom (12.5) so a small zoom-out from the area view makes pins disappear.
+const PIN_ZOOM_MIN = 11.5;
+const PIN_ZOOM_MAX = 18;
+const isInPinZoomRange = (z) => z >= PIN_ZOOM_MIN && z <= PIN_ZOOM_MAX;
+
 // Mirrors getHeatmapColor() in data/neighborhoods.js — keep in sync.
 const LEGEND = [
   { color: '#172554', label: 'Comfortable  <28%' },
@@ -322,12 +330,17 @@ export default function MapView({
     markersRef.current = [];
     if (!listings?.length) return;
 
+    // Read zoom directly from the map (state may be a tick stale during
+    // animated flyTos), so newly-created pins start hidden if out of range.
+    const inRange = isInPinZoomRange(map.current.getZoom());
+
     listings.forEach(listing => {
       if (!listing.lat || !listing.lng) return;
       const isShortlisted = (shortlist || []).some(s => s.id === listing.id);
       const isSelected = selectedListing?.id === listing.id;
       const el = buildMarkerEl(listing, isShortlisted);
       if (isSelected) el.classList.add('origin-pin');
+      if (!inRange) el.style.display = 'none';
 
       // Store listing reference for popup button click
       window[`__openStreetView_${listing.id}`] = () => {
@@ -360,14 +373,10 @@ export default function MapView({
     });
   }, [mapLoaded, listings, shortlist, onListingSelect, selectedListing]);
 
-  // Hide listing pins when zoomed outside the SLO-area range. Outside this
-  // band the pins lose their geographic meaning (they'd cluster into a blob
-  // when zoomed too far out or scatter on the globe projection), so we just
-  // make them disappear until the user comes back into range.
-  const PIN_ZOOM_MIN = 8.5;
-  const PIN_ZOOM_MAX = 18;
+  // Hide listing pins when zoomed outside the neighborhood-detail band.
+  // See PIN_ZOOM_MIN/MAX at the top of the file.
   useEffect(() => {
-    const inRange = mapZoom >= PIN_ZOOM_MIN && mapZoom <= PIN_ZOOM_MAX;
+    const inRange = isInPinZoomRange(mapZoom);
     markersRef.current.forEach(m => {
       const el = m.getElement();
       if (el) el.style.display = inRange ? '' : 'none';
