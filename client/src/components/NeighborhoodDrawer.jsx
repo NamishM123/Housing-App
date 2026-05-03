@@ -1,14 +1,34 @@
+import { useRef } from 'react';
+import { motion } from 'framer-motion';
+import { Home, DollarSign, Footprints, MapPin, Sofa, ClipboardCheck } from 'lucide-react';
+
 const TILES = [
-  { id: 'listings',  icon: '🏠', label: 'Listings' },
-  { id: 'costs',     icon: '💰', label: 'Costs' },
-  { id: 'walkscore', icon: '🚶', label: 'Walk' },
-  { id: 'insights',  icon: '📍', label: 'Insights' },
-  { id: 'layout',    icon: '🛋️', label: 'Room' },
-  { id: 'checklist', icon: '✅', label: 'Checklist' },
+  { id: 'listings',  Icon: Home,            label: 'Listings' },
+  { id: 'costs',     Icon: DollarSign,      label: 'Costs' },
+  { id: 'walkscore', Icon: Footprints,      label: 'Walk' },
+  { id: 'insights',  Icon: MapPin,          label: 'Insights' },
+  { id: 'layout',    Icon: Sofa,            label: 'Room' },
+  { id: 'checklist', Icon: ClipboardCheck,  label: 'Checklist' },
 ];
 
 const NOISE_CLASS  = { quiet: 'badge-green', moderate: 'badge-amber', loud: 'badge-red' };
 const PARK_CLASS   = { easy: 'badge-green',  moderate: 'badge-amber', hard: 'badge-red' };
+
+function DockButton({ Icon, label, active, onClick }) {
+  return (
+    <motion.button
+      whileHover={{ scale: 1.1, y: -2 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={onClick}
+      className={`nbr-dock-btn${active ? ' active' : ''}`}
+      title={label}
+    >
+      <Icon className="nbr-dock-icon-svg" />
+      <span className="nbr-dock-tooltip">{label}</span>
+      <span className="nbr-dock-label">{label}</span>
+    </motion.button>
+  );
+}
 
 export default function NeighborhoodDrawer({ open, neighborhood, onClose, onTileClick, activeTile }) {
   if (!open || !neighborhood) return null;
@@ -43,18 +63,23 @@ export default function NeighborhoodDrawer({ open, neighborhood, onClose, onTile
         <button className="nbr-close-btn" onClick={onClose} aria-label="Close">✕</button>
       </div>
 
-      {/* Tile row */}
-      <div className="nbr-tiles">
-        {TILES.map(tile => (
-          <button
-            key={tile.id}
-            className={`nbr-tile ${activeTile === tile.id ? 'active' : ''}`}
-            onClick={() => onTileClick(tile.id)}
-          >
-            <span className="nbr-tile-icon">{tile.icon}</span>
-            <span className="nbr-tile-label">{tile.label}</span>
-          </button>
-        ))}
+      {/* Dock row */}
+      <div className="nbr-dock-row">
+        <motion.div
+          className="nbr-dock-pill"
+          animate={{ y: [-1.5, 1.5, -1.5] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          {TILES.map(({ id, Icon, label }) => (
+            <DockButton
+              key={id}
+              Icon={Icon}
+              label={label}
+              active={activeTile === id}
+              onClick={() => onTileClick(id)}
+            />
+          ))}
+        </motion.div>
       </div>
     </div>
   );
