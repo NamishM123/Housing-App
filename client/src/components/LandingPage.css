@@ -33,6 +33,7 @@
   opacity: 0;
   transition: opacity 0.9s ease;
   pointer-events: none;
+  transform: translateY(-10vh);
   /* Reveal the globe + atmosphere in the center, fade to transparent toward
      the corners so the starfield (z-index:0) is visible behind it. */
   -webkit-mask-image: radial-gradient(circle at 50% 50%,
@@ -230,7 +231,7 @@
 .landing-cta-wrap {
   position: absolute;
   left: 50%;
-  bottom: 8vh;
+  bottom: 14vh;
   transform: translateX(-50%);
   z-index: 12;
   opacity: 0;

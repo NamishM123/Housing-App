@@ -376,7 +376,7 @@ export default function LandingPage({ onComplete }) {
 
       <nav className={`landing-nav ${navIn ? 'lp-in' : ''}`}>
         <div className="landing-nav-brand">
-          <img src="/settlr-mark.svg" alt="Settlr" className="landing-nav-mark" />
+          <img src="/settlr-mark.svg" alt="Settlr" className="sidebar-logo-full" />
         </div>
       </nav>
 
@@ -392,15 +392,6 @@ export default function LandingPage({ onComplete }) {
         >
           <span className="landing-hero-cta-content">
             <span className="landing-hero-cta-label">Try Settlr</span>
-            <svg
-              className="landing-hero-cta-arrow"
-              width="18" height="18" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <line x1="7" y1="17" x2="17" y2="7" />
-              <polyline points="7 7 17 7 17 17" />
-            </svg>
           </span>
         </GlowCard>
       </div>
