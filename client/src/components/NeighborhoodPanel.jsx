@@ -131,7 +131,7 @@ export default function NeighborhoodPanel({ open, activeTab, neighborhood, form,
                 </div>
               </div>
               <button className="action-btn" onClick={handleGenerateFurniture} disabled={!furnitureBudget || furnitureLoading}>
-                {furnitureLoading ? <><span className="spinner xs" /> Generating…</> : '✨ Generate Shopping List'}
+                {furnitureLoading ? <><span className="spinner xs" /> Generating…</> : 'Generate Shopping List'}
               </button>
               {furniture && (
                 <div className="furniture-list">
@@ -159,11 +159,11 @@ export default function NeighborhoodPanel({ open, activeTab, neighborhood, form,
         {activeTab === 'insights' && (
           <div className="insights-tab">
             <NoiseScoreRow score={neighborhood.noiseScore} level={neighborhood.noiseLevel} sources={neighborhood.noiseSources} />
-            <InsightRow icon="🅿️"  label="Parking"     value={neighborhood.parkingDifficulty} badge={neighborhood.parkingDifficulty} />
+            <InsightRow label="Parking" value={neighborhood.parkingDifficulty} badge={neighborhood.parkingDifficulty} />
 
             {/* Real-people reviews scraped from Reddit */}
             <div className="insight-section">
-              <div className="insight-section-title">💬 What people are saying</div>
+              <div className="insight-section-title">What people are saying</div>
               <ReviewsBlock
                 loading={reviewsLoading}
                 error={reviewsError}
@@ -186,7 +186,7 @@ export default function NeighborhoodPanel({ open, activeTab, neighborhood, form,
             )}
             {neighborhood.recentNews?.length > 0 && (
               <div className="insight-section">
-                <div className="insight-section-title">📰 Local News</div>
+                <div className="insight-section-title">Local News</div>
                 <div className="news-feed">
                   {neighborhood.recentNews.map((item, i) => (
                     <div key={i} className="news-card">
@@ -232,12 +232,11 @@ export default function NeighborhoodPanel({ open, activeTab, neighborhood, form,
 }
 
 /* ── Helpers ── */
-function InsightRow({ icon, label, value, badge, detail }) {
+function InsightRow({ label, value, badge, detail }) {
   const badgeClass = { quiet: 'badge-green', moderate: 'badge-amber', loud: 'badge-red', easy: 'badge-green', hard: 'badge-red' }[badge] || 'badge-muted';
   return (
     <div className="insight-row">
       <div className="insight-row-header">
-        <span className="insight-icon">{icon}</span>
         <span className="insight-label">{label}</span>
         <span className={`insight-badge ${badgeClass}`}>{value}</span>
       </div>
@@ -257,13 +256,16 @@ function NoiseScoreRow({ score, level, sources }) {
   return (
     <div className="insight-row noise-row">
       <div className="insight-row-header">
-        <span className="insight-icon">🔊</span>
         <span className="insight-label">Noise Score</span>
         <span className={`insight-badge ${tone.badge}`}>{tone.label}</span>
       </div>
       <div className="noise-meter">
         <div className="noise-meter-track">
-          <div className="noise-meter-fill" style={{ width: `${safeScore}%`, background: tone.bar }} />
+          <div
+            key={safeScore}
+            className="noise-meter-fill"
+            style={{ '--noise-target': `${safeScore}%`, width: `${safeScore}%`, background: tone.bar, color: tone.bar }}
+          />
         </div>
         <span className="noise-meter-value">{safeScore} / 100</span>
       </div>
@@ -308,7 +310,7 @@ function ReviewsBlock({ loading, error, reviews, neighborhoodName }) {
           <div className="review-head">
             <span className="review-sub">{r.subreddit}</span>
             <span className="review-author">{r.author}</span>
-            <span className="review-meta">↑ {r.score} · 💬 {r.numComments} · {timeAgo(r.createdUtc)}</span>
+            <span className="review-meta">{r.score} upvotes · {r.numComments} comments · {timeAgo(r.createdUtc)}</span>
           </div>
           <p className="review-title">{r.title}</p>
           {r.snippet !== r.title && <p className="review-snippet">{r.snippet}</p>}

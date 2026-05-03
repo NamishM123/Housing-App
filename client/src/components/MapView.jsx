@@ -1,9 +1,27 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { Stars } from '@react-three/drei';
 import { NEIGHBORHOODS, getAffordabilityColor, getAffordabilityLabel, getHeatmapColor, matchesVibe } from '../data/neighborhoods';
 import SatellitePreview from './SatellitePreview';
 import { GlowCard } from './GlowCard';
+
+function RouteStars() {
+  const ref = useRef();
+  useFrame((_, delta) => {
+    if (ref.current) {
+      ref.current.rotation.y += delta * 0.008;
+      ref.current.rotation.x += delta * 0.003;
+    }
+  });
+  return (
+    <group ref={ref}>
+      <Stars radius={100} depth={50} count={1200} factor={6}   saturation={0.25} fade speed={0.4} />
+      <Stars radius={140} depth={70} count={4500} factor={3.2} saturation={0.4}  fade speed={0.6} />
+    </group>
+  );
+}
 
 function buildMarkerEl(listing, isShortlisted) {
   const el = document.createElement('div');
@@ -703,6 +721,11 @@ export default function MapView({
             size={280}
             glowColor="blue"
           >
+            <div className="route-stars-bg" aria-hidden="true">
+              <Canvas camera={{ position: [0, 0, 1], fov: 60 }} gl={{ alpha: true }} style={{ background: 'transparent' }}>
+                <RouteStars />
+              </Canvas>
+            </div>
             <button
               className="route-minimize-btn"
               onClick={() => { setRouteOpen(false); handleClearRoute(); }}
@@ -723,7 +746,7 @@ export default function MapView({
                 </span>
               </div>
             ) : (
-              <div className="route-empty-title">Pick a home to plan trips</div>
+              <div className="route-empty-title">Proximity to nearby destinations</div>
             )}
 
             {/* Travel mode toggle */}
