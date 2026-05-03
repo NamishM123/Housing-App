@@ -39,6 +39,24 @@ export default function App() {
     setLeftPinned(false); // Auto-hide sidebar after searching
   }, []);
 
+  const handleIncomeChange = useCallback((newIncome) => {
+    if (submittedForm) {
+      setSubmittedForm(prev => ({
+        ...prev,
+        salary: newIncome
+      }));
+    }
+  }, [submittedForm]);
+
+  const handleMaxRentChange = useCallback((newMaxRent) => {
+    if (submittedForm) {
+      setSubmittedForm(prev => ({
+        ...prev,
+        maxRent: newMaxRent
+      }));
+    }
+  }, [submittedForm]);
+
   const handleNeighborhoodSelect = useCallback((neighborhood) => {
     setSelectedNeighborhood(neighborhood);
     setDrawerOpen(true);
