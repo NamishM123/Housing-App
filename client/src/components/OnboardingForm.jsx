@@ -146,7 +146,7 @@ export default function OnboardingForm({ onSubmit, loading }) {
       {/* Q2 — Rent allocation % */}
       <GlowCard className="q-section" radius={22}>
         <label className="q-label">How much of your income feels comfortable for rent?</label>
-        <span className="hint">Most people land between 25–35%. Pick whatever feels right.</span>
+        <span className="hint">Most people land between 25–35%.</span>
         <div className="rent-pct-input">
           <input
             type="number"

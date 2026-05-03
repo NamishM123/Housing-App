@@ -2241,11 +2241,8 @@ input.error {
 }
 
 .listing-card {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 14px;
-  transition: border-color 0.15s;
+  /* GlowCard provides the background + border + spotlight glow */
+  padding: 20px 20px 18px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -2255,14 +2252,14 @@ input.error {
 /* Live Mapbox aerial thumbnail at the top of every card */
 .listing-thumb-btn {
   position: relative;
-  width: calc(100% + 28px); /* extend to card edges */
-  margin: -14px -14px 0;
+  width: calc(100% + 40px); /* extend to card edges (matches 20px side padding) */
+  margin: -20px -20px 0;
   padding: 0;
   border: 0;
   background: #0b1220;
   cursor: pointer;
   overflow: hidden;
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  border-radius: 22px 22px 0 0;
   display: block;
 }
 .listing-card-image {
@@ -2286,17 +2283,13 @@ input.error {
   backdrop-filter: blur(6px);
 }
 
-.listing-card:hover {
-  border-color: #475569;
-}
-
 .listing-card.over-budget {
   border-color: rgba(239, 68, 68, 0.4);
 }
 
 .listing-card.shortlisted {
   border-color: rgba(245, 158, 11, 0.5);
-  background: rgba(245, 158, 11, 0.04);
+  background-color: rgba(245, 158, 11, 0.06);
 }
 
 .listing-header {
@@ -2308,15 +2301,17 @@ input.error {
 }
 
 .listing-address {
-  font-size: 13px;
+  font-size: 17px;
   font-weight: 700;
   line-height: 1.3;
+  letter-spacing: 0.005em;
+  color: #fff;
 }
 
 .listing-meta {
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-top: 2px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.78);
+  margin-top: 4px;
 }
 
 .shortlist-btn {
@@ -2347,13 +2342,13 @@ input.error {
 }
 
 .listing-price {
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 800;
 }
 
 .over-budget-badge {
-  font-size: 10px;
-  padding: 2px 7px;
+  font-size: 11px;
+  padding: 4px 10px;
   border-radius: 999px;
   background: rgba(239, 68, 68, 0.15);
   color: var(--red);
@@ -2364,9 +2359,9 @@ input.error {
 .listing-stats {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: var(--text-muted);
+  gap: 6px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.78);
   margin-bottom: 8px;
 }
 
@@ -2381,13 +2376,14 @@ input.error {
 .listing-features {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 6px;
   margin-bottom: 10px;
 }
 
 .feature-tag {
-  font-size: 10px;
-  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 12px;
   border-radius: 999px;
   background: var(--accent-dim);
   color: var(--accent-hover);
@@ -2396,26 +2392,26 @@ input.error {
 
 .listing-actions {
   display: flex;
-  gap: 6px;
+  gap: 8px;
 }
 
 .listing-action-btn {
   flex: 1;
-  padding: 8px;
+  padding: 11px 14px;
   border-radius: var(--radius);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   text-align: center;
   text-decoration: none;
   border: 1px solid var(--border);
-  background: var(--bg-hover);
+  background: var(--bg-input);
   color: var(--text);
   transition: all 0.15s;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 6px;
 }
 
 .listing-action-btn:hover {
