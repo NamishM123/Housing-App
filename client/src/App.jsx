@@ -35,7 +35,7 @@ export default function App() {
     // we want the existing listings to immediately re-filter against the new
     // maxRent (handled by `displayedListings` below) instead of disappearing
     // and forcing a fresh neighborhood click.
-    setLeftPinned(false); // Auto-hide sidebar after searching
+    // Sidebar stays pinned — it only closes when the user explicitly hits the close tab.
   }, []);
 
   const handleNeighborhoodSelect = useCallback((neighborhood) => {
@@ -126,6 +126,14 @@ export default function App() {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
           </div>
           <aside className="sidebar">
+            <button
+              className="sidebar-close-btn"
+              onClick={() => setLeftPinned(false)}
+              title="Hide sidebar"
+              aria-label="Hide sidebar"
+            >
+              ✕
+            </button>
             <div className="sidebar-brand">
               <img
                 src="/settlr-mark.svg"

@@ -1174,17 +1174,18 @@ input.error {
   right: 0;
   top: 0;
   bottom: 0;
-  width: 440px;
+  width: 540px;
   z-index: 95;
   transform: translateX(100%);
   transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1), width 0.3s ease;
 }
 /* Listings tab needs more horizontal room for image thumbnails + specs.
-   Cap at 760px so it doesn't dominate ultra-wide displays. */
+   Cap at 920px so it doesn't dominate ultra-wide displays. */
 .n-panel-wrapper.wide {
-  width: clamp(480px, 50vw, 760px);
+  width: clamp(620px, 58vw, 920px);
 }
 @media (max-width: 720px) {
+  .n-panel-wrapper { width: 100vw; }
   .n-panel-wrapper.wide { width: 100vw; }
 }
 .n-panel-wrapper.pinned {
@@ -1235,7 +1236,7 @@ input.error {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 20px 16px;
+  padding: 22px 28px 18px;
   border-bottom: 1px solid #1e293b;
   flex-shrink: 0;
   background: #0d1424;
@@ -1288,7 +1289,7 @@ input.error {
 .n-panel-body {
   flex: 1;
   overflow-y: auto;
-  padding: 20px;
+  padding: 24px 28px;
   display: flex;
   flex-direction: column;
   gap: 0;

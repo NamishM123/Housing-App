@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 
+const PLACEHOLDER_IMG = '/listing-placeholder.svg';
+
 // Build a multi-image gallery for any listing using:
 //   1. The real RentCast photo (when present)
 //   2. Mapbox Static Images of the *actual* address from 4 angles — these
 //      are real satellite imagery centered on the listing's lat/lng, so
 //      every listing shows its true location instead of generic stock photos
 //   3. A 3D-style oblique aerial as the establishing shot
+//   4. A placeholder if absolutely nothing is available
 function buildGallery(listing) {
   const token = mapboxgl.accessToken;
   const out = [];
@@ -48,6 +51,10 @@ function buildGallery(listing) {
       label: 'Neighborhood context',
       kind: 'aerial',
     });
+  }
+
+  if (out.length === 0) {
+    out.push({ src: PLACEHOLDER_IMG, label: 'Image unavailable', kind: 'placeholder' });
   }
 
   return out;
@@ -95,7 +102,12 @@ export default function ListingDetailModal({
                 src={gallery[activeImg].src}
                 alt={`${listing.address} — ${gallery[activeImg].label}`}
                 className="listing-gallery-image"
-                onError={(e) => { e.currentTarget.style.opacity = '0.3'; }}
+                decoding="async"
+                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  if (e.currentTarget.src.endsWith(PLACEHOLDER_IMG)) return;
+                  e.currentTarget.src = PLACEHOLDER_IMG;
+                }}
               />
               <div className="listing-gallery-label">{gallery[activeImg].label}</div>
               {gallery.length > 1 && (
@@ -129,7 +141,17 @@ export default function ListingDetailModal({
                 className={`listing-thumb ${i === activeImg ? 'active' : ''}`}
                 onClick={() => setActiveImg(i)}
               >
-                <img src={g.src} alt={g.label} />
+                <img
+                  src={g.src}
+                  alt={g.label}
+                  loading="lazy"
+                  decoding="async"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    if (e.currentTarget.src.endsWith(PLACEHOLDER_IMG)) return;
+                    e.currentTarget.src = PLACEHOLDER_IMG;
+                  }}
+                />
               </button>
             ))}
           </div>

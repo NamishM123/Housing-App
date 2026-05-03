@@ -4,15 +4,22 @@ import ListingDetailModal from './ListingDetailModal';
 
 const BED_FILTERS = ['All', '1', '2', '3+'];
 
+const PLACEHOLDER_IMG = '/listing-placeholder.svg';
+
 // Build a thumbnail URL: prefer real RentCast photo, fall back to a Mapbox
 // satellite oblique aerial of the listing's exact lat/lng. Every card shows
-// imagery true to its actual address.
+// imagery true to its actual address. Returns null only when no usable
+// source AND no Mapbox token exist — caller renders the placeholder.
 function thumbUrl(listing) {
   if (listing.image) return listing.image;
   if (!listing.lat || !listing.lng || !mapboxgl.accessToken) return null;
   const lng = listing.lng.toFixed(5);
   const lat = listing.lat.toFixed(5);
   return `https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/${lng},${lat},17.6,-15,55/720x220@2x?access_token=${mapboxgl.accessToken}&attribution=false&logo=false`;
+}
+
+function isAerialThumb(url) {
+  return typeof url === 'string' && url.includes('api.mapbox.com');
 }
 
 function buildTourEmail({ listing, form }) {
@@ -149,26 +156,31 @@ export default function ListingsPanel({ listings, loading, searchUrls, form, sho
           const isShortlisted = shortlist.some(s => s.id === listing.id);
           const overBudget = maxRent && listing.price > maxRent;
 
-          const thumb = thumbUrl(listing);
+          const thumb = thumbUrl(listing) || PLACEHOLDER_IMG;
+          const aerial = isAerialThumb(thumb);
 
           return (
             <div key={listing.id} className={`listing-card ${overBudget ? 'over-budget' : ''} ${isShortlisted ? 'shortlisted' : ''}`}>
-              {thumb && (
-                <button
-                  className="listing-thumb-btn"
-                  onClick={() => setDetailTarget(listing)}
-                  title="View full details"
-                >
-                  <img
-                    src={thumb}
-                    alt={`${listing.address} aerial`}
-                    className="listing-card-image"
-                    loading="lazy"
-                    onError={(e) => { e.currentTarget.parentElement.style.display = 'none'; }}
-                  />
-                  <span className="listing-card-image-badge">🛰 Live aerial</span>
-                </button>
-              )}
+              <button
+                className="listing-thumb-btn"
+                onClick={() => setDetailTarget(listing)}
+                title="View full details"
+              >
+                <img
+                  src={thumb}
+                  alt={`${listing.address}${aerial ? ' aerial' : ''}`}
+                  className="listing-card-image"
+                  loading="lazy"
+                  decoding="async"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    if (e.currentTarget.src.endsWith(PLACEHOLDER_IMG)) return;
+                    e.currentTarget.src = PLACEHOLDER_IMG;
+                    e.currentTarget.dataset.fallback = 'true';
+                  }}
+                />
+                {aerial && <span className="listing-card-image-badge">🛰 Live aerial</span>}
+              </button>
 
               <div className="listing-header">
                 <div>
