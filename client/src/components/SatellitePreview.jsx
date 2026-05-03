@@ -11,7 +11,6 @@ export default function SatellitePreview({ listing, onClose }) {
     : null;
 
   if (!listing) return null;
-  const hasToken = !!mapboxgl.accessToken;
   const hasCoords = !!(listing.lat && listing.lng);
 
   return (
