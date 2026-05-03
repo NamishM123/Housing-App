@@ -121,10 +121,10 @@ export default function MapView({
 
         // Globe atmosphere — very subtle transparent light blue rim
         map.current.setFog({
-          color:            'rgba(140, 185, 245, 0.18)', // light blue, very transparent
-          'high-color':     'rgba(50, 100, 200, 0.10)',  // barely-there upper atmosphere
-          'horizon-blend':  0.03,                       // tight rim
-          'space-color':    'rgb(2, 6, 18)',
+          color: 'rgba(140, 185, 245, 0.18)', // light blue, very transparent
+          'high-color': 'rgba(50, 100, 200, 0.10)',  // barely-there upper atmosphere
+          'horizon-blend': 0.03,                       // tight rim
+          'space-color': 'rgb(2, 6, 18)',
           'star-intensity': 0,
         });
 
@@ -374,9 +374,15 @@ export default function MapView({
       const el = buildMarkerEl(listing, isShortlisted);
       if (isSelected) el.classList.add('origin-pin');
 
+      // Store listing reference for popup button click
+      window[`__openStreetView_${listing.id}`] = () => {
+        setPreviewListing(listing);
+      };
+
       const popup = new mapboxgl.Popup({ offset: [0, -28], closeButton: false, maxWidth: 'none' })
         .setHTML(`
           <button
+            onclick="window.__openStreetView_${listing.id}()"
             style="font-family:system-ui;padding:10px 16px;background:#3b82f6;border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:0.03em;box-shadow:0 4px 12px rgba(59,130,246,0.4);transition:all 0.2s;white-space:nowrap"
             onmouseover="this.style.background='#2563eb';this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 16px rgba(59,130,246,0.5)'"
             onmouseout="this.style.background='#3b82f6';this.style.transform='translateY(0)';this.style.boxShadow='0 4px 12px rgba(59,130,246,0.4)'"
@@ -391,7 +397,6 @@ export default function MapView({
       el.addEventListener('click', (e) => {
         e.stopPropagation();
         if (onListingSelect) onListingSelect(listing);
-        setPreviewListing(listing);
       });
 
       markersRef.current.push(marker);
