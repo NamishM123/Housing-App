@@ -3243,7 +3243,7 @@ input.error {
 .route-mode-toggle {
   display: flex;
   gap: 4px;
-  margin-bottom: 10px;
+  margin-bottom: 18px;
 }
 
 .mode-btn {

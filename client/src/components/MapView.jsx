@@ -24,14 +24,14 @@ const LEGEND = [
 ];
 
 const ROUTE_AMENITIES = [
-  { id: 'grocery', label: 'Grocery', icon: '🛒', name: "Trader Joe's SLO", lng: -120.6681, lat: 35.2792 },
-  { id: 'hospital', label: 'Hospital', icon: '🏥', name: 'Sierra Vista Regional', lng: -120.6700, lat: 35.2683 },
-  { id: 'gym', label: 'Gym', icon: '💪', name: 'Planet Fitness SLO', lng: -120.6640, lat: 35.2831 },
-  { id: 'beach', label: 'Beach', icon: '🏖️', name: 'Avila Beach', lng: -120.7295, lat: 35.1793 },
-  { id: 'trails', label: 'Trails', icon: '🥾', name: 'Bishop Peak Trailhead', lng: -120.6982, lat: 35.3009 },
-  { id: 'downtown', label: 'Downtown', icon: '🏙️', name: 'Downtown SLO', lng: -120.6606, lat: 35.2800 },
-  { id: 'calpoly', label: 'Cal Poly', icon: '🎓', name: 'Cal Poly SLO', lng: -120.6596, lat: 35.3050 },
-  { id: 'airport', label: 'Airport', icon: '✈️', name: 'SLO Airport', lng: -120.6417, lat: 35.2368 },
+  { id: 'grocery', label: 'Grocery', name: "Trader Joe's SLO", lng: -120.6681, lat: 35.2792 },
+  { id: 'hospital', label: 'Hospital', name: 'Sierra Vista Regional', lng: -120.6700, lat: 35.2683 },
+  { id: 'gym', label: 'Gym', name: 'Planet Fitness SLO', lng: -120.6640, lat: 35.2831 },
+  { id: 'beach', label: 'Beach', name: 'Avila Beach', lng: -120.7295, lat: 35.1793 },
+  { id: 'trails', label: 'Trails', name: 'Bishop Peak Trailhead', lng: -120.6982, lat: 35.3009 },
+  { id: 'downtown', label: 'Downtown', name: 'Downtown SLO', lng: -120.6606, lat: 35.2800 },
+  { id: 'calpoly', label: 'Cal Poly', name: 'Cal Poly SLO', lng: -120.6596, lat: 35.3050 },
+  { id: 'airport', label: 'Airport', name: 'SLO Airport', lng: -120.6417, lat: 35.2368 },
 ];
 
 // Route color/style per travel mode
@@ -57,6 +57,7 @@ export default function MapView({
   selectedListing,
   landingActive = false,
   sidebarOpen = false,
+  onRoutePanelBoundsChange,
 }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
@@ -76,6 +77,9 @@ export default function MapView({
 
   // Routing state
   const [routeOpen, setRouteOpen] = useState(false);
+  const routePanelRef = useRef(null);
+  const onRoutePanelBoundsChangeRef = useRef(onRoutePanelBoundsChange);
+  useEffect(() => { onRoutePanelBoundsChangeRef.current = onRoutePanelBoundsChange; }, [onRoutePanelBoundsChange]);
   const [activeAmenity, setActiveAmenity] = useState(null);
   const [routeLoading, setRouteLoading] = useState(false);
   const [routeInfo, setRouteInfo] = useState(null);
@@ -561,6 +565,32 @@ export default function MapView({
   // Keep ref in sync so deselect zoom can read current income without dep
   useEffect(() => { monthlyIncomeRef.current = monthlyIncome; }, [monthlyIncome]);
 
+  // Report the directions panel's bottom Y to the parent so the sidebar
+  // hover-zone can be positioned to start *below* the panel — preventing the
+  // sidebar from popping open while the user is reaching for Drive/Walk/Transit
+  // or the amenity buttons. We re-measure on resize and whenever the panel
+  // toggles open/closed (its height changes substantially).
+  useEffect(() => {
+    const el = routePanelRef.current;
+    const cb = onRoutePanelBoundsChangeRef.current;
+    if (!cb) return;
+    if (!el) { cb(0); return; }
+
+    const report = () => {
+      const rect = el.getBoundingClientRect();
+      cb(rect.bottom);
+    };
+    report();
+
+    const ro = new ResizeObserver(report);
+    ro.observe(el);
+    window.addEventListener('resize', report);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', report);
+    };
+  }, [routeOpen, sidebarOpen, routeInfo, stepsOpen]);
+
   // After form submit: dramatic globe → SLO zoom-in
   useEffect(() => {
     if (!mapLoaded || !map.current || !monthlyIncome) return;
@@ -652,7 +682,7 @@ export default function MapView({
           Hidden whenever the sidebar is open so the user editing their
           income sees only the form on a clean map. */}
       {!sidebarOpen && (
-      <div className={`route-panel ${routeOpen ? 'open' : ''}`}>
+      <div ref={routePanelRef} className={`route-panel ${routeOpen ? 'open' : ''}`}>
         {!routeOpen ? (
           <GlowCard
             as="button"
@@ -699,9 +729,9 @@ export default function MapView({
             {/* Travel mode toggle */}
             <div className="route-mode-toggle">
               {[
-                { id: 'driving', label: '🚗 Drive' },
-                { id: 'walking', label: '🚶 Walk' },
-                { id: 'transit', label: '🚌 Transit' },
+                { id: 'driving', label: 'Drive' },
+                { id: 'walking', label: 'Walk' },
+                { id: 'transit', label: 'Transit' },
               ].map(m => (
                 <button
                   key={m.id}
@@ -724,7 +754,6 @@ export default function MapView({
                   onClick={() => handleAmenityClick(a)}
                   disabled={routeLoading}
                 >
-                  <span className="route-amenity-icon">{a.icon}</span>
                   <span>{a.label}</span>
                 </button>
               ))}

@@ -56,6 +56,11 @@ export default function App() {
   const [leftPinned, setLeftPinned]             = useState(true);
   const [rightPinned, setRightPinned]           = useState(false);
   const [bottomPinned, setBottomPinned]         = useState(false);
+  // Bottom Y of the directions panel reported by MapView. Used to push the
+  // sidebar hover-zone down so hovering on the directions panel doesn't
+  // accidentally re-open the sidebar; users open it by hovering BELOW the
+  // panel instead.
+  const [routePanelBottom, setRoutePanelBottom] = useState(0);
 
   const handleFormSubmit = useCallback((formData) => {
     setSubmittedForm(formData);
@@ -209,14 +214,19 @@ export default function App() {
             selectedListing={selectedListing}
             landingActive={showLanding}
             sidebarOpen={leftPinned}
+            onRoutePanelBoundsChange={setRoutePanelBottom}
           />
         </main>
 
         {/* Invisible hover zone on the left edge — entering it reopens the sidebar.
-            Replaces the visible reopen tab so the map stays uncluttered. */}
+            Replaces the visible reopen tab so the map stays uncluttered.
+            Top is pushed below the directions panel so hovering on Drive/Walk/
+            Transit or the amenity buttons doesn't re-open the sidebar; users
+            trigger it by sweeping the cursor under the directions panel. */}
         {!leftPinned && (
           <div
             className="sidebar-hover-zone"
+            style={{ top: routePanelBottom > 0 ? routePanelBottom + 12 : 0 }}
             onMouseEnter={() => setLeftPinned(true)}
             aria-hidden="true"
           />
