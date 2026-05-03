@@ -1343,8 +1343,10 @@ input.error {
 }
 
 .n-panel-neighborhood {
-  font-size: 18px;
+  font-size: 28px;
   font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: 0.005em;
   color: #f1f5f9;
 }
 
