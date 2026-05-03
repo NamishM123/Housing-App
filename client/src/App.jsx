@@ -128,7 +128,7 @@ export default function App() {
           <aside className="sidebar">
             <div className="sidebar-brand">
               <img
-                src="/settlr-landing-wordmark.svg"
+                src="/settlr-mark.svg"
                 alt="Settlr"
                 className="sidebar-logo-full"
               />
