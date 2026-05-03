@@ -135,7 +135,7 @@ export default function OnboardingForm({ onSubmit, loading }) {
   return (
     <form className="onboarding-form" onSubmit={handleSubmit}>
       {/* Q1 — Income */}
-      <GlowCard className="q-section">
+      <GlowCard className="q-section" radius={22}>
         <IncomeInput
           value={annualIncome}
           onChange={setAnnualIncome}
@@ -144,7 +144,7 @@ export default function OnboardingForm({ onSubmit, loading }) {
       </GlowCard>
 
       {/* Q2 — Rent allocation % */}
-      <GlowCard className="q-section">
+      <GlowCard className="q-section" radius={22}>
         <label className="q-label">How much of your income feels comfortable for rent?</label>
         <span className="hint">Most people land between 25–35%. Pick whatever feels right.</span>
         <div className="rent-pct-input">
@@ -193,7 +193,7 @@ export default function OnboardingForm({ onSubmit, loading }) {
       </GlowCard>
 
       {/* Q3 — Living situation */}
-      <GlowCard className="q-section">
+      <GlowCard className="q-section" radius={22}>
         <label className="q-label">Who's moving with you?</label>
         <span className="hint">This changes the math — combined income, rent splits, the whole map.</span>
         <div className="situation-grid">
@@ -295,7 +295,7 @@ export default function OnboardingForm({ onSubmit, loading }) {
 
       {/* Q4 — Work locations */}
       {!isRemoteOnly && (
-        <GlowCard className="q-section">
+        <GlowCard className="q-section" radius={22}>
           <label className="q-label">{workLabel(situation)}</label>
           <span className="hint">Type an address, or pick a common one. Working from home? Skip this.</span>
           <WorkLocationField
@@ -326,7 +326,7 @@ export default function OnboardingForm({ onSubmit, loading }) {
       )}
 
       {/* Q5 — Commute tolerance */}
-      <GlowCard className="q-section">
+      <GlowCard className="q-section" radius={22}>
         <label className="q-label">What's your commute limit?</label>
         <div className="seg-stack">
           {TOLERANCE.map(t => (

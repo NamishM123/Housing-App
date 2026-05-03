@@ -41,11 +41,11 @@
   --amber: #FBBF24;
   --red: #F87171;
 
-  --radius: 14px;
-  --radius-lg: 20px;
+  --radius: 18px;
+  --radius-lg: 24px;
   /* Unified height for ALL single-line form controls so the $ prefix,
      input, chips, segment pills line up exactly. */
-  --input-h: 44px;
+  --input-h: 46px;
   font-size: 14px;
 }
 
@@ -3562,6 +3562,17 @@ input.error {
   flex-direction: column;
   gap: 10px;
   padding: 20px 20px 18px;
+}
+
+/* The q-section that contains the work address field needs to stack
+   above its later sibling cards, otherwise the autocomplete dropdown
+   gets painted under the "What's your commute limit?" card. */
+.q-section:has(.work-loc-field) {
+  z-index: 50;
+}
+.work-loc-field {
+  position: relative;
+  z-index: 1;
 }
 
 /* ─── Onboarding-card text + control overrides ─────────
