@@ -70,10 +70,10 @@ function MapboxGlobe({ active, globeScreenRef }) {
 
     map.on('style.load', () => {
       map.setFog({
-        color:            'rgb(20, 70, 160)',   // blue atmosphere at horizon
-        'high-color':     'rgb(40, 120, 220)',  // bright upper atmosphere
-        'horizon-blend':  0.2,                 // wide glow spread
-        'space-color':    'rgb(0, 0, 0)',       // pure black — neutral for screen blend
+        color:            'rgb(210, 225, 250)',  // white-blue atmosphere rim
+        'high-color':     'rgb(100, 155, 225)',  // lighter upper atmosphere
+        'horizon-blend':  0.10,                 // tight natural rim
+        'space-color':    'rgb(0, 0, 0)',
         'star-intensity': 0,
       });
     });
@@ -85,6 +85,11 @@ function MapboxGlobe({ active, globeScreenRef }) {
         const northPole = mapRef.current.project([mapRef.current.getCenter().lng, 85]);
         const radius    = Math.abs(center.y - northPole.y) * 1.08;
         globeScreenRef.current = { active: true, x: center.x, y: center.y, radius };
+        // Clip Mapbox container to globe circle — Three.js stars fill the space around it
+        if (containerRef.current) {
+          containerRef.current.style.clipPath =
+            `circle(${radius}px at ${center.x}px ${center.y}px)`;
+        }
       } catch (_) {}
     }
 
