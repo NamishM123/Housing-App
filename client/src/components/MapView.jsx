@@ -656,7 +656,7 @@ export default function MapView({
         {vibe && vibe !== 'any' && <div className="legend-filter">Vibe: <strong>{vibe}</strong></div>}
       </GlowCard>
 
-      {/* Directions floating panel — bottom LEFT */}
+      {/* Directions floating panel — top LEFT (expands downward) */}
       <div className={`route-panel ${routeOpen ? 'open' : ''}`}>
         {!routeOpen ? (
           <GlowCard
