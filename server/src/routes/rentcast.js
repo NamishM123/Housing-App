@@ -68,13 +68,30 @@ router.get('/listings', async (req, res) => {
         params: { zipCode: zip, status: 'Active', limit: 8 },
         headers: { 'X-Api-Key': apiKey },
       });
-      const listings = (response.data || []).map(l => ({
-        id: l.id, address: l.formattedAddress, city: l.city, zip: l.zipCode,
-        price: l.price, beds: l.bedrooms, baths: l.bathrooms, sqft: l.squareFootage,
-        lat: l.latitude, lng: l.longitude, type: l.propertyType,
-        available: l.listedDate ? new Date(l.listedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Now',
-        features: [], petFriendly: false, image: l.photos?.[0] || null, listingUrl: l.listingUrl || null,
-      }));
+      const extractPhotos = (l) => {
+        const sources = [l.photos, l.images, l.media, l.mlsListing?.photos];
+        const all = [];
+        for (const arr of sources) {
+          if (!Array.isArray(arr)) continue;
+          for (const p of arr) {
+            if (typeof p === 'string') all.push(p);
+            else if (p?.url) all.push(p.url);
+            else if (p?.href) all.push(p.href);
+          }
+        }
+        return all;
+      };
+      const listings = (response.data || []).map(l => {
+        const photos = extractPhotos(l);
+        return {
+          id: l.id, address: l.formattedAddress, city: l.city, zip: l.zipCode,
+          price: l.price, beds: l.bedrooms, baths: l.bathrooms, sqft: l.squareFootage,
+          lat: l.latitude, lng: l.longitude, type: l.propertyType,
+          available: l.listedDate ? new Date(l.listedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Now',
+          features: [], petFriendly: false, image: photos[0] || null, photos,
+          listingUrl: l.listingUrl || null,
+        };
+      });
       return res.json({ listings, urls, source: 'rentcast' });
     } catch (err) {
       console.error('RentCast listings error:', err.message);
