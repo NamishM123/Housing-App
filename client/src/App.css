@@ -81,8 +81,8 @@ body {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 10px 0 18px;
-  margin-bottom: 4px;
+  padding: 8px 0 0;
+  margin-bottom: 0;
   flex-shrink: 0;
   justify-content: flex-start;
 }
@@ -3765,7 +3765,7 @@ input.error {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 4px 0 8px;
+  padding: 0 0 8px;
 }
 
 .q-section {
