@@ -25,9 +25,9 @@ const ROOMMATE_OPTS = [1, 2, 3];
 const fmt = (n) => `$${Math.round(n).toLocaleString()}`;
 
 const workLabel = (situation) => {
-  if (situation === 'partner') return 'Where do you both work?';
-  if (situation === 'roommates') return 'Where does everyone work?';
-  return 'Where do you work?';
+  if (situation === 'partner')   return 'Where do you both need to be most days?';
+  if (situation === 'roommates') return 'Where does everyone need to be most days?';
+  return 'Where do you need to be most days?';
 };
 
 export default function OnboardingForm({ onSubmit, loading }) {
@@ -140,7 +140,7 @@ export default function OnboardingForm({ onSubmit, loading }) {
 
       {/* Q2 — Rent allocation % */}
       <section className="q-section">
-        <label className="q-label">What % of income do you want to spend on rent?</label>
+        <label className="q-label">How much of your income feels comfortable for rent?</label>
         <span className="hint">Most people spend 25–35%. Type any number that works for you.</span>
         <div className="rent-pct-input">
           <input

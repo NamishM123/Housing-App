@@ -18,6 +18,29 @@
   inset: 0 !important;
   width: 100% !important;
   height: 100% !important;
+  z-index: 0;
+}
+
+/* ── Mapbox satellite globe ──────────────────────────────────── */
+.landing-mapbox {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+  pointer-events: none;
+}
+
+.landing-mapbox.active {
+  opacity: 1;
+}
+
+/* Hide Mapbox UI chrome on landing */
+.landing-mapbox .mapboxgl-ctrl-bottom-right,
+.landing-mapbox .mapboxgl-ctrl-bottom-left,
+.landing-mapbox .mapboxgl-ctrl-top-right,
+.landing-mapbox .mapboxgl-ctrl-top-left {
+  display: none;
 }
 
 /* ── Shooting-star overlay ───────────────────────────────────── */
@@ -28,7 +51,7 @@
   height: 100%;
   display: block;
   pointer-events: none;
-  z-index: 1;
+  z-index: 2;
 }
 
 /* ── "Welcome to Settlr" text ────────────────────────────────── */
@@ -109,8 +132,8 @@
 }
 
 .landing-nav-mark {
-  width: 52px;
-  height: 52px;
+  width: 88px;
+  height: 88px;
   filter: brightness(0) invert(1);
   opacity: 0.92;
 }

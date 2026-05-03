@@ -1,41 +1,34 @@
-import { useEffect, useRef, useState, Suspense } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Stars, useTexture } from '@react-three/drei';
-import { BackSide } from 'three';
+import { Stars } from '@react-three/drei';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import './LandingPage.css';
 
 /**
- * Landing:
- *  1. Stars + shooting stars
+ * Landing sequence:
+ *  1. 3-D starfield + shooting stars
  *  2. "Welcome to Settlr" fades + expands from center
- *  3. Text fades out completely — THEN Earth spawns
- *  4. Earth zooms in from nothing, sweeping Indonesia (120°E) → US (100°W)
+ *  3. Text fades out completely — THEN Mapbox globe fades in
+ *  4. Globe sweeps eastward: Indonesia (120°E) → continental US (-95°W)
  *  5. Nav fades in
  */
 
-// High-quality textures from Three.js examples repo (CORS-safe raw GitHub)
-const DAY_URL  = 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg';
-const SPEC_URL = 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_specular_2048.jpg';
-useTexture.preload([DAY_URL, SPEC_URL]);
-
-const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
 const easeOutQuart = t => 1 - Math.pow(1 - t, 4);
-
-// Rotation: increasing rotation.y brings East into view from the right
-// Indonesia ≈ 120°E  → rotation.y = 120 * π/180 = 2.09
-// US center ≈ 100°W = 260°E → rotation.y = 260 * π/180 = 4.54
-// Sweep: +2.45 rad eastward (~140°), Pacific opens up, US arrives from right
-const ROT_START = 2.09;  // Indonesia facing camera
-const ROT_END   = 4.54;  // Continental US facing camera
-const TILT      = -0.22; // North pole slightly toward camera (shows North America)
-const EARTH_DUR = 3.0;   // seconds to animate
 
 // Phase timing (ms)
 const T_STARS     = 1800;
 const T_TEXT_IN   = 1800;
 const T_TEXT_HOLD = 1000;
 const T_TEXT_OUT  = 650;
-const T_EARTH_NAV = 3600; // after earth appears, wait this long before nav
+const T_EARTH_NAV = 3600;
+
+// Mapbox globe animation
+const GLOBE_ZOOM     = 1.5;
+const GLOBE_START    = [120, 5];  // Indonesia
+const GLOBE_END_LNG  = 265;       // 265°E = -95°W (going east through Pacific)
+const GLOBE_END_LAT  = 40;
+const GLOBE_DURATION = 3200;      // ms
 
 function StarField() {
   const ref = useRef();
@@ -53,67 +46,98 @@ function StarField() {
   );
 }
 
-function EarthSphere({ active, scaleRef }) {
-  const groupRef  = useRef();
-  const startRef  = useRef(null);
-  const [dayMap, specMap] = useTexture([DAY_URL, SPEC_URL]);
+function MapboxGlobe({ active, globeScreenRef }) {
+  const containerRef = useRef(null);
+  const mapRef       = useRef(null);
+  const rafRef       = useRef(null);
 
-  useFrame(({ clock }, delta) => {
-    const g = groupRef.current;
-    if (!g || !active) return;
+  useEffect(() => {
+    if (!active || !containerRef.current || mapRef.current) return;
 
-    if (!startRef.current) {
-      startRef.current = clock.elapsedTime;
-      g.rotation.set(TILT, ROT_START, 0);
-      g.scale.setScalar(0.01);
+    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
+
+    const map = new mapboxgl.Map({
+      container:          containerRef.current,
+      style:              'mapbox://styles/mapbox/satellite-v9',
+      projection:         'globe',
+      center:             GLOBE_START,
+      zoom:               GLOBE_ZOOM,
+      interactive:        false,
+      attributionControl: false,
+    });
+
+    mapRef.current = map;
+
+    map.on('style.load', () => {
+      map.setFog({
+        color:            'rgb(0, 0, 5)',
+        'high-color':     'rgb(0, 3, 15)',
+        'horizon-blend':  0.08,
+        'space-color':    'rgb(0, 0, 0)',
+        'star-intensity': 0,
+      });
+    });
+
+    function updateGlobeScreen() {
+      if (!mapRef.current || !globeScreenRef) return;
+      try {
+        const center    = mapRef.current.project(mapRef.current.getCenter());
+        const northPole = mapRef.current.project([mapRef.current.getCenter().lng, 85]);
+        const radius    = Math.abs(center.y - northPole.y) * 1.08;
+        globeScreenRef.current = { active: true, x: center.x, y: center.y, radius };
+      } catch (_) {}
     }
 
-    const t     = Math.min(1, (clock.elapsedTime - startRef.current) / EARTH_DUR);
-    const scale = 0.01 + 0.99 * easeOutQuart(t);
-    g.scale.setScalar(scale);
-    g.rotation.y = ROT_START + (ROT_END - ROT_START) * easeOutCubic(t);
+    let startTime = null;
 
-    if (t >= 1) g.rotation.y += delta * 0.016; // slow ambient drift
+    function animate(now) {
+      if (!startTime) startTime = now;
+      const t    = Math.min(1, (now - startTime) / GLOBE_DURATION);
+      const ease = easeOutQuart(t);
 
-    if (scaleRef) scaleRef.current = { active: true, scale };
-  });
+      // Sweep eastward: 120°E → 265°E (which normalizes to -95°W when > 180)
+      const lng           = GLOBE_START[0] + (GLOBE_END_LNG - GLOBE_START[0]) * ease;
+      const lat           = GLOBE_START[1] + (GLOBE_END_LAT  - GLOBE_START[1]) * ease;
+      const normalizedLng = lng > 180 ? lng - 360 : lng;
 
-  if (!active) return null;
+      map.setCenter([normalizedLng, lat]);
+      updateGlobeScreen();
+
+      if (t < 1) {
+        rafRef.current = requestAnimationFrame(animate);
+      } else {
+        // Keep clip in sync while globe idles
+        function keepSync() {
+          updateGlobeScreen();
+          rafRef.current = requestAnimationFrame(keepSync);
+        }
+        keepSync();
+      }
+    }
+
+    map.once('load', () => {
+      rafRef.current = requestAnimationFrame(animate);
+    });
+
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      map.remove();
+      mapRef.current = null;
+    };
+  }, [active]);
 
   return (
-    <>
-      <ambientLight intensity={0.45} />
-      {/* Sun — from right-front to light the Americas */}
-      <directionalLight position={[5, 2, 5]} intensity={1.8} color="#fff8f0" />
-      {/* Soft blue bounce from opposite side — depth on dark hemisphere */}
-      <directionalLight position={[-4, -1, -4]} intensity={0.22} color="#3355aa" />
-
-      {/* Earth centered at origin */}
-      <group ref={groupRef} position={[0, 0, 0]}>
-        <mesh>
-          <sphereGeometry args={[2.5, 80, 80]} />
-          {/* Phong gives ocean specular reflections — way more realistic than Lambert */}
-          <meshPhongMaterial
-            map={dayMap}
-            specularMap={specMap}
-            specular="#666666"
-            shininess={12}
-          />
-        </mesh>
-        {/* Atmospheric halo */}
-        <mesh scale={[1.02, 1.02, 1.02]}>
-          <sphereGeometry args={[2.5, 32, 32]} />
-          <meshBasicMaterial color="#3366ff" transparent opacity={0.06} side={BackSide} />
-        </mesh>
-      </group>
-    </>
+    <div
+      ref={containerRef}
+      className={`landing-mapbox ${active ? 'active' : ''}`}
+    />
   );
 }
 
 export default function LandingPage({ onComplete }) {
-  const overlayRef    = useRef(null);
-  const shootAnim     = useRef(null);
-  const globeScaleRef = useRef({ active: false, scale: 0 });
+  const overlayRef     = useRef(null);
+  const shootAnim      = useRef(null);
+  const globeScreenRef = useRef({ active: false, x: 0, y: 0, radius: 0 });
 
   const [earthActive, setEarthActive] = useState(false);
   const [textPhase,   setTextPhase]   = useState('hidden');
@@ -130,15 +154,15 @@ export default function LandingPage({ onComplete }) {
     const t0 = T_STARS;
     const t1 = t0 + T_TEXT_IN;
     const t2 = t1 + T_TEXT_HOLD;
-    const t3 = t2 + T_TEXT_OUT;   // text fully gone → spawn Earth
-    const t4 = t3 + T_EARTH_NAV;  // Earth settled → nav in
+    const t3 = t2 + T_TEXT_OUT;
+    const t4 = t3 + T_EARTH_NAV;
 
     const ids = [
-      setTimeout(() => setTextPhase('in'),                t0),
-      setTimeout(() => setTextPhase('hold'),              t1),
-      setTimeout(() => setTextPhase('out'),               t2),
+      setTimeout(() => setTextPhase('in'),                               t0),
+      setTimeout(() => setTextPhase('hold'),                             t1),
+      setTimeout(() => setTextPhase('out'),                              t2),
       setTimeout(() => { setTextPhase('gone'); setEarthActive(true); }, t3),
-      setTimeout(() => setNavIn(true),                    t4),
+      setTimeout(() => setNavIn(true),                                   t4),
     ];
     return () => ids.forEach(clearTimeout);
   }, []);
@@ -166,7 +190,10 @@ export default function LandingPage({ onComplete }) {
       if      (p < 0.45) { tail = 25+Math.random()*35;  spd = 7+Math.random()*5;   life = 28+Math.random()*18;  lw=0.75; }
       else if (p < 0.85) { tail = 70+Math.random()*80;  spd = 4+Math.random()*3;   life = 80+Math.random()*60;  lw=1.0;  }
       else               { tail =180+Math.random()*140; spd = 2+Math.random()*1.6; life=220+Math.random()*140; lw=1.2;  }
-      const angle = Math.random() * Math.PI * 2 + Math.PI * 0.05;
+      // Left or right only — within ±15° of horizontal
+      const spread = (Math.PI / 12); // 15°
+      const base   = Math.random() < 0.5 ? 0 : Math.PI; // rightward or leftward
+      const angle  = base + (Math.random() * 2 - 1) * spread;
       stars.push({
         x:-50+Math.random()*(W+100), y:-50+Math.random()*(H*0.75+100),
         vx:Math.cos(angle)*spd, vy:Math.sin(angle)*spd,
@@ -178,9 +205,6 @@ export default function LandingPage({ onComplete }) {
     let lastSpawn = performance.now() - 1000;
     let nextIn    = 400 + Math.random() * 600;
 
-    // fov=68 vertical, camera z=5
-    const TAN_HALF = Math.tan((68 * Math.PI / 180) / 2);
-
     function frame(now) {
       ctx.clearRect(0, 0, W, H);
 
@@ -190,19 +214,14 @@ export default function LandingPage({ onComplete }) {
         lastSpawn = now; nextIn = 600+Math.random()*1800;
       }
 
-      // Clip so stars only draw OUTSIDE the globe circle
-      const gs = globeScaleRef.current;
-      const clipping = gs.active && gs.scale > 0.05;
+      // Clip shooting stars to appear only OUTSIDE the globe
+      const gs       = globeScreenRef.current;
+      const clipping = gs.active && gs.radius > 10;
       if (clipping) {
-        const ppu = H / (2 * 5 * TAN_HALF); // pixels per world unit
-        // Globe is centered at world [0,0] → screen center
-        const gx = W / 2;
-        const gy = H / 2;
-        const gr = 2.58 * ppu * gs.scale;   // sphere radius 2.5 + tiny atmo margin
         ctx.save();
         ctx.beginPath();
-        ctx.rect(0, 0, W, H);              // full canvas (CW)
-        ctx.arc(gx, gy, gr, 0, Math.PI*2, true); // globe hole (CCW = subtract)
+        ctx.rect(0, 0, W, H);
+        ctx.arc(gs.x, gs.y, gs.radius, 0, Math.PI*2, true); // CCW = punch hole
         ctx.clip('evenodd');
       }
 
@@ -239,6 +258,7 @@ export default function LandingPage({ onComplete }) {
 
   return (
     <div className={`landing-root ${dismissing ? 'dismissing' : ''}`}>
+      {/* Three.js starfield — background layer */}
       <Canvas
         camera={{ position: [0, 0, 5], fov: 68 }}
         gl={{ antialias: true, alpha: false }}
@@ -246,11 +266,12 @@ export default function LandingPage({ onComplete }) {
         style={{ background: 'radial-gradient(ellipse at center, #060814 0%, #02030a 60%, #000 100%)' }}
       >
         <StarField />
-        <Suspense fallback={null}>
-          <EarthSphere active={earthActive} scaleRef={globeScaleRef} />
-        </Suspense>
       </Canvas>
 
+      {/* Mapbox globe — fades in over stars when Earth phase begins */}
+      <MapboxGlobe active={earthActive} globeScreenRef={globeScreenRef} />
+
+      {/* Shooting-star overlay */}
       <canvas ref={overlayRef} className="landing-overlay" />
 
       {textPhase !== 'gone' && (
