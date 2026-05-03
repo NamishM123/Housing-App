@@ -2595,7 +2595,7 @@ input.error {
 }
 
 @media (max-width: 720px) {
-  <<<<<<< HEAD .preview-modal {
+  .preview-modal {
     padding: 14px;
   }
 
@@ -2606,12 +2606,6 @@ input.error {
   .preview-hint-row {
     display: none;
   }
-
-  =======.preview-map-wrap {
-    height: 320px;
-  }
-
-  >>>>>>>10a0cee (auto: update 2026-05-02 17:25:35)
 }
 
 /* ── Routing panel ────────────────────────────────── */
