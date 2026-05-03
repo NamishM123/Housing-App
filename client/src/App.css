@@ -82,9 +82,10 @@ body {
 ─────────────────────────────────────────────────── */
 .sidebar-brand {
   position: absolute;
-  top: 20px;
-  left: 16px;
-  right: 60px; /* leave room for back-chip on the right */
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 20px 60px 14px 16px; /* keep room for back-chip on the right */
   z-index: 5;
   display: flex;
   align-items: center;
@@ -92,6 +93,8 @@ body {
   flex-shrink: 0;
   justify-content: flex-start;
   pointer-events: none;
+  /* Solid backdrop so scrolling form content can't show through the logo. */
+  background: linear-gradient(180deg, #02050d 0%, #02050d 78%, rgba(2, 5, 13, 0) 100%);
 }
 .sidebar-brand > * {
   pointer-events: auto;

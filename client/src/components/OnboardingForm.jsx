@@ -69,12 +69,14 @@ export default function OnboardingForm({ onSubmit, loading }) {
   const strategyPct = Math.max(MIN_RENT_PCT, Math.min(MAX_RENT_PCT, rentPct || DEFAULT_RENT_PCT)) / 100;
   const maxRent = Math.round((combinedAnnual * strategyPct) / 12);
   const annualHousingEst = maxRent * 12;
-  const housingPctOfIncome = combinedAnnual > 0 ? ((annualHousingEst / combinedAnnual) * 100).toFixed(1) : 0;
 
   const validate = () => {
     const e = {};
     const incomeErr = validateIncome(annualIncome);
     if (incomeErr) e.annualIncome = incomeErr;
+    if (rentPct !== '' && Number(rentPct) < 25) {
+      e.rentPct = 'Set at least 25% — anything lower won\'t cover rent in most markets.';
+    }
     if (situation === 'partner' && partnerIncome != null && partnerIncome !== '' && Number(partnerIncome) < 0) {
       e.partnerIncome = "Can't be negative";
     }
@@ -168,6 +170,7 @@ export default function OnboardingForm({ onSubmit, loading }) {
           />
           <span className="pct-suffix">%</span>
         </div>
+        {errors.rentPct && <span className="error-msg">{errors.rentPct}</span>}
         {combinedAnnual > 0 && (
           <div className="rent-estimate-box">
             <div className="rent-estimate-row">
@@ -178,15 +181,8 @@ export default function OnboardingForm({ onSubmit, loading }) {
               <span>Est. annual housing cost</span>
               <strong>{fmt(annualHousingEst)}/yr</strong>
             </div>
-            <div className="rent-estimate-row">
-              <span>That's</span>
-              <strong>{housingPctOfIncome}% of your income</strong>
-            </div>
             {strategyPct > 0.40 && (
               <span className="rent-warn">⚠️ Over 40% is considered cost-burdened</span>
-            )}
-            {strategyPct <= 0.28 && (
-              <span className="rent-good">✓ Under 28% — comfortable range</span>
             )}
           </div>
         )}
