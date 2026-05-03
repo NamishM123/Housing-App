@@ -168,7 +168,13 @@ export default function MapView({
       if (map.current.getLayer(fillId)) {
         const vis = zoomHidden ? 'none' : 'visible';
         [fillId, glowId, labelId].forEach(id => {
-          if (map.current.getLayer(id)) map.current.setLayoutProperty(id, 'visibility', vis);
+          if (map.current.getLayer(id)) {
+            try {
+              map.current.setLayoutProperty(id, 'visibility', vis);
+            } catch (e) {
+              // Layer might not exist yet, ignore
+            }
+          }
         });
         if (zoomHidden) return;
       } else if (zoomHidden) {
