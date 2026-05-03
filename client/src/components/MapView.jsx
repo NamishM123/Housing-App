@@ -16,11 +16,12 @@ function buildMarkerEl(listing, isShortlisted) {
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
+// Mirrors getHeatmapColor() in data/neighborhoods.js — keep in sync.
 const LEGEND = [
-  { color: '#22c55e', label: 'Comfortable  <28%' },
-  { color: '#14b8a6', label: 'Manageable  28–35%' },
-  { color: '#f59e0b', label: 'Tight  35–45%' },
-  { color: '#ef4444', label: 'Out of range / Over budget' },
+  { color: '#172554', label: 'Comfortable  <28%' },
+  { color: '#3b0764', label: 'Manageable  28–35%' },
+  { color: '#7c2d12', label: 'Tight  35–45%' },
+  { color: '#4c0519', label: 'Out of range / Over budget' },
 ];
 
 const ROUTE_AMENITIES = [
