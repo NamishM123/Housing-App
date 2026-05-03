@@ -380,7 +380,7 @@ export default function MapView({
             style="font-family:system-ui;padding:10px 16px;background:#3b82f6;border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:0.03em;box-shadow:0 4px 12px rgba(59,130,246,0.4);transition:all 0.2s;white-space:nowrap"
             onmouseover="this.style.background='#2563eb';this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 16px rgba(59,130,246,0.5)'"
             onmouseout="this.style.background='#3b82f6';this.style.transform='translateY(0)';this.style.boxShadow='0 4px 12px rgba(59,130,246,0.4)'"
-          >🛰️ View Details</button>
+          >🚶 Street View</button>
         `);
 
       const marker = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
