@@ -3532,8 +3532,8 @@ input.error {
 .sidebar-logo-full {
   width: auto;
   height: auto;
-  max-height: 80px;
-  max-width: 240px;
+  max-height: 72px;
+  max-width: 200px;
   object-fit: contain;
   display: block;
   flex-shrink: 0;
