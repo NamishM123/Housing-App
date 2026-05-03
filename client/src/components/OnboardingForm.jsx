@@ -27,9 +27,9 @@ const ROOMMATE_OPTS = [1, 2, 3];
 const fmt = (n) => `$${Math.round(n).toLocaleString()}`;
 
 const workLabel = (situation) => {
-  if (situation === 'partner')   return 'Where do you both work?';
-  if (situation === 'roommates') return 'Where does everyone work?';
-  return 'Where do you work?';
+  if (situation === 'partner')   return 'Where do you both need to be most days?';
+  if (situation === 'roommates') return 'Where does everyone need to be most days?';
+  return 'Where do you need to be most days?';
 };
 
 export default function OnboardingForm({ onSubmit, loading }) {
@@ -140,7 +140,7 @@ export default function OnboardingForm({ onSubmit, loading }) {
 
       {/* Q2 — Housing strategy */}
       <section className="q-section">
-        <label className="q-label">How do you want to spend on rent?</label>
+        <label className="q-label">How much of your income feels comfortable for rent?</label>
         <span className="hint">Pick the one that sounds most like you.</span>
         <div className="seg-stack">
           {STRATEGIES.map(s => (

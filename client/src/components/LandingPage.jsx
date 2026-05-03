@@ -190,7 +190,10 @@ export default function LandingPage({ onComplete }) {
       if      (p < 0.45) { tail = 25+Math.random()*35;  spd = 7+Math.random()*5;   life = 28+Math.random()*18;  lw=0.75; }
       else if (p < 0.85) { tail = 70+Math.random()*80;  spd = 4+Math.random()*3;   life = 80+Math.random()*60;  lw=1.0;  }
       else               { tail =180+Math.random()*140; spd = 2+Math.random()*1.6; life=220+Math.random()*140; lw=1.2;  }
-      const angle = Math.random() * Math.PI * 2 + Math.PI * 0.05;
+      // Left or right only — within ±15° of horizontal
+      const spread = (Math.PI / 12); // 15°
+      const base   = Math.random() < 0.5 ? 0 : Math.PI; // rightward or leftward
+      const angle  = base + (Math.random() * 2 - 1) * spread;
       stars.push({
         x:-50+Math.random()*(W+100), y:-50+Math.random()*(H*0.75+100),
         vx:Math.cos(angle)*spd, vy:Math.sin(angle)*spd,
