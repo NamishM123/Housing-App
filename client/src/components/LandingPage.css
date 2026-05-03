@@ -4,7 +4,7 @@
   inset: 0;
   z-index: 9999;
   overflow: hidden;
-  background: #02050d;
+  background: radial-gradient(ellipse at center, #0c1830 0%, #060f1e 55%, #000 100%);
 }
 
 .landing-root.dismissing {

@@ -69,12 +69,12 @@ function MapboxGlobe({ active, globeScreenRef }) {
     mapRef.current = map;
 
     map.on('style.load', () => {
-      // Match the dashboard's globe atmosphere exactly
+      // Match the main-page globe — light, transparent blue atmosphere
       map.setFog({
-        color:            'rgba(140, 185, 245, 0.18)',
-        'high-color':     'rgba(50, 100, 200, 0.10)',
-        'horizon-blend':  0.03,
-        'space-color':    'rgb(2, 6, 18)',
+        color:            'rgba(200, 225, 255, 0.18)',
+        'high-color':     'rgba(140, 185, 235, 0.10)',
+        'horizon-blend':  0.04,
+        'space-color':    'rgb(0, 0, 0)',
         'star-intensity': 0,
       });
     });

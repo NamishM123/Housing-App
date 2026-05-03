@@ -144,11 +144,15 @@ body {
   transform: translateX(0);
 }
 
-/* Celestial sphere background layer */
+/* Sidebar background — static earth-glow blue (matches globe atmosphere) */
 .sidebar-sphere-bg {
   position: absolute;
   inset: 0;
   z-index: 0;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(200, 225, 255, 0.18) 0%, transparent 55%),
+    radial-gradient(ellipse at 70% 80%, rgba(140, 185, 235, 0.14) 0%, transparent 60%),
+    linear-gradient(160deg, #0a1730 0%, #07101f 60%, #050a16 100%);
 }
 
 .sidebar-edge-tab {

@@ -4,7 +4,6 @@ import MapView from './components/MapView';
 import VerdictPanel from './components/VerdictPanel';
 import NeighborhoodDrawer from './components/NeighborhoodDrawer';
 import NeighborhoodPanel from './components/NeighborhoodPanel';
-import CelestialSphere from './components/CelestialSphere';
 
 import LandingPage from './components/LandingPage';
 import { fetchListings } from './utils/api';
@@ -122,7 +121,7 @@ export default function App() {
 
         {/* Left Sidebar Wrapper */}
         <div className={`sidebar-wrapper ${leftPinned ? 'pinned' : ''}`}>
-          <CelestialSphere className="sidebar-sphere-bg" hue={220} speed={0.25} zoom={1.6} />
+          <div className="sidebar-sphere-bg" />
           <div className="sidebar-edge-tab" onClick={() => setLeftPinned(true)}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
           </div>
