@@ -17,11 +17,6 @@ export async function fetchCityComparison() {
   return data;
 }
 
-export async function fetchVerdict(payload) {
-  const { data } = await api.post('/claude/verdict', payload);
-  return data;
-}
-
 export async function fetchChecklist(payload) {
   const { data } = await api.post('/claude/checklist', payload);
   return data;

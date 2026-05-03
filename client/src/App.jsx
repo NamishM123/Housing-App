@@ -3,7 +3,6 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { Stars } from '@react-three/drei';
 import OnboardingForm from './components/OnboardingForm';
 import MapView from './components/MapView';
-import VerdictPanel from './components/VerdictPanel';
 import NeighborhoodDrawer from './components/NeighborhoodDrawer';
 import NeighborhoodPanel from './components/NeighborhoodPanel';
 
@@ -48,8 +47,6 @@ export default function App() {
   const [hoveredNeighborhood, setHoveredNeighborhood]   = useState(null);
   const [drawerOpen, setDrawerOpen]             = useState(false);
   const [activePanelTab, setActivePanelTab]     = useState(null); // null = panel closed
-  const [verdict, setVerdict]                   = useState(null);
-  const [verdictLoading, setVerdictLoading]     = useState(false);
   const [listings, setListings]                 = useState([]);
   const [listingsLoading, setListingsLoading]   = useState(false);
   const [searchUrls, setSearchUrls]             = useState(null);
@@ -62,7 +59,6 @@ export default function App() {
 
   const handleFormSubmit = useCallback((formData) => {
     setSubmittedForm(formData);
-    setVerdict(null); // verdict depends on income — recompute next time
     // Intentionally NOT clearing selectedNeighborhood / listings / selectedListing
     // here. When the user re-submits the form with a new salary or housing %,
     // we want the existing listings to immediately re-filter against the new
@@ -261,19 +257,6 @@ export default function App() {
             </div>
 
             <OnboardingForm onSubmit={handleFormSubmit} />
-
-            {submittedForm && (
-              <VerdictPanel
-                form={submittedForm}
-                neighborhood={selectedNeighborhood}
-                verdict={verdict}
-                setVerdict={setVerdict}
-                loading={verdictLoading}
-                setLoading={setVerdictLoading}
-              />
-            )}
-
-
           </aside>
         </div>
 
