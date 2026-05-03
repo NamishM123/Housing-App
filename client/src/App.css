@@ -1163,7 +1163,15 @@ input.error {
   width: 440px;
   z-index: 95;
   transform: translateX(100%);
-  transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+  transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1), width 0.3s ease;
+}
+/* Listings tab needs more horizontal room for image thumbnails + specs.
+   Cap at 760px so it doesn't dominate ultra-wide displays. */
+.n-panel-wrapper.wide {
+  width: clamp(480px, 50vw, 760px);
+}
+@media (max-width: 720px) {
+  .n-panel-wrapper.wide { width: 100vw; }
 }
 .n-panel-wrapper.pinned {
   transform: translateX(0);
@@ -2005,6 +2013,44 @@ input.error {
   border-radius: var(--radius-lg);
   padding: 14px;
   transition: border-color 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+}
+
+/* Live Mapbox aerial thumbnail at the top of every card */
+.listing-thumb-btn {
+  position: relative;
+  width: calc(100% + 28px); /* extend to card edges */
+  margin: -14px -14px 0;
+  padding: 0;
+  border: 0;
+  background: #0b1220;
+  cursor: pointer;
+  overflow: hidden;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  display: block;
+}
+.listing-card-image {
+  display: block;
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+.listing-thumb-btn:hover .listing-card-image { transform: scale(1.04); }
+.listing-card-image-badge {
+  position: absolute;
+  left: 10px; top: 10px;
+  padding: 3px 8px;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #e2e8f0;
+  background: rgba(8, 12, 24, 0.7);
+  border: 1px solid #334155;
+  border-radius: 999px;
+  backdrop-filter: blur(6px);
 }
 
 .listing-card:hover {
