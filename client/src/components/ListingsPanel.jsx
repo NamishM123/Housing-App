@@ -1,18 +1,19 @@
 import { useState } from 'react';
-import mapboxgl from 'mapbox-gl';
 import ListingDetailModal from './ListingDetailModal';
 
 const BED_FILTERS = ['All', '1', '2', '3+'];
+const GOOGLE_KEY = import.meta.env.VITE_GOOGLE_MAPS_EMBED_KEY || '';
 
-// Build a thumbnail URL: prefer real RentCast photo, fall back to a Mapbox
-// satellite oblique aerial of the listing's exact lat/lng. Every card shows
-// imagery true to its actual address.
+// Build a thumbnail URL: prefer the real RentCast listing photo, then a
+// Google Street View Static photo of the actual building at the address
+// (street-level real-world image, not a satellite top-down).
 function thumbUrl(listing) {
-  if (listing.image) return listing.image;
-  if (!listing.lat || !listing.lng || !mapboxgl.accessToken) return null;
-  const lng = listing.lng.toFixed(5);
-  const lat = listing.lat.toFixed(5);
-  return `https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/${lng},${lat},17.6,-15,55/720x220@2x?access_token=${mapboxgl.accessToken}&attribution=false&logo=false`;
+  if (listing.image) return { src: listing.image, kind: 'photo' };
+  if (listing.lat && listing.lng && GOOGLE_KEY) {
+    const sv = `https://maps.googleapis.com/maps/api/streetview?size=720x260&location=${listing.lat},${listing.lng}&fov=80&pitch=5&source=outdoor&key=${GOOGLE_KEY}`;
+    return { src: sv, kind: 'streetview' };
+  }
+  return null;
 }
 
 function buildTourEmail({ listing, form }) {
@@ -150,6 +151,11 @@ export default function ListingsPanel({ listings, loading, searchUrls, form, sho
           const overBudget = maxRent && listing.price > maxRent;
 
           const thumb = thumbUrl(listing);
+          const badgeLabel = thumb?.kind === 'photo'
+            ? '📸 Listing photo'
+            : thumb?.kind === 'streetview'
+              ? '🏠 Street view photo'
+              : null;
 
           return (
             <div key={listing.id} className={`listing-card ${overBudget ? 'over-budget' : ''} ${isShortlisted ? 'shortlisted' : ''}`}>
@@ -160,13 +166,13 @@ export default function ListingsPanel({ listings, loading, searchUrls, form, sho
                   title="View full details"
                 >
                   <img
-                    src={thumb}
-                    alt={`${listing.address} aerial`}
+                    src={thumb.src}
+                    alt={listing.address}
                     className="listing-card-image"
                     loading="lazy"
                     onError={(e) => { e.currentTarget.parentElement.style.display = 'none'; }}
                   />
-                  <span className="listing-card-image-badge">🛰 Live aerial</span>
+                  {badgeLabel && <span className="listing-card-image-badge">{badgeLabel}</span>}
                 </button>
               )}
 
