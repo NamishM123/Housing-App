@@ -89,7 +89,7 @@ export default function MapView({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/satellite-streets-v12',
         center: [-108, 32],
-        zoom: 4.6,
+        zoom: 5.4,
         pitch: 0,
         bearing: 0,
         antialias: true,
