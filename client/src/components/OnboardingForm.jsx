@@ -167,11 +167,11 @@ export default function OnboardingForm({ onSubmit, loading }) {
           <div className="rent-estimate-box">
             <div className="rent-estimate-row">
               <span>Est. monthly rent budget</span>
-              <strong>${fmt(maxRent)}/mo</strong>
+              <strong>{fmt(maxRent)}/mo</strong>
             </div>
             <div className="rent-estimate-row">
               <span>Est. annual housing cost</span>
-              <strong>${fmt(annualHousingEst)}/yr</strong>
+              <strong>{fmt(annualHousingEst)}/yr</strong>
             </div>
             <div className="rent-estimate-row">
               <span>That's</span>
@@ -322,8 +322,8 @@ export default function OnboardingForm({ onSubmit, loading }) {
       </section>
 
       <div className="budget-preview">
-        Allocating {Math.round(strategyPct * 100)}% → <strong>${fmt(maxRent)}/mo</strong> max rent
-        {combinedAnnual > 0 && <span className="budget-annual"> · ${fmt(annualHousingEst)}/yr of ${fmt(combinedAnnual)}/yr income</span>}
+        Allocating {Math.round(strategyPct * 100)}% → <strong>{fmt(maxRent)}/mo</strong> max rent
+        {combinedAnnual > 0 && <span className="budget-annual"> · {fmt(annualHousingEst)}/yr of {fmt(combinedAnnual)}/yr income</span>}
       </div>
 
       <button type="submit" className="submit-btn" disabled={loading}>
