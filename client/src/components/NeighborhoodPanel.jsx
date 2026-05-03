@@ -1,21 +1,16 @@
 import { useState, useEffect } from 'react';
-import { fetchFurnitureList, fetchNeighborhoodReviews } from '../utils/api';
-import RoomLayout from './RoomLayout';
+import { fetchNeighborhoodReviews } from '../utils/api';
 import ListingsPanel from './ListingsPanel';
 
 const UTILITIES = { pge: 95, water: 45, internet: 70 };
 const TOTAL_UTILITIES = Object.values(UTILITIES).reduce((a, b) => a + b, 0);
 
 export default function NeighborhoodPanel({ open, activeTab, neighborhood, form, onClose, listings, listingsLoading, searchUrls, shortlist, onShortlist, onEditProfile }) {
-  const [furniture, setFurniture]         = useState(null);
-  const [furnitureLoading, setFurnitureLoading] = useState(false);
-  const [roomDims, setRoomDims]           = useState({ width: 12, length: 14 });
-  const [furnitureBudget, setFurnitureBudget] = useState('');
   const [reviews, setReviews]                 = useState(null);
   const [reviewsLoading, setReviewsLoading]   = useState(false);
   const [reviewsError, setReviewsError]       = useState(null);
 
-  useEffect(() => { setFurniture(null); setReviews(null); setReviewsError(null); }, [neighborhood?.id]);
+  useEffect(() => { setReviews(null); setReviewsError(null); }, [neighborhood?.id]);
 
   // Fetch real-people reviews from Reddit when the user opens Insights.
   // Lazy-load on tab open so we don't burn the rate-limit on every map click.
@@ -33,33 +28,11 @@ export default function NeighborhoodPanel({ open, activeTab, neighborhood, form,
       .finally(() => setReviewsLoading(false));
   }, [activeTab, neighborhood?.id]);
 
-  const handleGenerateFurniture = () => {
-    if (!furnitureBudget) return;
-    setFurnitureLoading(true);
-    fetchFurnitureList({ budget: Number(furnitureBudget), roomWidth: roomDims.width, roomLength: roomDims.length })
-      .then(setFurniture)
-      .catch(() => setFurniture({
-        items: [
-          { name: 'Bed Frame + Mattress', estimatedCost: 400, priority: 'essential', reason: 'Sleep is non-negotiable.' },
-          { name: 'Desk + Chair',         estimatedCost: 150, priority: 'essential', reason: 'Work from home needs.' },
-          { name: 'Dresser',              estimatedCost: 100, priority: 'essential', reason: 'Keeps clothes organized.' },
-          { name: 'Bookshelf',            estimatedCost: 60,  priority: 'recommended', reason: 'Storage + decor.' },
-          { name: 'Floor Lamp',           estimatedCost: 40,  priority: 'recommended', reason: 'Ambient lighting.' },
-          { name: 'Rug',                  estimatedCost: 80,  priority: 'nice-to-have', reason: 'Warms up the space.' },
-        ],
-        totalEstimate: 830,
-        summary: 'Bed + desk first — everything else can wait.',
-      }))
-      .finally(() => setFurnitureLoading(false));
-  };
-
   if (!neighborhood) return null;
 
   const deposit      = neighborhood.avgRent * 1.5;
   const firstMonth   = neighborhood.avgRent;
   const totalMoveIn  = firstMonth + deposit + TOTAL_UTILITIES + 300;
-  const savingsAfter = form ? form.savings - totalMoveIn : 0;
-  const savingsPct   = form ? Math.min(100, Math.round((totalMoveIn / form.savings) * 100)) : 0;
 
   return (
     <div className="n-panel">
@@ -99,58 +72,6 @@ export default function NeighborhoodPanel({ open, activeTab, neighborhood, form,
                 <span>Total Move-In Cost</span>
                 <span>${Math.round(totalMoveIn).toLocaleString()}</span>
               </div>
-            </div>
-            {form && (
-              <div className="savings-bar-section">
-                <div className="savings-bar-header">
-                  <span>Move-in cost vs savings</span>
-                  <span style={{ color: savingsAfter < 0 ? '#ef4444' : '#22c55e' }}>
-                    {savingsAfter < 0
-                      ? `$${Math.abs(Math.round(savingsAfter)).toLocaleString()} short`
-                      : `$${Math.round(savingsAfter).toLocaleString()} remaining`}
-                  </span>
-                </div>
-                <div className="savings-bar">
-                  <div className="savings-bar-fill" style={{
-                    width: `${Math.min(savingsPct, 100)}%`,
-                    background: savingsPct > 100 ? '#ef4444' : savingsPct > 75 ? '#f59e0b' : '#22c55e',
-                  }} />
-                </div>
-                <div className="savings-bar-labels">
-                  <span>$0</span><span>{savingsPct}% of savings used</span><span>${form.savings.toLocaleString()}</span>
-                </div>
-              </div>
-            )}
-            <div className="furniture-budget-section">
-              <h3>Furniture Budget Calculator</h3>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Budget ($)</label>
-                  <input type="number" min="0" placeholder={savingsAfter > 0 ? String(Math.round(savingsAfter * 0.5)) : '1000'}
-                    value={furnitureBudget} onChange={e => setFurnitureBudget(e.target.value)} />
-                </div>
-              </div>
-              <button className="action-btn" onClick={handleGenerateFurniture} disabled={!furnitureBudget || furnitureLoading}>
-                {furnitureLoading ? <><span className="spinner xs" /> Generating…</> : 'Generate Shopping List'}
-              </button>
-              {furniture && (
-                <div className="furniture-list">
-                  <p className="furniture-summary">{furniture.summary}</p>
-                  {furniture.items.map((item, i) => (
-                    <div key={i} className="furniture-item">
-                      <div className="furniture-item-header">
-                        <span className="furniture-name">{item.name}</span>
-                        <span className="furniture-cost">${item.estimatedCost}</span>
-                      </div>
-                      <div className="furniture-meta">
-                        <span className={`priority-badge ${item.priority}`}>{item.priority}</span>
-                        <span className="furniture-reason">{item.reason}</span>
-                      </div>
-                    </div>
-                  ))}
-                  <div className="furniture-total">Estimated total: <strong>${furniture.totalEstimate.toLocaleString()}</strong></div>
-                </div>
-              )}
             </div>
           </div>
         )}
@@ -201,28 +122,6 @@ export default function NeighborhoodPanel({ open, activeTab, neighborhood, form,
               </div>
             )}
             {!neighborhood.noiseLevel && <p className="muted">No local insights available yet.</p>}
-          </div>
-        )}
-
-        {/* Room Layout */}
-        {activeTab === 'layout' && (
-          <div className="layout-tab">
-            <div className="room-dims-form">
-              <h3>Room Dimensions</h3>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Width (ft)</label>
-                  <input type="number" min="6" max="40" value={roomDims.width}
-                    onChange={e => setRoomDims(d => ({ ...d, width: Number(e.target.value) }))} />
-                </div>
-                <div className="form-group">
-                  <label>Length (ft)</label>
-                  <input type="number" min="6" max="50" value={roomDims.length}
-                    onChange={e => setRoomDims(d => ({ ...d, length: Number(e.target.value) }))} />
-                </div>
-              </div>
-            </div>
-            <RoomLayout width={roomDims.width} length={roomDims.length} />
           </div>
         )}
 

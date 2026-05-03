@@ -278,21 +278,34 @@ export default function App() {
 
       </div>
 
-      {/* Bottom tile bar Wrapper — hidden whenever the sidebar is open so
-          the user editing their income gets a clean canvas. */}
-      {!leftPinned && (selectedNeighborhood || hoveredNeighborhood) && (
+      {/* Bottom tile bar Wrapper — visible after the form is submitted so
+          the dock handle is always discoverable. The edge tab is the
+          persistent affordance; the drawer only mounts once a neighborhood
+          is selected or hovered (clicking the tab promotes to a selection). */}
+      {submittedForm && (
         <div className={`nbr-bar-wrapper ${bottomPinned ? 'pinned' : ''}`}>
-          <div className="nbr-bar-edge-tab" onClick={() => setBottomPinned(true)}>
+          <div
+            className="nbr-bar-edge-tab"
+            onClick={() => {
+              if (!selectedNeighborhood && !hoveredNeighborhood && NEIGHBORHOODS.length > 0) {
+                loadNeighborhood(NEIGHBORHOODS[0]);
+              } else {
+                setBottomPinned(true);
+              }
+            }}
+          >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 15l-6-6-6 6"/></svg>
           </div>
-          <NeighborhoodDrawer
-            open={true}
-            neighborhood={selectedNeighborhood || hoveredNeighborhood}
-            onTileClick={handleTileClick}
-            activeTile={activePanelTab}
-            onPrev={handlePrevCity}
-            onNext={handleNextCity}
-          />
+          {(selectedNeighborhood || hoveredNeighborhood) && (
+            <NeighborhoodDrawer
+              open={true}
+              neighborhood={selectedNeighborhood || hoveredNeighborhood}
+              onTileClick={handleTileClick}
+              activeTile={activePanelTab}
+              onPrev={handlePrevCity}
+              onNext={handleNextCity}
+            />
+          )}
         </div>
       )}
 

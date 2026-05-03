@@ -96,6 +96,27 @@ body {
 .sidebar-brand > * {
   pointer-events: auto;
 }
+/* Opaque backdrop pinned to the top of the sidebar wrapper. Sits below the
+   brand (z:5) and back-chip (z:20) but above the scrolling form, so cards
+   gliding past the logo can't visually collide with the wordmark. */
+.sidebar-wrapper::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 110px;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(2, 5, 13, 0.96) 0,
+    rgba(2, 5, 13, 0.92) 70%,
+    rgba(2, 5, 13, 0) 100%
+  );
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
 
 .sidebar-logo {
   /* height fixed, width: auto — never distorts the logo */
@@ -1743,47 +1764,6 @@ input.error {
 
 .small {
   font-size: 11px;
-}
-
-/* ── Room Layout ──────────────────────────────────── */
-.room-layout {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.room-label {
-  font-size: 13px;
-  color: var(--text-muted);
-  font-weight: 600;
-}
-
-.room-svg-wrapper {
-  overflow-x: auto;
-}
-
-.room-svg {
-  display: block;
-}
-
-.room-note {
-  font-size: 11px;
-  color: var(--text-muted);
-  text-align: center;
-  font-style: italic;
-}
-
-.room-dims-form {
-  margin-bottom: 8px;
-}
-
-.room-dims-form h3 {
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
-  margin-bottom: 8px;
 }
 
 /* ── Checklist ────────────────────────────────────── */

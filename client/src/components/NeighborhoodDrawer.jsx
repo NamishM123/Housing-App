@@ -4,7 +4,6 @@ import {
   Home,
   DollarSign,
   MapPin,
-  Sofa,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
@@ -13,7 +12,6 @@ const TILES = [
   { id: 'listings', Icon: Home,         label: 'Listings' },
   { id: 'costs',    Icon: DollarSign,   label: 'Costs' },
   { id: 'insights', Icon: MapPin,       label: 'Insights' },
-  { id: 'layout',   Icon: Sofa,         label: 'Room' },
 ];
 
 const NOISE_CLASS = { quiet: 'badge-green', moderate: 'badge-amber', loud: 'badge-red' };
