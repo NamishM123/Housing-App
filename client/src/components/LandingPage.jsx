@@ -21,7 +21,7 @@ const T_STARS     = 1800;
 const T_TEXT_IN   = 1800;
 const T_TEXT_HOLD = 1000;
 const T_TEXT_OUT  = 650;
-const T_EARTH_NAV = 3600;
+const T_EARTH_NAV = 1200;   // nav fades in 1.2s after globe appears (was 3.6s)
 
 // Mapbox globe animation
 const GLOBE_ZOOM     = 1.5;
@@ -41,8 +41,8 @@ function StarField() {
   });
   return (
     <group ref={ref}>
-      <Stars radius={100} depth={50} count={1600} factor={7}   saturation={0.3} fade speed={0.5} />
-      <Stars radius={140} depth={70} count={9000} factor={3.0} saturation={0.5} fade speed={0.7} />
+      <Stars radius={100} depth={50} count={2200} factor={9}   saturation={0.25} fade speed={0.4} />
+      <Stars radius={140} depth={70} count={11000} factor={4.5} saturation={0.4}  fade speed={0.6} />
     </group>
   );
 }

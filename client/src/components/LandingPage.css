@@ -72,8 +72,10 @@
   margin: 0;
   display: flex;
   flex-direction: row;
-  align-items: center;
-  gap: 0.35em;
+  /* flex-end so both elements anchor to their bottom edge — then we nudge
+     the wordmark up by the SVG's internal bottom padding to land on baseline */
+  align-items: flex-end;
+  gap: 0.5em;
   opacity: 0;
   transform: scale(0.55);
   will-change: opacity, transform;
@@ -89,17 +91,18 @@
   display: block;
 }
 
-/* Wordmark sized so the "Settlr" letter cap-height matches the "Welcome to"
-   font size. The SVG viewBox includes the orange house above the letters
-   (~34% of total height), so total SVG height ≈ 3× target letter height. */
+/* Wordmark — letters sit in the lower ~82% of the SVG; the upper ~18% is
+   the orange house roof.  With align-items:flex-end the SVG bottom edge
+   aligns with "Welcome to" descenders.  We lift by the sub-baseline gap
+   (~18% of SVG height) so the Settlr letter baseline sits on the same line. */
 .landing-wordmark-img {
   height: clamp(3rem, 7vw, 9rem);
   width: auto;
   display: block;
   user-select: none;
   pointer-events: none;
-  /* shift down slightly so the Settlr letters baseline-align with "Welcome to" */
-  transform: translateY(0.22em);
+  /* lift by the whitespace below the letters inside the SVG (~18% of height) */
+  margin-bottom: clamp(0.55rem, 1.26vw, 1.62rem);
 }
 
 /* fade in + scale out from center */
@@ -177,13 +180,13 @@
 .landing-nav-ghost {
   background: transparent;
   border: none;
-  color: rgba(244, 241, 232, 0.82);
+  color: rgba(244, 241, 232, 0.85);
   font-family: 'Montserrat', 'Helvetica Neue', system-ui, sans-serif;
-  font-size: 0.85rem;
+  font-size: 1.05rem;
   font-weight: 600;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   cursor: pointer;
-  padding: 6px 2px;
+  padding: 6px 4px;
   transition: color 0.2s ease;
 }
 
@@ -194,11 +197,11 @@
   border: 1px solid transparent;
   color: #060814;
   font-family: 'Montserrat', 'Helvetica Neue', system-ui, sans-serif;
-  font-size: 0.8rem;
+  font-size: 1rem;
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  padding: 10px 24px;
+  padding: 12px 28px;
   border-radius: 999px;
   cursor: pointer;
   transition: background 0.2s ease, opacity 0.2s ease;
