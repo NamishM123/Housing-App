@@ -29,13 +29,12 @@ export default function App() {
 
   const handleFormSubmit = useCallback((formData) => {
     setSubmittedForm(formData);
-    setVerdict(null);
-    setSelectedNeighborhood(null);
-    setDrawerOpen(false);
-    setActivePanelTab(null);
-    setListings([]);
-    setSearchUrls(null);
-    setSelectedListing(null);
+    setVerdict(null); // verdict depends on income — recompute next time
+    // Intentionally NOT clearing selectedNeighborhood / listings / selectedListing
+    // here. When the user re-submits the form with a new salary or housing %,
+    // we want the existing listings to immediately re-filter against the new
+    // maxRent (handled by `displayedListings` below) instead of disappearing
+    // and forcing a fresh neighborhood click.
     setLeftPinned(false); // Auto-hide sidebar after searching
   }, []);
 
