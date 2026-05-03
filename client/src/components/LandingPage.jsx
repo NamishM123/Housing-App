@@ -377,12 +377,25 @@ export default function LandingPage({ onComplete }) {
         <div className="landing-nav-brand">
           <img src="/settlr-mark.svg" alt="Settlr" className="landing-nav-mark" />
         </div>
-        <div className="landing-nav-links">
-          <button className="landing-nav-ghost">About Us</button>
-          <button className="landing-nav-ghost" onClick={goToDashboard}>Log In</button>
-          <button className="landing-nav-cta"   onClick={goToDashboard}>Try Settlr</button>
-        </div>
       </nav>
+
+      <div className={`landing-cta-wrap ${navIn ? 'lp-in' : ''}`}>
+        <button className="landing-hero-cta" onClick={goToDashboard}>
+          <span className="landing-hero-cta-glow" aria-hidden="true" />
+          <span className="landing-hero-cta-content">
+            <span className="landing-hero-cta-label">Try Settlr</span>
+            <svg
+              className="landing-hero-cta-arrow"
+              width="22" height="22" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <line x1="7" y1="17" x2="17" y2="7" />
+              <polyline points="7 7 17 7 17 17" />
+            </svg>
+          </span>
+        </button>
+      </div>
 
     </div>
   );

@@ -14,18 +14,10 @@ const GlowCard = ({ children, className = '', style = {} }) => {
       el.style.setProperty('--x', x.toFixed(2));
       el.style.setProperty('--y', y.toFixed(2));
       el.style.setProperty('--xp', (x / rect.width).toFixed(2));
-      el.style.setProperty('--active', '1');
-    };
-    const onLeave = () => {
-      el.style.setProperty('--active', '0');
     };
 
-    el.addEventListener('pointermove', onMove);
-    el.addEventListener('pointerleave', onLeave);
-    return () => {
-      el.removeEventListener('pointermove', onMove);
-      el.removeEventListener('pointerleave', onLeave);
-    };
+    document.addEventListener('pointermove', onMove);
+    return () => document.removeEventListener('pointermove', onMove);
   }, []);
 
   return (
@@ -40,7 +32,6 @@ const GlowCard = ({ children, className = '', style = {} }) => {
           --border-size: calc(var(--border) * 1px);
           --spotlight-size: calc(var(--size) * 1px);
           --hue: calc(var(--base) + (var(--xp, 0) * var(--spread)));
-          --active: 0;
           position: relative;
           border-radius: calc(var(--radius) * 1px);
           border: var(--border-size) solid rgba(255, 255, 255, 0.08);
@@ -48,13 +39,12 @@ const GlowCard = ({ children, className = '', style = {} }) => {
           backdrop-filter: blur(10px);
           background-image: radial-gradient(
             var(--spotlight-size) var(--spotlight-size) at
-            calc(var(--x, 0) * 1px) calc(var(--y, 0) * 1px),
-            hsl(var(--hue) 80% 65% / calc(0.10 * var(--active))),
+            calc(var(--x, -9999) * 1px) calc(var(--y, -9999) * 1px),
+            hsl(var(--hue) 80% 65% / 0.10),
             transparent
           );
           background-repeat: no-repeat;
           touch-action: none;
-          transition: border-color 0.2s ease;
         }
         .glow-card::before,
         .glow-card::after {
@@ -68,13 +58,11 @@ const GlowCard = ({ children, className = '', style = {} }) => {
           mask: linear-gradient(transparent, transparent), linear-gradient(white, white);
           mask-clip: padding-box, border-box;
           mask-composite: intersect;
-          opacity: var(--active, 0);
-          transition: opacity 0.2s ease;
         }
         .glow-card::before {
           background-image: radial-gradient(
             calc(var(--spotlight-size) * 0.75) calc(var(--spotlight-size) * 0.75) at
-            calc(var(--x, 0) * 1px) calc(var(--y, 0) * 1px),
+            calc(var(--x, -9999) * 1px) calc(var(--y, -9999) * 1px),
             hsl(var(--hue) 85% 60% / 0.95), transparent 100%
           );
           filter: brightness(1.6);
@@ -82,7 +70,7 @@ const GlowCard = ({ children, className = '', style = {} }) => {
         .glow-card::after {
           background-image: radial-gradient(
             calc(var(--spotlight-size) * 0.5) calc(var(--spotlight-size) * 0.5) at
-            calc(var(--x, 0) * 1px) calc(var(--y, 0) * 1px),
+            calc(var(--x, -9999) * 1px) calc(var(--y, -9999) * 1px),
             hsl(0 0% 100% / 0.85), transparent 100%
           );
         }

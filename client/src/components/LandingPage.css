@@ -226,6 +226,95 @@
 
 .landing-nav-cta:hover { background: #ffffff; }
 
+/* ── Hero CTA (center-bottom of globe) ───────────────────────── */
+.landing-cta-wrap {
+  position: absolute;
+  left: 50%;
+  bottom: 8vh;
+  transform: translateX(-50%);
+  z-index: 12;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.9s ease;
+}
+.landing-cta-wrap.lp-in {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@keyframes landing-cta-gradient-shift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.landing-hero-cta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  padding: 22px 56px;
+  border-radius: 999px;
+  background: #0b0f1d;
+  font-family: 'Montserrat', 'Helvetica Neue', system-ui, sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #ffffff;
+  overflow: visible;
+  isolation: isolate;
+  transition: transform 0.2s ease;
+}
+.landing-hero-cta:hover {
+  transform: translateY(-1px) scale(1.02);
+}
+.landing-hero-cta:active {
+  transform: translateY(0) scale(0.99);
+}
+
+/* Animated gradient halo — sits behind, blurred, animates */
+.landing-hero-cta-glow {
+  position: absolute;
+  inset: -4px;
+  z-index: -1;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    #6366f1 0%,
+    #a855f7 35%,
+    #ec4899 70%,
+    #6366f1 100%
+  );
+  background-size: 200% 100%;
+  filter: blur(14px);
+  opacity: 0.55;
+  animation: landing-cta-gradient-shift 6s linear infinite;
+  transition: opacity 0.4s ease, filter 0.4s ease;
+}
+.landing-hero-cta:hover .landing-hero-cta-glow {
+  opacity: 0.95;
+  filter: blur(18px);
+}
+
+.landing-hero-cta-content {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  z-index: 1;
+}
+
+.landing-hero-cta-arrow {
+  display: block;
+  transition: transform 0.25s ease;
+}
+.landing-hero-cta:hover .landing-hero-cta-arrow {
+  transform: translate(2px, -2px);
+}
+
 /* ── Skip button (intro only) ───────────────────────────────── */
 .landing-skip-btn {
   position: absolute;
