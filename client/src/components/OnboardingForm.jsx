@@ -62,8 +62,10 @@ export default function OnboardingForm({ onSubmit, loading }) {
     (situation === 'partner' && partnerIncome) ||
     (situation === 'roommates' && Object.values(roommateIncomes).some(v => v));
 
-  const strategyPct = STRATEGIES.find(s => s.id === strategy)?.pct ?? 0.30;
+  const strategyPct = Math.max(MIN_RENT_PCT, Math.min(MAX_RENT_PCT, rentPct || DEFAULT_RENT_PCT)) / 100;
   const maxRent = Math.round((combinedAnnual * strategyPct) / 12);
+  const annualHousingEst = maxRent * 12;
+  const housingPctOfIncome = combinedAnnual > 0 ? ((annualHousingEst / combinedAnnual) * 100).toFixed(1) : 0;
 
   const validate = () => {
     const e = {};
@@ -97,7 +99,7 @@ export default function OnboardingForm({ onSubmit, loading }) {
 
     onSubmit({
       annualIncome,
-      housingStrategy: strategy,
+      housingStrategy: `custom-${rentPct}pct`,
       strategyPct,
       livingSituation: situation,
       partnerIncome: situation === 'partner' ? Number(partnerIncome) || null : null,
