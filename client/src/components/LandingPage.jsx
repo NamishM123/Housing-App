@@ -70,9 +70,9 @@ function MapboxGlobe({ active, globeScreenRef }) {
 
     map.on('style.load', () => {
       map.setFog({
-        color:            'rgb(210, 225, 250)',  // white-blue atmosphere rim
-        'high-color':     'rgb(100, 155, 225)',  // lighter upper atmosphere
-        'horizon-blend':  0.10,                 // tight natural rim
+        color:            'rgb(5, 10, 28)',    // near-black — no visible rim
+        'high-color':     'rgb(8, 18, 50)',   // dark upper atmosphere
+        'horizon-blend':  0.03,              // barely perceptible edge
         'space-color':    'rgb(0, 0, 0)',
         'star-intensity': 0,
       });
