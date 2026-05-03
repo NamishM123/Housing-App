@@ -322,7 +322,8 @@ export default function OnboardingForm({ onSubmit, loading }) {
       </section>
 
       <div className="budget-preview">
-        Est. max rent at {Math.round(strategyPct * 100)}%: <strong>{fmt(maxRent)}/mo</strong>
+        Allocating {Math.round(strategyPct * 100)}% → <strong>${fmt(maxRent)}/mo</strong> max rent
+        {combinedAnnual > 0 && <span className="budget-annual"> · ${fmt(annualHousingEst)}/yr of ${fmt(combinedAnnual)}/yr income</span>}
       </div>
 
       <button type="submit" className="submit-btn" disabled={loading}>
