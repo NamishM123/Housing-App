@@ -1167,52 +1167,61 @@ input.error {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 24px 10px;
-  gap: 16px;
+  padding: 20px 26px 14px;
+  gap: 18px;
 }
 
 .nbr-info {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 8px;
 }
 
+/* City name — bigger than the sidebar's 17px label so it owns the drawer. */
 .nbr-name {
-  font-size: 17px;
+  font-size: 28px;
   font-weight: 800;
-  color: #f1f5f9;
+  color: #fff;
+  line-height: 1.15;
+  letter-spacing: 0.005em;
   margin: 0;
 }
 
 .nbr-quick-stats {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
+/* Subheader stats — match sidebar `.hint` style (14px, white-78%). */
 .nbr-stat {
-  font-size: 13px;
-  color: #94a3b8;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.78);
   font-weight: 500;
 }
 
 .nbr-stat-unit {
-  font-size: 11px;
-  color: #64748b;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 500;
 }
 
 .nbr-sep {
-  color: #334155;
-  font-size: 12px;
+  color: rgba(255, 255, 255, 0.30);
+  font-size: 13px;
 }
 
+/* Quick-fact pills — sized like the sidebar seg-pills:
+   font 13px, padding 6px 14px, radius 999px. */
 .nbr-quick-badge {
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 7px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
   border-radius: 999px;
   text-transform: capitalize;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
 }
 
 /* ── Prev / Next city navigation (replaces the close-X) ── */
