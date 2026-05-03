@@ -70,7 +70,7 @@ export default function NeighborhoodDrawer({
           <div className="nbr-quick-stats">
             <span className="nbr-stat">${neighborhood.avgRent.toLocaleString()}<span className="nbr-stat-unit">/mo avg</span></span>
             <span className="nbr-sep">|</span>
-            <span className="nbr-stat">Walk {neighborhood.walkScore}</span>
+            <span className="nbr-stat">Walkability</span>
             {neighborhood.noiseLevel && (
               <>
                 <span className="nbr-sep">|</span>
