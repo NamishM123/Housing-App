@@ -73,18 +73,28 @@ body {
 }
 
 /* ── Settler sidebar brand section ──────────────────
-   Logo lives here — NOT in a full-width top bar.
-   Using <img> + height:auto preserves the SVG
-   aspect ratio without any distortion.
+   Logo is anchored to the top of the sidebar wrapper
+   (not the scrolling .sidebar) so it sits above the
+   fade mask and stays put while the form scrolls.
+   Position is shared with the landing page logo via
+   .landing-brand-logo so the image doesn't jump when
+   the user clicks "Try Settlr".
 ─────────────────────────────────────────────────── */
 .sidebar-brand {
+  position: absolute;
+  top: 20px;
+  left: 16px;
+  right: 60px; /* leave room for back-chip on the right */
+  z-index: 5;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
-  padding: 8px 0 0;
-  margin-bottom: 0;
   flex-shrink: 0;
   justify-content: flex-start;
+  pointer-events: none;
+}
+.sidebar-brand > * {
+  pointer-events: auto;
 }
 
 .sidebar-logo {
@@ -234,14 +244,16 @@ body {
   border-right: 1px solid rgba(255, 255, 255, 0.05);
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 64px 16px 18px;
+  /* Top padding clears the absolute-positioned .sidebar-brand
+     (top:20 + max-height:72 ≈ 92, plus a small gap). */
+  padding: 110px 16px 18px;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  /* Fade content at the top so cards scrolling past the back-chip area
-     don't visually collide with the chip. */
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0, rgba(0,0,0,0.4) 36px, #000 64px);
-  mask-image: linear-gradient(to bottom, transparent 0, rgba(0,0,0,0.4) 36px, #000 64px);
+  /* Fade content at the top so cards scrolling past the brand/back-chip
+     area don't visually collide with them. */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, rgba(0,0,0,0.4) 60px, #000 100px);
+  mask-image: linear-gradient(to bottom, transparent 0, rgba(0,0,0,0.4) 60px, #000 100px);
 }
 
 .main-content {

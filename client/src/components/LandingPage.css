@@ -164,11 +164,10 @@
    Positioned to match the dashboard sidebar logo exactly so the
    image doesn't shift when the user clicks "Try Settlr" and the
    landing dismisses into the dashboard.
-   Sidebar: .sidebar padding 64px 16px 18px + .sidebar-brand
-   padding 8px 0 0  →  logo origin at left:16px top:72px. */
+   Sidebar: .sidebar-brand top:20 left:16 (absolute in wrapper). */
 .landing-brand-logo {
   position: absolute;
-  top: 72px;
+  top: 20px;
   left: 16px;
   z-index: 10;
   opacity: 0;

@@ -239,20 +239,19 @@ export default function App() {
               <path d="M5 12h14" />
             </svg>
           </button>
+          <div className="sidebar-brand">
+            <img
+              src="/settlr-mark.svg"
+              alt="Settlr"
+              className="sidebar-logo-full"
+            />
+            {shortlist.length > 0 && (
+              <div className="shortlist-badge" title={`${shortlist.length} saved listing${shortlist.length > 1 ? 's' : ''}`}>
+                ★ {shortlist.length}
+              </div>
+            )}
+          </div>
           <aside className="sidebar">
-            <div className="sidebar-brand">
-              <img
-                src="/settlr-mark.svg"
-                alt="Settlr"
-                className="sidebar-logo-full"
-              />
-              {shortlist.length > 0 && (
-                <div className="shortlist-badge" title={`${shortlist.length} saved listing${shortlist.length > 1 ? 's' : ''}`}>
-                  ★ {shortlist.length}
-                </div>
-              )}
-            </div>
-
             <OnboardingForm onSubmit={handleFormSubmit} />
           </aside>
         </div>
