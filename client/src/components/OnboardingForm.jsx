@@ -340,7 +340,7 @@ export default function OnboardingForm({ onSubmit, loading }) {
       </GlowCard>
 
       <button type="submit" className="submit-btn" disabled={loading}>
-        {loading ? 'Crunching the map for you…' : 'Find my dream place →'}
+        {loading ? 'Crunching the map for you…' : 'Find My Dream Place'}
       </button>
     </form>
   );

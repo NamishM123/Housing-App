@@ -66,11 +66,30 @@ export default function NeighborhoodDrawer({
       {/* Name + quick stats */}
       <div className="nbr-header">
         <div className="nbr-info">
-          <h2 className="nbr-name">{neighborhood.name}</h2>
+          <div className="nbr-name-row">
+            <h2 className="nbr-name">{neighborhood.name}</h2>
+            {/* Prev / Next city navigation (replaces the close-X) */}
+            <div className="nbr-nav-arrows">
+              <button
+                className="nbr-nav-btn"
+                onClick={onPrev}
+                aria-label="Previous city"
+                title="Previous city"
+              >
+                <ChevronLeft className="nbr-nav-icon" />
+              </button>
+              <button
+                className="nbr-nav-btn"
+                onClick={onNext}
+                aria-label="Next city"
+                title="Next city"
+              >
+                <ChevronRight className="nbr-nav-icon" />
+              </button>
+            </div>
+          </div>
           <div className="nbr-quick-stats">
             <span className="nbr-stat">${neighborhood.avgRent.toLocaleString()}<span className="nbr-stat-unit">/mo avg</span></span>
-            <span className="nbr-sep">|</span>
-            <span className="nbr-stat">Walkability</span>
             {neighborhood.noiseLevel && (
               <>
                 <span className="nbr-sep">|</span>
@@ -84,26 +103,6 @@ export default function NeighborhoodDrawer({
               </>
             )}
           </div>
-        </div>
-
-        {/* Prev / Next city navigation (replaces the close-X) */}
-        <div className="nbr-nav-arrows">
-          <button
-            className="nbr-nav-btn"
-            onClick={onPrev}
-            aria-label="Previous city"
-            title="Previous city"
-          >
-            <ChevronLeft className="nbr-nav-icon" />
-          </button>
-          <button
-            className="nbr-nav-btn"
-            onClick={onNext}
-            aria-label="Next city"
-            title="Next city"
-          >
-            <ChevronRight className="nbr-nav-icon" />
-          </button>
         </div>
       </div>
 
