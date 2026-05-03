@@ -3834,7 +3834,8 @@ input.error {
   min-height: var(--input-h);
 }
 .q-section .situation-btn {
-  min-height: 60px;
+  min-height: var(--input-h);
+  justify-content: center;
 }
 .q-section .chip {
   border-radius: 999px;
