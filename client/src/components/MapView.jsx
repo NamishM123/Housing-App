@@ -185,7 +185,11 @@ export default function MapView({
       }
 
       // ── Heatmap-style glow circle — covers full area at low zoom, fades on zoom-in ──
-      const glowOpacityBase = vibeMatch ? (isSelected ? 0.82 : 0.52) : 0.06;
+      // Only show the heatmap once the user has submitted the form ("Show me what fits").
+      const heatmapVisible = monthlyIncome > 0;
+      const glowOpacityBase = heatmapVisible
+        ? (vibeMatch ? (isSelected ? 0.82 : 0.52) : 0.06)
+        : 0;
       const glowOpacityZoom = [
         'interpolate', ['linear'], ['zoom'],
         9, glowOpacityBase,   // full opacity when zoomed out

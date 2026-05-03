@@ -97,15 +97,22 @@ export default function ListingsPanel({ listings, loading, searchUrls, form, sho
     );
   }
 
-  const filtered = listings
+  const maxRent = form?.maxRent;
+
+  // Scale availability with income and housing % — hide listings the user can't afford.
+  // As maxRent grows (higher income or higher housing %), more listings unlock.
+  const affordable = maxRent
+    ? listings.filter(l => l.price <= maxRent)
+    : listings;
+  const hiddenCount = listings.length - affordable.length;
+
+  const filtered = affordable
     .filter(l => {
       if (bedFilter === 'All') return true;
       if (bedFilter === '3+') return l.beds >= 3;
       return l.beds === Number(bedFilter);
     })
     .sort((a, b) => sortBy === 'price' ? a.price - b.price : (b.sqft || 0) - (a.sqft || 0));
-
-  const maxRent = form?.maxRent;
 
   return (
     <>
@@ -122,6 +129,17 @@ export default function ListingsPanel({ listings, loading, searchUrls, form, sho
           <option value="sqft">Sort: Size ↓</option>
         </select>
       </div>
+
+      {hiddenCount > 0 && (
+        <div className="listings-budget-hint">
+          <span>
+            {affordable.length === 0 ? 'All' : hiddenCount} listing{hiddenCount === 1 ? '' : 's'} above your
+            <strong> ${maxRent.toLocaleString()}/mo</strong> budget
+            {affordable.length === 0 ? ' — none shown.' : ' hidden.'}
+          </span>
+          <span className="muted small">Raise your income or housing % to unlock more.</span>
+        </div>
+      )}
 
       <div className="listings-search-links">
         <span className="muted small">Browse all on:</span>
