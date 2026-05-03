@@ -1,25 +1,36 @@
 import { useState } from 'react';
-import mapboxgl from 'mapbox-gl';
 import ListingDetailModal from './ListingDetailModal';
+import { listingCardChain } from '../utils/listingImages';
 
 const BED_FILTERS = ['All', '1', '2', '3+'];
 
-const PLACEHOLDER_IMG = '/listing-placeholder.svg';
+const KIND_BADGE = {
+  photo:       '📷 Listing photo',
+  streetview:  '📷 Street View',
+  aerial:      '🛰 Aerial',
+  placeholder: '',
+};
 
-// Build a thumbnail URL: prefer real RentCast photo, fall back to a Mapbox
-// satellite oblique aerial of the listing's exact lat/lng. Every card shows
-// imagery true to its actual address. Returns null only when no usable
-// source AND no Mapbox token exist — caller renders the placeholder.
-function thumbUrl(listing) {
-  if (listing.image) return listing.image;
-  if (!listing.lat || !listing.lng || !mapboxgl.accessToken) return null;
-  const lng = listing.lng.toFixed(5);
-  const lat = listing.lat.toFixed(5);
-  return `https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/${lng},${lat},17.6,-15,55/720x220@2x?access_token=${mapboxgl.accessToken}&attribution=false&logo=false`;
-}
+function ListingThumb({ listing, onClick }) {
+  const chain = listingCardChain(listing);
+  const [step, setStep] = useState(0);
+  const current = chain[Math.min(step, chain.length - 1)];
+  const badge = KIND_BADGE[current.kind];
 
-function isAerialThumb(url) {
-  return typeof url === 'string' && url.includes('api.mapbox.com');
+  return (
+    <button className="listing-thumb-btn" onClick={onClick} title="View full details">
+      <img
+        src={current.src}
+        alt={listing.address}
+        className="listing-card-image"
+        loading="lazy"
+        decoding="async"
+        referrerPolicy="no-referrer"
+        onError={() => setStep(s => Math.min(s + 1, chain.length - 1))}
+      />
+      {badge && <span className="listing-card-image-badge">{badge}</span>}
+    </button>
+  );
 }
 
 function buildTourEmail({ listing, form }) {
@@ -156,31 +167,9 @@ export default function ListingsPanel({ listings, loading, searchUrls, form, sho
           const isShortlisted = shortlist.some(s => s.id === listing.id);
           const overBudget = maxRent && listing.price > maxRent;
 
-          const thumb = thumbUrl(listing) || PLACEHOLDER_IMG;
-          const aerial = isAerialThumb(thumb);
-
           return (
             <div key={listing.id} className={`listing-card ${overBudget ? 'over-budget' : ''} ${isShortlisted ? 'shortlisted' : ''}`}>
-              <button
-                className="listing-thumb-btn"
-                onClick={() => setDetailTarget(listing)}
-                title="View full details"
-              >
-                <img
-                  src={thumb}
-                  alt={`${listing.address}${aerial ? ' aerial' : ''}`}
-                  className="listing-card-image"
-                  loading="lazy"
-                  decoding="async"
-                  referrerPolicy="no-referrer"
-                  onError={(e) => {
-                    if (e.currentTarget.src.endsWith(PLACEHOLDER_IMG)) return;
-                    e.currentTarget.src = PLACEHOLDER_IMG;
-                    e.currentTarget.dataset.fallback = 'true';
-                  }}
-                />
-                {aerial && <span className="listing-card-image-badge">🛰 Live aerial</span>}
-              </button>
+              <ListingThumb listing={listing} onClick={() => setDetailTarget(listing)} />
 
               <div className="listing-header">
                 <div>

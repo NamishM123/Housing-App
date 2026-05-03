@@ -1,64 +1,5 @@
 import { useEffect, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
-
-const PLACEHOLDER_IMG = '/listing-placeholder.svg';
-
-// Build a multi-image gallery for any listing using:
-//   1. The real RentCast photo (when present)
-//   2. Mapbox Static Images of the *actual* address from 4 angles — these
-//      are real satellite imagery centered on the listing's lat/lng, so
-//      every listing shows its true location instead of generic stock photos
-//   3. A 3D-style oblique aerial as the establishing shot
-//   4. A placeholder if absolutely nothing is available
-function buildGallery(listing) {
-  const token = mapboxgl.accessToken;
-  const out = [];
-
-  // RentCast photo first if present (real listing photo)
-  if (listing.image) out.push({ src: listing.image, label: 'Listing photo', kind: 'photo' });
-
-  if (listing.lat && listing.lng && token) {
-    const lng = listing.lng.toFixed(5);
-    const lat = listing.lat.toFixed(5);
-
-    // Establishing 3D oblique
-    out.push({
-      src: `https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/${lng},${lat},18.2,-20,62/900x520@2x?access_token=${token}&attribution=false&logo=false`,
-      label: 'Aerial — looking north',
-      kind: 'aerial',
-    });
-    // North-facing
-    out.push({
-      src: `https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/${lng},${lat},18.6,0,70/900x520@2x?access_token=${token}&attribution=false&logo=false`,
-      label: 'Looking north',
-      kind: 'aerial',
-    });
-    // East-facing
-    out.push({
-      src: `https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/${lng},${lat},18.4,90,70/900x520@2x?access_token=${token}&attribution=false&logo=false`,
-      label: 'Looking east',
-      kind: 'aerial',
-    });
-    // South-facing
-    out.push({
-      src: `https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/${lng},${lat},18.4,180,70/900x520@2x?access_token=${token}&attribution=false&logo=false`,
-      label: 'Looking south',
-      kind: 'aerial',
-    });
-    // Wider neighborhood context
-    out.push({
-      src: `https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/${lng},${lat},16.5,0,30/900x520@2x?access_token=${token}&attribution=false&logo=false`,
-      label: 'Neighborhood context',
-      kind: 'aerial',
-    });
-  }
-
-  if (out.length === 0) {
-    out.push({ src: PLACEHOLDER_IMG, label: 'Image unavailable', kind: 'placeholder' });
-  }
-
-  return out;
-}
+import { listingGalleryImages, PLACEHOLDER_IMG, HAS_STREETVIEW_KEY } from '../utils/listingImages';
 
 function fmtFeature(f) { return f; }
 
@@ -80,7 +21,7 @@ export default function ListingDetailModal({
 
   if (!listing) return null;
 
-  const gallery = buildGallery(listing);
+  const gallery = listingGalleryImages(listing);
   const overBudget = form?.maxRent && listing.price > form.maxRent;
   const monthlyIncome = form?.salary ? Math.round(form.salary / 12) : null;
   const pctOfIncome = monthlyIncome ? Math.round((listing.price / monthlyIncome) * 100) : null;
@@ -207,8 +148,9 @@ export default function ListingDetailModal({
         <div className="listing-detail-section">
           <div className="listing-detail-section-title">Location</div>
           <p className="muted small">
-            {listing.lat?.toFixed(4)}°, {listing.lng?.toFixed(4)}° — switch images above to see the address from different
-            angles via Mapbox satellite imagery.
+            {listing.lat?.toFixed(4)}°, {listing.lng?.toFixed(4)}° — {HAS_STREETVIEW_KEY
+              ? 'photos above are Google Street View captures of the actual address from four compass headings, plus a top-down aerial.'
+              : 'top-down aerial centered on the address. Add VITE_GOOGLE_STREETVIEW_KEY in client/.env to see real Street View photos.'}
           </p>
         </div>
 

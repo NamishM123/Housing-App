@@ -78,6 +78,10 @@ export default function MapView({
   const [stepsOpen, setStepsOpen] = useState(false);
   const [travelMode, setTravelMode] = useState('driving');
 
+  // Above this zoom we disable terrain so listing pins stop drifting on the
+  // screen as the DEM tile resolution refines.
+  const TERRAIN_OFF_ZOOM = 11;
+
   // ── Map init ─────────────────────────────────────────
   useEffect(() => {
     if (map.current) return;
@@ -103,6 +107,10 @@ export default function MapView({
           tileSize: 512,
           maxzoom: 14,
         });
+        // Terrain is enabled only at low zooms (globe → city flyover). At
+        // neighborhood zoom (>= TERRAIN_OFF_ZOOM) we disable it so HTML
+        // markers don't drift on the screen as the DEM tile resolution
+        // refines per zoom level. See `useEffect` below for the toggle.
         map.current.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 });
 
         map.current.addLayer({
@@ -132,6 +140,23 @@ export default function MapView({
       map.current.on('zoom', () => {
         setMapZoom(map.current.getZoom());
       });
+
+      // Terrain on at low zoom (globe / regional view) so the dramatic
+      // flyover keeps its 3D look; off at city/neighborhood zoom so HTML
+      // markers stay screen-locked to their lat/lng without DEM-induced drift.
+      const updateTerrainForZoom = () => {
+        if (!map.current) return;
+        const z = map.current.getZoom();
+        const wantTerrain = z < TERRAIN_OFF_ZOOM;
+        const has = !!map.current.getTerrain();
+        if (wantTerrain && !has) {
+          map.current.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 });
+        } else if (!wantTerrain && has) {
+          map.current.setTerrain(null);
+        }
+      };
+      map.current.on('zoomend', updateTerrainForZoom);
+      map.current.on('moveend', updateTerrainForZoom);
 
       map.current.on('error', () => setMapError(true));
     } catch { setMapError(true); }
