@@ -1,18 +1,41 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, Suspense } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Stars } from '@react-three/drei';
+import { Stars, useTexture } from '@react-three/drei';
+import { BackSide } from 'three';
 import './LandingPage.css';
 
 /**
- * Landing sequence:
- *  1. Stars + Rolls-Royce-style varied shooting stars
- *  2. "Welcome to Settlr" fades in (DOM, opacity 0→1, scale-out from center)
- *  3. Settle: canvas particles crossfade in over the DOM text (seamless handoff)
- *  4. Hold (canvas particles only)
- *  5. Spider-Man / Thanos snap: slow right-to-left disintegration wave,
- *     mixed grain sizes, particles drift right & fade
- *  6. After snap, dashboard
+ * Landing:
+ *  1. Stars + shooting stars
+ *  2. "Welcome to Settlr" fades + expands from center
+ *  3. Text fades out completely — THEN Earth spawns
+ *  4. Earth zooms in from nothing, sweeping Indonesia (120°E) → US (100°W)
+ *  5. Nav fades in
  */
+
+// High-quality textures from Three.js examples repo (CORS-safe raw GitHub)
+const DAY_URL  = 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg';
+const SPEC_URL = 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_specular_2048.jpg';
+useTexture.preload([DAY_URL, SPEC_URL]);
+
+const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
+const easeOutQuart = t => 1 - Math.pow(1 - t, 4);
+
+// Rotation: increasing rotation.y brings East into view from the right
+// Indonesia ≈ 120°E  → rotation.y = 120 * π/180 = 2.09
+// US center ≈ 100°W = 260°E → rotation.y = 260 * π/180 = 4.54
+// Sweep: +2.45 rad eastward (~140°), Pacific opens up, US arrives from right
+const ROT_START = 2.09;  // Indonesia facing camera
+const ROT_END   = 4.54;  // Continental US facing camera
+const TILT      = -0.22; // North pole slightly toward camera (shows North America)
+const EARTH_DUR = 3.0;   // seconds to animate
+
+// Phase timing (ms)
+const T_STARS     = 1800;
+const T_TEXT_IN   = 1800;
+const T_TEXT_HOLD = 1000;
+const T_TEXT_OUT  = 650;
+const T_EARTH_NAV = 3600; // after earth appears, wait this long before nav
 
 function StarField() {
   const ref = useRef();
@@ -30,95 +53,103 @@ function StarField() {
   );
 }
 
-const TEXT             = 'Welcome to Settlr';
-const FONT_STACK       = "'Montserrat', 'Helvetica Neue', system-ui, sans-serif";
-const FONT_WEIGHT      = 300;
-const SAMPLE_STEP      = 2;        // fine grain
+function EarthSphere({ active, scaleRef }) {
+  const groupRef  = useRef();
+  const startRef  = useRef(null);
+  const [dayMap, specMap] = useTexture([DAY_URL, SPEC_URL]);
 
-// Phase timing (ms)
-const T_STARS_ONLY      = 3200;
-const T_TEXT_IN         = 1800;    // DOM fade + scale
-const T_SETTLE          = 380;     // DOM↘ canvas↗ crossfade
-const T_HOLD            = 1000;
-const T_SNAP            = 3400;    // slow Spider-Man wave
-const T_DISMISS_FADE    = 900;
+  useFrame(({ clock }, delta) => {
+    const g = groupRef.current;
+    if (!g || !active) return;
+
+    if (!startRef.current) {
+      startRef.current = clock.elapsedTime;
+      g.rotation.set(TILT, ROT_START, 0);
+      g.scale.setScalar(0.01);
+    }
+
+    const t     = Math.min(1, (clock.elapsedTime - startRef.current) / EARTH_DUR);
+    const scale = 0.01 + 0.99 * easeOutQuart(t);
+    g.scale.setScalar(scale);
+    g.rotation.y = ROT_START + (ROT_END - ROT_START) * easeOutCubic(t);
+
+    if (t >= 1) g.rotation.y += delta * 0.016; // slow ambient drift
+
+    if (scaleRef) scaleRef.current = { active: true, scale };
+  });
+
+  if (!active) return null;
+
+  return (
+    <>
+      <ambientLight intensity={0.45} />
+      {/* Sun — from right-front to light the Americas */}
+      <directionalLight position={[5, 2, 5]} intensity={1.8} color="#fff8f0" />
+      {/* Soft blue bounce from opposite side — depth on dark hemisphere */}
+      <directionalLight position={[-4, -1, -4]} intensity={0.22} color="#3355aa" />
+
+      {/* Earth centered at origin */}
+      <group ref={groupRef} position={[0, 0, 0]}>
+        <mesh>
+          <sphereGeometry args={[2.5, 80, 80]} />
+          {/* Phong gives ocean specular reflections — way more realistic than Lambert */}
+          <meshPhongMaterial
+            map={dayMap}
+            specularMap={specMap}
+            specular="#666666"
+            shininess={12}
+          />
+        </mesh>
+        {/* Atmospheric halo */}
+        <mesh scale={[1.02, 1.02, 1.02]}>
+          <sphereGeometry args={[2.5, 32, 32]} />
+          <meshBasicMaterial color="#3366ff" transparent opacity={0.06} side={BackSide} />
+        </mesh>
+      </group>
+    </>
+  );
+}
 
 export default function LandingPage({ onComplete }) {
   const overlayRef    = useRef(null);
-  const textRef       = useRef(null);
-  const animRef       = useRef(null);
-  const particlesRef  = useRef([]);
-  const phaseRef      = useRef('stars');     // stars → text-in → settle → hold → snap → done
-  const phaseStartRef = useRef(performance.now());
+  const shootAnim     = useRef(null);
+  const globeScaleRef = useRef({ active: false, scale: 0 });
 
-  const [textPhase,  setTextPhase]  = useState('hidden');   // hidden → in → fading → gone
-  const [blurStars,  setBlurStars]  = useState(false);
-  const [dismissing, setDismissing] = useState(false);
+  const [earthActive, setEarthActive] = useState(false);
+  const [textPhase,   setTextPhase]   = useState('hidden');
+  const [navIn,       setNavIn]       = useState(false);
+  const [dismissing,  setDismissing]  = useState(false);
 
-  // ---------- Build particles by sampling DOM text exactly ----------
-  function buildParticles() {
-    const textEl = textRef.current;
-    if (!textEl) return;
-    const rect = textEl.getBoundingClientRect();
-    const cs = window.getComputedStyle(textEl);
-
-    // Render text at exactly the same metrics as the DOM
-    const off = document.createElement('canvas');
-    off.width  = Math.ceil(rect.width);
-    off.height = Math.ceil(rect.height);
-    const octx = off.getContext('2d');
-    octx.fillStyle = '#ffffff';
-    octx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
-    octx.textBaseline = 'middle';
-    octx.textAlign = 'center';
-    octx.fillText(TEXT, off.width / 2, off.height / 2);
-
-    const data = octx.getImageData(0, 0, off.width, off.height).data;
-    const ps = [];
-    for (let y = 0; y < off.height; y += SAMPLE_STEP) {
-      for (let x = 0; x < off.width; x += SAMPLE_STEP) {
-        const idx = (y * off.width + x) * 4;
-        if (data[idx + 3] > 80) {
-          // Mixed grain sizes — most tiny, some chunkier
-          const r = Math.random();
-          const size = r < 0.6  ? 1
-                     : r < 0.85 ? 1.5
-                     : r < 0.97 ? 2.2
-                     : 3.0;
-
-          // Spider-Man wave: rightmost pixels disintegrate first
-          // Wave covers ~70% of T_SNAP, each pixel fades over remaining 30%
-          const distFromRight = 1 - (x / off.width);   // 0 at right edge → 1 at left
-          const waveStart = distFromRight * 0.7;       // 0..0.7
-          const jitter = (Math.random() - 0.3) * 0.18; // some particles go early/late
-          const snapDelay = Math.max(0, Math.min(0.85, waveStart + jitter));
-
-          // Heavier grains drift a bit faster (sand caught in wind)
-          const speedBoost = size > 1.5 ? 0.4 + Math.random() * 0.4 : 0;
-          ps.push({
-            x: rect.left + x,
-            y: rect.top  + y,
-            vx: 1.0 + Math.random() * 2.4 + speedBoost,
-            vy: (Math.random() - 0.5) * 0.7 - 0.12,
-            size,
-            alphaBase: 0.82 + Math.random() * 0.18,
-            snapDelay,
-            // Per-particle decay rate after release (varies the trail look)
-            decay: 0.9 + Math.random() * 0.4,
-          });
-        }
-      }
-    }
-    particlesRef.current = ps;
+  function goToDashboard() {
+    setDismissing(true);
+    setTimeout(() => onComplete?.(), 650);
   }
 
-  // ---------- Animation loop ----------
+  // ── Phase orchestration ──────────────────────────────────────────────────
+  useEffect(() => {
+    const t0 = T_STARS;
+    const t1 = t0 + T_TEXT_IN;
+    const t2 = t1 + T_TEXT_HOLD;
+    const t3 = t2 + T_TEXT_OUT;   // text fully gone → spawn Earth
+    const t4 = t3 + T_EARTH_NAV;  // Earth settled → nav in
+
+    const ids = [
+      setTimeout(() => setTextPhase('in'),                t0),
+      setTimeout(() => setTextPhase('hold'),              t1),
+      setTimeout(() => setTextPhase('out'),               t2),
+      setTimeout(() => { setTextPhase('gone'); setEarthActive(true); }, t3),
+      setTimeout(() => setNavIn(true),                    t4),
+    ];
+    return () => ids.forEach(clearTimeout);
+  }, []);
+
+  // ── Shooting stars (clipped behind globe) ───────────────────────────────
   useEffect(() => {
     const canvas = overlayRef.current;
-    const ctx = canvas.getContext('2d');
+    const ctx    = canvas.getContext('2d');
     let dpr = Math.min(window.devicePixelRatio || 1, 2);
     let W = 0, H = 0;
-    const shootingStars = [];
+    const stars = [];
 
     function resize() {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -129,201 +160,119 @@ export default function LandingPage({ onComplete }) {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
-    function spawnShootingStar() {
-      const profile = Math.random();
-      let tailLen, speed, life, lineWidth;
-      if (profile < 0.45) {
-        tailLen = 25 + Math.random() * 35;
-        speed   = 7  + Math.random() * 5;
-        life    = 28 + Math.random() * 18;
-        lineWidth = 0.8;
-      } else if (profile < 0.85) {
-        tailLen = 70 + Math.random() * 80;
-        speed   = 4  + Math.random() * 3;
-        life    = 80 + Math.random() * 60;
-        lineWidth = 1.0;
-      } else {
-        tailLen = 180 + Math.random() * 140;
-        speed   = 2.0 + Math.random() * 1.6;
-        life    = 220 + Math.random() * 140;
-        lineWidth = 1.2;
-      }
+    function spawn() {
+      const p = Math.random();
+      let tail, spd, life, lw;
+      if      (p < 0.45) { tail = 25+Math.random()*35;  spd = 7+Math.random()*5;   life = 28+Math.random()*18;  lw=0.75; }
+      else if (p < 0.85) { tail = 70+Math.random()*80;  spd = 4+Math.random()*3;   life = 80+Math.random()*60;  lw=1.0;  }
+      else               { tail =180+Math.random()*140; spd = 2+Math.random()*1.6; life=220+Math.random()*140; lw=1.2;  }
       const angle = Math.random() * Math.PI * 2 + Math.PI * 0.05;
-      const vx = Math.cos(angle) * speed;
-      const vy = Math.sin(angle) * speed;
-      const margin = -50;
-      shootingStars.push({
-        x: margin + Math.random() * (W - margin * 2),
-        y: margin + Math.random() * (H * 0.7 - margin * 2),
-        vx, vy, tailLen, life: 0, maxLife: life, lineWidth,
-        hue: Math.random() < 0.7 ? 'rgba(255, 245, 225,' : 'rgba(220, 230, 255,',
+      stars.push({
+        x:-50+Math.random()*(W+100), y:-50+Math.random()*(H*0.75+100),
+        vx:Math.cos(angle)*spd, vy:Math.sin(angle)*spd,
+        tail, life:0, maxLife:life, lw,
+        hue: Math.random()<0.7 ? 'rgba(255,245,225,' : 'rgba(220,230,255,',
       });
     }
 
-    let lastShoot = performance.now() - 1000;
-    let nextShootIn = 400 + Math.random() * 600;
+    let lastSpawn = performance.now() - 1000;
+    let nextIn    = 400 + Math.random() * 600;
+
+    // fov=68 vertical, camera z=5
+    const TAN_HALF = Math.tan((68 * Math.PI / 180) / 2);
 
     function frame(now) {
       ctx.clearRect(0, 0, W, H);
 
-      // --- Shooting stars ---
-      if (now - lastShoot > nextShootIn) {
-        spawnShootingStar();
-        if (Math.random() < 0.3) setTimeout(spawnShootingStar, 200 + Math.random() * 400);
-        lastShoot = now;
-        nextShootIn = 600 + Math.random() * 1800;
+      if (now - lastSpawn > nextIn) {
+        spawn();
+        if (Math.random() < 0.3) setTimeout(spawn, 200+Math.random()*400);
+        lastSpawn = now; nextIn = 600+Math.random()*1800;
       }
-      for (let i = shootingStars.length - 1; i >= 0; i--) {
-        const sh = shootingStars[i];
-        sh.x += sh.vx;
-        sh.y += sh.vy;
-        sh.life++;
-        const lr = sh.life / sh.maxLife;
-        const fade = lr < 0.12 ? lr / 0.12
-                  : lr > 0.7  ? Math.max(0, 1 - (lr - 0.7) / 0.3)
-                  : 1;
-        const speed = Math.hypot(sh.vx, sh.vy) || 1;
-        const ux = sh.vx / speed;
-        const uy = sh.vy / speed;
-        const tailX = sh.x - ux * sh.tailLen;
-        const tailY = sh.y - uy * sh.tailLen;
-        const grad = ctx.createLinearGradient(tailX, tailY, sh.x, sh.y);
-        grad.addColorStop(0,   sh.hue + '0)');
-        grad.addColorStop(0.6, sh.hue + (0.18 * fade) + ')');
-        grad.addColorStop(1,   sh.hue + (0.95 * fade) + ')');
-        ctx.strokeStyle = grad;
-        ctx.lineWidth   = sh.lineWidth;
-        ctx.lineCap     = 'round';
+
+      // Clip so stars only draw OUTSIDE the globe circle
+      const gs = globeScaleRef.current;
+      const clipping = gs.active && gs.scale > 0.05;
+      if (clipping) {
+        const ppu = H / (2 * 5 * TAN_HALF); // pixels per world unit
+        // Globe is centered at world [0,0] → screen center
+        const gx = W / 2;
+        const gy = H / 2;
+        const gr = 2.58 * ppu * gs.scale;   // sphere radius 2.5 + tiny atmo margin
+        ctx.save();
         ctx.beginPath();
-        ctx.moveTo(tailX, tailY);
-        ctx.lineTo(sh.x, sh.y);
-        ctx.stroke();
-        const headG = ctx.createRadialGradient(sh.x, sh.y, 0, sh.x, sh.y, 3);
-        headG.addColorStop(0, sh.hue + (0.7 * fade) + ')');
-        headG.addColorStop(1, sh.hue + '0)');
-        ctx.fillStyle = headG;
-        ctx.beginPath();
-        ctx.arc(sh.x, sh.y, 3, 0, Math.PI * 2);
-        ctx.fill();
-        if (sh.life >= sh.maxLife || sh.x < -200 || sh.x > W + 200 || sh.y > H + 200 || sh.y < -200) {
-          shootingStars.splice(i, 1);
-        }
+        ctx.rect(0, 0, W, H);              // full canvas (CW)
+        ctx.arc(gx, gy, gr, 0, Math.PI*2, true); // globe hole (CCW = subtract)
+        ctx.clip('evenodd');
       }
 
-      // --- Phase machine ---
-      const phase = phaseRef.current;
-      const elapsed = now - phaseStartRef.current;
-
-      if (phase === 'stars' && elapsed >= T_STARS_ONLY) {
-        phaseRef.current = 'text-in';
-        phaseStartRef.current = now;
-        setTextPhase('in');
-      } else if (phase === 'text-in' && elapsed >= T_TEXT_IN) {
-        // Build particles right when DOM text is fully visible — same metrics
-        buildParticles();
-        // Start crossfading DOM out
-        setTextPhase('fading');
-        phaseRef.current = 'settle';
-        phaseStartRef.current = now;
-      } else if (phase === 'settle' && elapsed >= T_SETTLE) {
-        setTextPhase('gone');
-        phaseRef.current = 'hold';
-        phaseStartRef.current = now;
-      } else if (phase === 'hold' && elapsed >= T_HOLD) {
-        setBlurStars(true);
-        phaseRef.current = 'snap';
-        phaseStartRef.current = now;
-      } else if (phase === 'snap' && elapsed >= T_SNAP) {
-        phaseRef.current = 'done';
-        setDismissing(true);
-        setTimeout(() => onComplete?.(), T_DISMISS_FADE);
+      for (let i = stars.length-1; i >= 0; i--) {
+        const s = stars[i];
+        s.x+=s.vx; s.y+=s.vy; s.life++;
+        const lr   = s.life/s.maxLife;
+        const fade = lr<0.12 ? lr/0.12 : lr>0.7 ? Math.max(0,1-(lr-0.7)/0.3) : 1;
+        const sp   = Math.hypot(s.vx,s.vy)||1;
+        const ux=s.vx/sp, uy=s.vy/sp;
+        const tx=s.x-ux*s.tail, ty=s.y-uy*s.tail;
+        const g=ctx.createLinearGradient(tx,ty,s.x,s.y);
+        g.addColorStop(0, s.hue+'0)');
+        g.addColorStop(0.6, s.hue+(0.18*fade)+')');
+        g.addColorStop(1, s.hue+(0.95*fade)+')');
+        ctx.strokeStyle=g; ctx.lineWidth=s.lw; ctx.lineCap='round';
+        ctx.beginPath(); ctx.moveTo(tx,ty); ctx.lineTo(s.x,s.y); ctx.stroke();
+        const hg=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,3);
+        hg.addColorStop(0, s.hue+(0.7*fade)+')');
+        hg.addColorStop(1, s.hue+'0)');
+        ctx.fillStyle=hg; ctx.beginPath(); ctx.arc(s.x,s.y,3,0,Math.PI*2); ctx.fill();
+        if (s.life>=s.maxLife||s.x<-200||s.x>W+200||Math.abs(s.y)>H+200) stars.splice(i,1);
       }
 
-      // --- Render text-particle layer ---
-      const ps = particlesRef.current;
-      if (ps.length) {
-        if (phase === 'settle') {
-          // Particles fade in 0 → 1 to crossfade with DOM text fading out
-          const t = elapsed / T_SETTLE;
-          for (const p of ps) {
-            ctx.fillStyle = `rgba(244, 241, 232, ${p.alphaBase * t})`;
-            ctx.fillRect(p.x, p.y, p.size, p.size);
-          }
-        } else if (phase === 'hold') {
-          for (const p of ps) {
-            ctx.fillStyle = `rgba(244, 241, 232, ${p.alphaBase})`;
-            ctx.fillRect(p.x, p.y, p.size, p.size);
-          }
-        } else if (phase === 'snap') {
-          const t = elapsed / T_SNAP;
-          for (const p of ps) {
-            if (t <= p.snapDelay) {
-              // Not yet released — still part of solid text
-              ctx.fillStyle = `rgba(244, 241, 232, ${p.alphaBase})`;
-              ctx.fillRect(p.x, p.y, p.size, p.size);
-              continue;
-            }
-            // Released — drift right, decay
-            const localT = t - p.snapDelay;     // 0..(1-snapDelay)
-            p.x += p.vx;
-            p.y += p.vy;
-            p.vx *= 0.992;
-            p.vy *= 0.992;
-            const alpha = Math.max(0, 1 - localT * p.decay * 3.5) * p.alphaBase;
-            if (alpha > 0.005) {
-              ctx.fillStyle = `rgba(244, 241, 232, ${alpha})`;
-              ctx.fillRect(p.x, p.y, p.size, p.size);
-            }
-          }
-        }
-      }
-
-      animRef.current = requestAnimationFrame(frame);
+      if (clipping) ctx.restore();
+      shootAnim.current = requestAnimationFrame(frame);
     }
 
     resize();
     window.addEventListener('resize', resize);
-    phaseStartRef.current = performance.now();
-    animRef.current = requestAnimationFrame(frame);
-
-    return () => {
-      cancelAnimationFrame(animRef.current);
-      window.removeEventListener('resize', resize);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onComplete]);
+    shootAnim.current = requestAnimationFrame(frame);
+    return () => { cancelAnimationFrame(shootAnim.current); window.removeEventListener('resize', resize); };
+  }, []);
 
   return (
     <div className={`landing-root ${dismissing ? 'dismissing' : ''}`}>
-      <div className={`landing-three ${blurStars ? 'blur' : ''}`}>
-        <Canvas
-          camera={{ position: [0, 0, 1], fov: 75 }}
-          gl={{ antialias: true, alpha: false }}
-          style={{ background: 'radial-gradient(ellipse at center, #060814 0%, #02030a 60%, #000 100%)' }}
-        >
-          <StarField />
-        </Canvas>
-      </div>
+      <Canvas
+        camera={{ position: [0, 0, 5], fov: 68 }}
+        gl={{ antialias: true, alpha: false }}
+        className="landing-three"
+        style={{ background: 'radial-gradient(ellipse at center, #060814 0%, #02030a 60%, #000 100%)' }}
+      >
+        <StarField />
+        <Suspense fallback={null}>
+          <EarthSphere active={earthActive} scaleRef={globeScaleRef} />
+        </Suspense>
+      </Canvas>
 
       <canvas ref={overlayRef} className="landing-overlay" />
 
-      <div className="landing-text-wrap">
-        <div
-          ref={textRef}
-          className={`landing-text ${textPhase}`}
-          style={{ fontFamily: FONT_STACK, fontWeight: FONT_WEIGHT }}
-        >
-          {TEXT}
+      {textPhase !== 'gone' && (
+        <div className="landing-text-wrap">
+          <p className={`landing-text lp-${textPhase}`}>Welcome to Settlr</p>
         </div>
-      </div>
+      )}
 
-      <button
-        className="landing-skip-btn"
-        onClick={() => onComplete?.()}
-        type="button"
-      >
-        Skip to Dashboard →
-      </button>
+      <nav className={`landing-nav ${navIn ? 'lp-in' : ''}`}>
+        <div className="landing-nav-brand">
+          <img src="/settlr-mark.svg" alt="Settlr" className="landing-nav-mark" />
+        </div>
+        <div className="landing-nav-links">
+          <button className="landing-nav-ghost">About Us</button>
+          <button className="landing-nav-ghost" onClick={goToDashboard}>Log In</button>
+          <button className="landing-nav-cta"   onClick={goToDashboard}>Try Settlr</button>
+        </div>
+      </nav>
+
+      {!navIn && (
+        <button className="landing-skip-btn" onClick={goToDashboard}>Skip →</button>
+      )}
     </div>
   );
 }

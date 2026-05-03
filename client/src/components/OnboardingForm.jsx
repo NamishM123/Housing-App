@@ -2,24 +2,22 @@ import { useMemo, useState } from 'react';
 import IncomeInput, { validateIncome } from './IncomeInput';
 import WorkLocationField from './WorkLocationField';
 
-const STRATEGIES = [
-  { id: 'splurge',  label: "I'll pay more for the right spot", sub: 'Up to 40%', pct: 0.40 },
-  { id: 'balanced', label: 'Comfortable middle ground',          sub: 'Around 30%', pct: 0.30 },
-  { id: 'aggressive', label: 'Save aggressively',                sub: 'Under 25%', pct: 0.22 },
-];
+const DEFAULT_RENT_PCT = 30;
+const MIN_RENT_PCT = 5;
+const MAX_RENT_PCT = 80;
 
 const SITUATIONS = [
-  { id: 'solo',      label: 'Solo',       sub: 'Just me' },
-  { id: 'partner',   label: 'Partner',    sub: 'Me and my person' },
-  { id: 'roommates', label: 'Roommates',  sub: 'Splitting rent' },
-  { id: 'family',    label: 'Family',     sub: 'Kids in the mix' },
+  { id: 'solo', label: 'Solo', sub: 'Just me' },
+  { id: 'partner', label: 'Partner', sub: 'Me and my person' },
+  { id: 'roommates', label: 'Roommates', sub: 'Splitting rent' },
+  { id: 'family', label: 'Family', sub: 'Kids in the mix' },
 ];
 
 const TOLERANCE = [
-  { id: 'walk',   label: 'Walk or bike',          sub: 'under 10 min' },
-  { id: 'short',  label: 'Short drive',           sub: '10–20 min' },
-  { id: 'long',   label: 'Worth it for savings',  sub: '20–35 min' },
-  { id: 'remote', label: 'Remote',                sub: 'I work from home' },
+  { id: 'walk', label: 'Walk or bike', sub: 'under 10 min' },
+  { id: 'short', label: 'Short drive', sub: '10–20 min' },
+  { id: 'long', label: 'Worth it for savings', sub: '20–35 min' },
+  { id: 'remote', label: 'Remote', sub: 'I work from home' },
 ];
 
 const ROOMMATE_OPTS = [1, 2, 3];
@@ -27,14 +25,14 @@ const ROOMMATE_OPTS = [1, 2, 3];
 const fmt = (n) => `$${Math.round(n).toLocaleString()}`;
 
 const workLabel = (situation) => {
-  if (situation === 'partner')   return 'Where do you both work?';
+  if (situation === 'partner') return 'Where do you both work?';
   if (situation === 'roommates') return 'Where does everyone work?';
   return 'Where do you work?';
 };
 
 export default function OnboardingForm({ onSubmit, loading }) {
   const [annualIncome, setAnnualIncome] = useState(65000);
-  const [strategy, setStrategy] = useState('balanced');
+  const [rentPct, setRentPct] = useState(DEFAULT_RENT_PCT);
   const [situation, setSituation] = useState('solo');
   const [partnerIncome, setPartnerIncome] = useState(null);
   const [roommateCount, setRoommateCount] = useState(1);
@@ -64,8 +62,10 @@ export default function OnboardingForm({ onSubmit, loading }) {
     (situation === 'partner' && partnerIncome) ||
     (situation === 'roommates' && Object.values(roommateIncomes).some(v => v));
 
-  const strategyPct = STRATEGIES.find(s => s.id === strategy)?.pct ?? 0.30;
+  const strategyPct = Math.max(MIN_RENT_PCT, Math.min(MAX_RENT_PCT, rentPct || DEFAULT_RENT_PCT)) / 100;
   const maxRent = Math.round((combinedAnnual * strategyPct) / 12);
+  const annualHousingEst = maxRent * 12;
+  const housingPctOfIncome = combinedAnnual > 0 ? ((annualHousingEst / combinedAnnual) * 100).toFixed(1) : 0;
 
   const validate = () => {
     const e = {};
@@ -99,7 +99,7 @@ export default function OnboardingForm({ onSubmit, loading }) {
 
     onSubmit({
       annualIncome,
-      housingStrategy: strategy,
+      housingStrategy: `custom-${rentPct}pct`,
       strategyPct,
       livingSituation: situation,
       partnerIncome: situation === 'partner' ? Number(partnerIncome) || null : null,
@@ -138,23 +138,53 @@ export default function OnboardingForm({ onSubmit, loading }) {
         />
       </section>
 
-      {/* Q2 — Housing strategy */}
+      {/* Q2 — Rent allocation % */}
       <section className="q-section">
-        <label className="q-label">How do you want to spend on rent?</label>
-        <span className="hint">Pick the one that sounds most like you.</span>
-        <div className="seg-stack">
-          {STRATEGIES.map(s => (
-            <button
-              key={s.id}
-              type="button"
-              className={`seg-row ${strategy === s.id ? 'active' : ''}`}
-              onClick={() => setStrategy(s.id)}
-            >
-              <span className="seg-label">{s.label}</span>
-              <span className="seg-sub">{s.sub}</span>
-            </button>
-          ))}
+        <label className="q-label">What % of income do you want to spend on rent?</label>
+        <span className="hint">Most people spend 25–35%. Type any number that works for you.</span>
+        <div className="rent-pct-input">
+          <input
+            type="number"
+            inputMode="numeric"
+            min={MIN_RENT_PCT}
+            max={MAX_RENT_PCT}
+            placeholder={String(DEFAULT_RENT_PCT)}
+            value={rentPct}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (v === '') { setRentPct(''); return; }
+              const n = parseInt(v, 10);
+              if (!Number.isNaN(n)) setRentPct(n);
+            }}
+            onBlur={() => {
+              if (rentPct === '' || rentPct < MIN_RENT_PCT) setRentPct(MIN_RENT_PCT);
+              if (rentPct > MAX_RENT_PCT) setRentPct(MAX_RENT_PCT);
+            }}
+          />
+          <span className="pct-suffix">%</span>
         </div>
+        {combinedAnnual > 0 && (
+          <div className="rent-estimate-box">
+            <div className="rent-estimate-row">
+              <span>Est. monthly rent budget</span>
+              <strong>{fmt(maxRent)}/mo</strong>
+            </div>
+            <div className="rent-estimate-row">
+              <span>Est. annual housing cost</span>
+              <strong>{fmt(annualHousingEst)}/yr</strong>
+            </div>
+            <div className="rent-estimate-row">
+              <span>That's</span>
+              <strong>{housingPctOfIncome}% of your income</strong>
+            </div>
+            {strategyPct > 0.40 && (
+              <span className="rent-warn">⚠️ Over 40% is considered cost-burdened</span>
+            )}
+            {strategyPct <= 0.28 && (
+              <span className="rent-good">✓ Under 28% — comfortable range</span>
+            )}
+          </div>
+        )}
       </section>
 
       {/* Q3 — Living situation */}
@@ -292,7 +322,8 @@ export default function OnboardingForm({ onSubmit, loading }) {
       </section>
 
       <div className="budget-preview">
-        Est. max rent at {Math.round(strategyPct * 100)}%: <strong>{fmt(maxRent)}/mo</strong>
+        Allocating {Math.round(strategyPct * 100)}% → <strong>{fmt(maxRent)}/mo</strong> max rent
+        {combinedAnnual > 0 && <span className="budget-annual"> · {fmt(annualHousingEst)}/yr of {fmt(combinedAnnual)}/yr income</span>}
       </div>
 
       <button type="submit" className="submit-btn" disabled={loading}>

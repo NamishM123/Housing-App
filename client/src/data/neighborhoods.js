@@ -11,6 +11,8 @@ export const NEIGHBORHOODS = [
     noiseLevel: 'loud',
     noiseSources: ['Thursday night Farmers Market', 'bar & restaurant traffic', 'Higuera St weekend crowds'],
     parkingDifficulty: 'hard',
+    minZoom: 11.5,         // only show when zoomed into SLO
+    parentId: 'slo-city', // belongs to the San Luis Obispo parent area
     localInsights: [
       'Thursday Farmers Market closes Higuera St weekly — plan errands around it',
       'Street parking strictly enforced; most spots are 2-hr limit',
@@ -43,6 +45,8 @@ export const NEIGHBORHOODS = [
     noiseLevel: 'moderate',
     noiseSources: ['student parties (Fri–Sat)', 'campus events', 'move-in/out cycles'],
     parkingDifficulty: 'moderate',
+    minZoom: 11.5,         // only show when zoomed into SLO
+    parentId: 'slo-city', // belongs to the San Luis Obispo parent area
     localInsights: [
       'Rental market peaks Aug–Sept; sign leases early or pay a premium',
       'Many landlords require co-signers for student renters',
@@ -62,6 +66,40 @@ export const NEIGHBORHOODS = [
       [-120.645, 35.295],
       [-120.680, 35.295],
       [-120.680, 35.315],
+    ],
+  },
+  // ── Parent area: San Luis Obispo (visible at low zoom, replaced by sub-hoods when zoomed in)
+  {
+    id: 'slo-city',
+    name: 'San Luis Obispo',
+    zip: '93401',
+    center: [-120.6630, 35.2980],
+    avgRent: 2300,
+    walkScore: 80,
+    vibes: ['urban', 'college'],
+    noiseLevel: 'moderate',
+    noiseSources: ['downtown bar traffic', 'campus events', 'Farmers Market'],
+    parkingDifficulty: 'moderate',
+    maxZoom: 11.5,         // hidden once user zooms in (sub-hoods take over)
+    localInsights: [
+      'Zoom in to explore Downtown SLO and the Cal Poly Area separately',
+      'Central location with easy access to the coast and wine country',
+      'Strong rental market year-round driven by Cal Poly enrollment',
+      'Thursday Farmers Market is a community anchor — plan around it',
+      'SLO is consistently ranked among the happiest cities in the US',
+    ],
+    recentNews: [
+      { category: 'Housing', headline: 'SLO City Council approves 48-unit mixed-use project near train station', date: 'Mar 2025' },
+      { category: 'Transport', headline: 'SLO Transit adds late-night route connecting downtown to LOVR', date: 'Feb 2025' },
+      { category: 'Development', headline: 'Downtown parking structure on Palm St undergoing renovation', date: 'Apr 2025' },
+      { category: 'Events', headline: 'Thursday Farmers Market season kicks off — Higuera closed weekly', date: 'Apr 2025' },
+    ],
+    polygon: [
+      [-120.690, 35.320],
+      [-120.635, 35.320],
+      [-120.635, 35.265],
+      [-120.690, 35.265],
+      [-120.690, 35.320],
     ],
   },
   {
