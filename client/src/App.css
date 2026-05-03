@@ -4181,9 +4181,9 @@ input.error {
 .map-container .mapboxgl-ctrl-group {
   position: relative;
   isolation: isolate;
-  background: rgba(17, 25, 39, 0.78);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(8, 12, 24, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 14px;
   box-shadow:
