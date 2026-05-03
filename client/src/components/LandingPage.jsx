@@ -70,10 +70,10 @@ function MapboxGlobe({ active, globeScreenRef }) {
 
     map.on('style.load', () => {
       map.setFog({
-        color:            'rgb(0, 0, 5)',
-        'high-color':     'rgb(0, 3, 15)',
-        'horizon-blend':  0.08,
-        'space-color':    'rgb(0, 0, 0)',
+        color:            'rgb(20, 70, 160)',   // blue atmosphere at horizon
+        'high-color':     'rgb(40, 120, 220)',  // bright upper atmosphere
+        'horizon-blend':  0.2,                 // wide glow spread
+        'space-color':    'rgb(0, 0, 0)',       // pure black — neutral for screen blend
         'star-intensity': 0,
       });
     });
@@ -258,18 +258,21 @@ export default function LandingPage({ onComplete }) {
 
   return (
     <div className={`landing-root ${dismissing ? 'dismissing' : ''}`}>
-      {/* Three.js starfield — background layer */}
+      {/* Three.js starfield — transparent canvas; root div supplies the dark bg */}
       <Canvas
         camera={{ position: [0, 0, 5], fov: 68 }}
-        gl={{ antialias: true, alpha: false }}
+        gl={{ antialias: true, alpha: true }}
         className="landing-three"
-        style={{ background: 'radial-gradient(ellipse at center, #060814 0%, #02030a 60%, #000 100%)' }}
+        onCreated={({ gl }) => gl.setClearColor(0, 0, 0, 0)}
       >
         <StarField />
       </Canvas>
 
-      {/* Mapbox globe — fades in over stars when Earth phase begins */}
+      {/* Mapbox globe — screen-blend so black space = transparent → stars show through */}
       <MapboxGlobe active={earthActive} globeScreenRef={globeScreenRef} />
+
+      {/* Atmospheric glow ring — fades in with the globe */}
+      {earthActive && <div className="landing-globe-glow" />}
 
       {/* Shooting-star overlay */}
       <canvas ref={overlayRef} className="landing-overlay" />
