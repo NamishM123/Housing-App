@@ -1745,47 +1745,6 @@ input.error {
   font-size: 11px;
 }
 
-/* ── Room Layout ──────────────────────────────────── */
-.room-layout {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.room-label {
-  font-size: 13px;
-  color: var(--text-muted);
-  font-weight: 600;
-}
-
-.room-svg-wrapper {
-  overflow-x: auto;
-}
-
-.room-svg {
-  display: block;
-}
-
-.room-note {
-  font-size: 11px;
-  color: var(--text-muted);
-  text-align: center;
-  font-style: italic;
-}
-
-.room-dims-form {
-  margin-bottom: 8px;
-}
-
-.room-dims-form h3 {
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
-  margin-bottom: 8px;
-}
-
 /* ── Checklist ────────────────────────────────────── */
 .checklist {
   display: flex;

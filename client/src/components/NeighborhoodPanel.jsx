@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react';
 import { fetchNeighborhoodReviews } from '../utils/api';
-import RoomLayout from './RoomLayout';
 import ListingsPanel from './ListingsPanel';
 
 const UTILITIES = { pge: 95, water: 45, internet: 70 };
 const TOTAL_UTILITIES = Object.values(UTILITIES).reduce((a, b) => a + b, 0);
 
 export default function NeighborhoodPanel({ open, activeTab, neighborhood, form, onClose, listings, listingsLoading, searchUrls, shortlist, onShortlist, onEditProfile }) {
-  const [roomDims, setRoomDims]               = useState({ width: 12, length: 14 });
   const [reviews, setReviews]                 = useState(null);
   const [reviewsLoading, setReviewsLoading]   = useState(false);
   const [reviewsError, setReviewsError]       = useState(null);
@@ -124,28 +122,6 @@ export default function NeighborhoodPanel({ open, activeTab, neighborhood, form,
               </div>
             )}
             {!neighborhood.noiseLevel && <p className="muted">No local insights available yet.</p>}
-          </div>
-        )}
-
-        {/* Room Layout */}
-        {activeTab === 'layout' && (
-          <div className="layout-tab">
-            <div className="room-dims-form">
-              <h3>Room Dimensions</h3>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Width (ft)</label>
-                  <input type="number" min="6" max="40" value={roomDims.width}
-                    onChange={e => setRoomDims(d => ({ ...d, width: Number(e.target.value) }))} />
-                </div>
-                <div className="form-group">
-                  <label>Length (ft)</label>
-                  <input type="number" min="6" max="50" value={roomDims.length}
-                    onChange={e => setRoomDims(d => ({ ...d, length: Number(e.target.value) }))} />
-                </div>
-              </div>
-            </div>
-            <RoomLayout width={roomDims.width} length={roomDims.length} />
           </div>
         )}
 
