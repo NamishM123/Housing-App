@@ -652,22 +652,44 @@ export default function MapView({
 
       {/* Directions floating panel — bottom LEFT */}
       <div className={`route-panel ${routeOpen ? 'open' : ''}`}>
-        <button
-          className="route-toggle-btn"
-          onClick={() => { setRouteOpen(o => !o); if (routeOpen) handleClearRoute(); }}
-        >
-          {routeOpen ? '✕ Close' : '↗ Directions'}
-        </button>
+        {!routeOpen ? (
+          <GlowCard
+            as="button"
+            className="route-toggle-btn"
+            radius={18}
+            border={2}
+            size={220}
+            glowColor="blue"
+            onClick={() => setRouteOpen(true)}
+          >
+            Directions
+          </GlowCard>
+        ) : (
+          <GlowCard
+            className="route-panel-body"
+            radius={22}
+            border={2}
+            size={280}
+            glowColor="blue"
+          >
+            <button
+              className="route-minimize-btn"
+              onClick={() => { setRouteOpen(false); handleClearRoute(); }}
+              aria-label="Minimize directions"
+              title="Minimize"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+                <path d="M5 12h14" />
+              </svg>
+            </button>
 
-        {routeOpen && (
-          <div className="route-panel-body">
             {/* Origin label */}
             <div className="route-origin-label">
               <span className="route-origin-dot" />
               <span>
                 {selectedListing
-                  ? <><strong style={{ color: '#38bdf8' }}>From:</strong> {selectedListing.address}</>
-                  : <span style={{ color: '#64748b' }}>Click a listing pin to set origin</span>
+                  ? <><strong className="route-from-label">From:</strong> {selectedListing.address}</>
+                  : <span className="route-origin-empty">Click a listing pin to set origin</span>
                 }
               </span>
             </div>
@@ -747,7 +769,7 @@ export default function MapView({
                 <button className="route-clear-btn" onClick={handleClearRoute}>Clear route</button>
               </div>
             )}
-          </div>
+          </GlowCard>
         )}
       </div>
 
