@@ -14,7 +14,7 @@ import {
 const TILES = [
   { id: 'listings',  Icon: Home,           label: 'Listings' },
   { id: 'costs',     Icon: DollarSign,     label: 'Costs' },
-  { id: 'walkscore', Icon: Footprints,     label: 'Walk' },
+  { id: 'walkscore', Icon: Footprints,     label: 'Walkability' },
   { id: 'insights',  Icon: MapPin,         label: 'Insights' },
   { id: 'layout',    Icon: Sofa,           label: 'Room' },
   { id: 'checklist', Icon: ClipboardCheck, label: 'Checklist' },
@@ -69,17 +69,17 @@ export default function NeighborhoodDrawer({
           <h2 className="nbr-name">{neighborhood.name}</h2>
           <div className="nbr-quick-stats">
             <span className="nbr-stat">${neighborhood.avgRent.toLocaleString()}<span className="nbr-stat-unit">/mo avg</span></span>
-            <span className="nbr-sep">·</span>
+            <span className="nbr-sep">|</span>
             <span className="nbr-stat">Walk {neighborhood.walkScore}</span>
             {neighborhood.noiseLevel && (
               <>
-                <span className="nbr-sep">·</span>
+                <span className="nbr-sep">|</span>
                 <span className={`nbr-quick-badge ${noiseCls}`}>{neighborhood.noiseLevel} noise</span>
               </>
             )}
             {neighborhood.parkingDifficulty && (
               <>
-                <span className="nbr-sep">·</span>
+                <span className="nbr-sep">|</span>
                 <span className={`nbr-quick-badge ${parkingCls}`}>{neighborhood.parkingDifficulty} parking</span>
               </>
             )}
