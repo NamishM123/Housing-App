@@ -88,7 +88,7 @@ export default function MapView({
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/satellite-streets-v12',
-        center: [-108, 32],
+        center: [-120.66, 36.0],
         zoom: 5.4,
         pitch: 0,
         bearing: 0,

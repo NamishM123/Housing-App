@@ -1,12 +1,79 @@
 import { useEffect, useRef } from 'react';
 
 const COLOR_MAP = {
-  blue:   { base: 210, spread: 30 },
-  purple: { base: 280, spread: 60 },
-  green:  { base: 140, spread: 40 },
-  red:    { base: 0,   spread: 30 },
-  orange: { base: 30,  spread: 30 },
+  blue:   { hue: 210 },
+  purple: { hue: 280 },
+  green:  { hue: 140 },
+  red:    { hue: 0 },
+  orange: { hue: 30 },
 };
+
+let injected = false;
+function injectStyles() {
+  if (injected || typeof document === 'undefined') return;
+  injected = true;
+  const css = `
+    .glow-card {
+      position: relative;
+      isolation: isolate;
+      background-color: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: border-color 0.25s ease;
+    }
+    .glow-card:hover {
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+    .glow-card::before,
+    .glow-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      opacity: var(--glow-active, 0);
+      transition: opacity 0.35s ease;
+    }
+    /* Inner soft spotlight on the card surface */
+    .glow-card::before {
+      background: radial-gradient(
+        var(--glow-size, 220px) var(--glow-size, 220px) at var(--glow-x, 50%) var(--glow-y, 50%),
+        hsla(var(--glow-hue, 210), 95%, 70%, 0.22),
+        hsla(var(--glow-hue, 210), 95%, 70%, 0.08) 35%,
+        transparent 70%
+      );
+      z-index: 0;
+    }
+    /* Glowing border ring — built with mask-composite: exclude */
+    .glow-card::after {
+      padding: var(--glow-border, 2px);
+      background: radial-gradient(
+        var(--glow-size, 220px) var(--glow-size, 220px) at var(--glow-x, 50%) var(--glow-y, 50%),
+        hsla(var(--glow-hue, 210), 100%, 75%, 1),
+        hsla(var(--glow-hue, 210), 100%, 70%, 0.5) 30%,
+        transparent 70%
+      );
+      -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      z-index: 1;
+      filter: brightness(1.15);
+    }
+    .glow-card > * {
+      position: relative;
+      z-index: 2;
+    }
+  `;
+  const style = document.createElement('style');
+  style.setAttribute('data-glow-card-styles', '');
+  style.textContent = css;
+  document.head.appendChild(style);
+}
 
 const GlowCard = ({
   children,
@@ -22,6 +89,7 @@ const GlowCard = ({
   const cardRef = useRef(null);
 
   useEffect(() => {
+    injectStyles();
     const el = cardRef.current;
     if (!el) return;
 
@@ -29,13 +97,12 @@ const GlowCard = ({
       const rect = el.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
-      el.style.setProperty('--x', x.toFixed(2));
-      el.style.setProperty('--y', y.toFixed(2));
-      el.style.setProperty('--xp', (x / rect.width).toFixed(2));
-      el.style.setProperty('--active', '1');
+      el.style.setProperty('--glow-x', `${x}px`);
+      el.style.setProperty('--glow-y', `${y}px`);
+      el.style.setProperty('--glow-active', '1');
     };
     const onLeave = () => {
-      el.style.setProperty('--active', '0');
+      el.style.setProperty('--glow-active', '0');
     };
 
     el.addEventListener('pointermove', onMove);
@@ -48,81 +115,28 @@ const GlowCard = ({
     };
   }, []);
 
-  const { base, spread } = COLOR_MAP[glowColor] || COLOR_MAP.blue;
+  const { hue } = COLOR_MAP[glowColor] || COLOR_MAP.blue;
 
   const inlineVars = {
-    '--base': base,
-    '--spread': spread,
-    '--radius': radius,
-    '--border': border,
-    '--size': size,
-    '--active': 0,
-    '--border-size': 'calc(var(--border) * 1px)',
-    '--spotlight-size': 'calc(var(--size) * 1px)',
-    '--hue': 'calc(var(--base) + (var(--xp, 0) * var(--spread)))',
-    backgroundImage: `radial-gradient(
-      var(--spotlight-size) var(--spotlight-size) at
-      calc(var(--x, -999) * 1px) calc(var(--y, -999) * 1px),
-      hsl(var(--hue, 210) 80% 65% / calc(0.10 * var(--active, 0))),
-      transparent
-    )`,
-    backgroundColor: 'rgba(15, 23, 42, 0.55)',
-    backgroundRepeat: 'no-repeat',
-    border: 'var(--border-size) solid rgba(255, 255, 255, 0.07)',
-    borderRadius: 'calc(var(--radius) * 1px)',
-    position: 'relative',
-    touchAction: 'none',
-    backdropFilter: 'blur(8px)',
-    transition: 'border-color 0.25s ease',
+    '--glow-hue': hue,
+    '--glow-size': `${size}px`,
+    '--glow-border': `${border}px`,
+    '--glow-active': 0,
+    '--glow-x': '50%',
+    '--glow-y': '50%',
+    borderRadius: `${radius}px`,
     ...style,
   };
 
   return (
-    <>
-      <style>{`
-        [data-glow]::before,
-        [data-glow]::after {
-          pointer-events: none;
-          content: "";
-          position: absolute;
-          inset: calc(var(--border-size) * -1);
-          border: var(--border-size) solid transparent;
-          border-radius: calc(var(--radius) * 1px);
-          background-repeat: no-repeat;
-          mask:
-            linear-gradient(transparent, transparent),
-            linear-gradient(white, white);
-          mask-clip: padding-box, border-box;
-          mask-composite: intersect;
-          opacity: var(--active, 0);
-          transition: opacity 0.25s ease;
-        }
-        [data-glow]::before {
-          background-image: radial-gradient(
-            calc(var(--spotlight-size) * 0.75) calc(var(--spotlight-size) * 0.75) at
-            calc(var(--x, -999) * 1px) calc(var(--y, -999) * 1px),
-            hsl(var(--hue, 210) 85% 60% / 0.95), transparent 100%
-          );
-          filter: brightness(1.6);
-        }
-        [data-glow]::after {
-          background-image: radial-gradient(
-            calc(var(--spotlight-size) * 0.5) calc(var(--spotlight-size) * 0.5) at
-            calc(var(--x, -999) * 1px) calc(var(--y, -999) * 1px),
-            hsl(0 0% 100% / 0.85), transparent 100%
-          );
-        }
-      `}</style>
-      <Tag
-        ref={cardRef}
-        data-glow=""
-        style={inlineVars}
-        className={`glow-card ${className}`}
-        {...rest}
-      >
-        {children}
-      </Tag>
-    </>
+    <Tag
+      ref={cardRef}
+      style={inlineVars}
+      className={`glow-card ${className}`}
+      {...rest}
+    >
+      {children}
+    </Tag>
   );
 };
 
