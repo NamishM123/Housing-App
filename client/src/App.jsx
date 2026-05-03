@@ -177,6 +177,7 @@ export default function App() {
             shortlist={shortlist}
             onListingSelect={handleListingSelect}
             selectedListing={selectedListing}
+            landingActive={showLanding}
           />
         </main>
 

@@ -31,7 +31,7 @@
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  transform: translateY(-10vh);
+  transform: translateY(-4vh);
   transition: transform 0.8s cubic-bezier(0.22, 0.9, 0.32, 1),
               -webkit-mask-image 0.6s ease,
               mask-image 0.6s ease;
@@ -45,14 +45,6 @@
     rgba(0,0,0,1) 0%,
     rgba(0,0,0,1) 38%,
     rgba(0,0,0,0) 62%);
-}
-
-/* During the Try-Settlr fly-in: drop the circular mask + vertical offset so
-   the map fills the screen as the camera zooms into California. */
-.landing-mapbox-frame.flying {
-  transform: translateY(0);
-  -webkit-mask-image: linear-gradient(#000, #000);
-  mask-image: linear-gradient(#000, #000);
 }
 
 .landing-mapbox {
@@ -249,7 +241,7 @@
 .landing-cta-wrap {
   position: absolute;
   left: 50%;
-  bottom: 14vh;
+  bottom: 8vh;
   transform: translateX(-50%);
   z-index: 12;
   opacity: 0;

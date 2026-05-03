@@ -32,13 +32,6 @@ const GLOBE_END_LNG  = 265;       // 265°E = -95°W (going east through Pacific
 const GLOBE_DURATION = 3200;      // ms — initial sweep
 const GLOBE_SPIN_DPS = 6;         // continuous spin after sweep, deg/sec
 
-// Try-Settlr fly-in: shift earth right, then zoom from US down to California
-const FLY_PAN_MS     = 900;       // pan globe rightward
-const FLY_HOLD_MS    = 250;       // brief hold at globe-out level after pan
-const FLY_ZOOM_MS    = 2400;      // US → California zoom
-const FLY_TARGET     = [-120.66, 36.0];   // San Luis Obispo, CA
-const FLY_END_ZOOM   = 5.4;
-
 function StarField() {
   const ref = useRef();
   useFrame((_, delta) => {
@@ -55,53 +48,10 @@ function StarField() {
   );
 }
 
-function MapboxGlobe({ active, flying }) {
+function MapboxGlobe({ active }) {
   const containerRef = useRef(null);
   const mapRef       = useRef(null);
   const rafRef       = useRef(null);
-  const stoppedRef   = useRef(false);
-
-  // Trigger right-shift + fly-into-California when `flying` becomes true.
-  useEffect(() => {
-    if (!flying) return;
-    const map = mapRef.current;
-    if (!map) return;
-
-    stoppedRef.current = true;
-    if (rafRef.current) {
-      cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
-    }
-
-    const padLeft = Math.min(window.innerWidth * 0.35, 480);
-    map.easeTo({
-      padding: { top: 0, right: 0, bottom: 0, left: padLeft },
-      duration: FLY_PAN_MS,
-      easing: (t) => 1 - Math.pow(1 - t, 3),
-    });
-
-    const t1 = setTimeout(() => {
-      map.flyTo({
-        center: FLY_TARGET,
-        zoom:   FLY_END_ZOOM,
-        duration: FLY_ZOOM_MS,
-        essential: true,
-        easing: (t) => 1 - Math.pow(1 - t, 3),
-      });
-    }, FLY_PAN_MS + FLY_HOLD_MS);
-
-    // Ease padding back to 0 near the end of the flyTo so the dashboard
-    // (no padding) takes over without a horizontal snap.
-    const t2 = setTimeout(() => {
-      map.easeTo({
-        padding: { top: 0, right: 0, bottom: 0, left: 0 },
-        duration: 700,
-        easing: (t) => 1 - Math.pow(1 - t, 3),
-      });
-    }, FLY_PAN_MS + FLY_HOLD_MS + FLY_ZOOM_MS - 700);
-
-    return () => { clearTimeout(t1); clearTimeout(t2); };
-  }, [flying]);
 
   useEffect(() => {
     if (!active || !containerRef.current || mapRef.current) return;
@@ -181,10 +131,8 @@ function MapboxGlobe({ active, flying }) {
       }
       const normalizedLng = ((lng + 180) % 360 + 360) % 360 - 180;
 
-      if (stoppedRef.current) return;
       map.setCenter([normalizedLng, GLOBE_LAT]);
 
-      if (stoppedRef.current) return;
       rafRef.current = requestAnimationFrame(animate);
     }
 
@@ -218,7 +166,6 @@ export default function LandingPage({ onComplete }) {
   const [textPhase,   setTextPhase]   = useState('hidden');
   const [navIn,       setNavIn]       = useState(false);
   const [dismissing,  setDismissing]  = useState(false);
-  const [flying,      setFlying]      = useState(false);
 
   // Track globe screen position so shooting stars can be clipped around it
   useEffect(() => {
@@ -269,13 +216,8 @@ export default function LandingPage({ onComplete }) {
   }, [textPhase]);
 
   function goToDashboard() {
-    if (flying) return;
-    setFlying(true);
-    setNavIn(false);
-    const totalFly = FLY_PAN_MS + FLY_HOLD_MS + FLY_ZOOM_MS;
-    // Start fading out a bit before flyTo finishes so the dashboard reveals smoothly
-    setTimeout(() => setDismissing(true), totalFly - 500);
-    setTimeout(() => onComplete?.(),     totalFly + 200);
+    setDismissing(true);
+    setTimeout(() => onComplete?.(), 650);
   }
 
   // ── Phase orchestration ──────────────────────────────────────────────────
@@ -413,8 +355,8 @@ export default function LandingPage({ onComplete }) {
       </Canvas>
 
       {/* Mapbox globe — same as dashboard, no labels, fills screen */}
-      <div className={`landing-mapbox-frame ${flying ? 'flying' : ''}`}>
-        <MapboxGlobe active={earthActive} flying={flying} />
+      <div className="landing-mapbox-frame">
+        <MapboxGlobe active={earthActive} />
       </div>
 
       {/* Shooting-star overlay */}

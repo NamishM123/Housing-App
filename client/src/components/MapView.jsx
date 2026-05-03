@@ -55,6 +55,7 @@ export default function MapView({
   onNeighborhoodSelect, selectedId,
   listings, shortlist, onListingSelect,
   selectedListing,
+  landingActive = false,
 }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
@@ -63,6 +64,7 @@ export default function MapView({
   const destMarkerRef = useRef(null);
   const animFrameRef = useRef(null);
   const monthlyIncomeRef = useRef(monthlyIncome);
+  const flownRef = useRef(false);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState(false);
   const [mapZoom, setMapZoom] = useState(9.5);
@@ -88,8 +90,9 @@ export default function MapView({
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/satellite-streets-v12',
-        center: [-120.66, 36.0],
-        zoom: 5.4,
+        projection: 'globe',
+        center: [-95, 25],   // US-prominent globe view (shifted right by padding below)
+        zoom: 1.45,          // matches landing globe zoom
         pitch: 0,
         bearing: 0,
         antialias: true,
@@ -143,6 +146,14 @@ export default function MapView({
           }
         });
 
+        // Push the globe rightward so the US sits in the right portion of the
+        // viewport (the form sidebar covers the left ~440px once the landing
+        // dismisses). The fly-into-California ease eases this back to 0.
+        map.current.setPadding({
+          top: 0, right: 0, bottom: 0,
+          left: Math.min(window.innerWidth * 0.32, 460),
+        });
+
         setMapLoaded(true);
       });
 
@@ -155,6 +166,33 @@ export default function MapView({
 
     return () => { if (map.current) { map.current.remove(); map.current = null; } };
   }, []);
+
+  // ── Cinematic intro: when the landing dismisses, fly the camera from the
+  //    US-prominent globe view down into California (SLO).
+  useEffect(() => {
+    if (landingActive) return;
+    if (flownRef.current) return;
+    if (!mapLoaded || !map.current) return;
+    flownRef.current = true;
+
+    const m = map.current;
+
+    // Quick beat at globe-out, then fly into California while easing the
+    // right-shift padding back to 0.
+    const flyDelay = 350;
+    const t = setTimeout(() => {
+      m.flyTo({
+        center: [-120.66, 36.0],
+        zoom: 5.4,
+        duration: 2600,
+        essential: true,
+        easing: (x) => 1 - Math.pow(1 - x, 3),
+        padding: { top: 0, right: 0, bottom: 0, left: 0 },
+      });
+    }, flyDelay);
+
+    return () => clearTimeout(t);
+  }, [landingActive, mapLoaded]);
 
   // ── Neighborhood overlays (heatmap-style glow + event fill + outline + label) ──
   useEffect(() => {
