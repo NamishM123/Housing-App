@@ -71,15 +71,34 @@
 
 .landing-text {
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45em;
+  opacity: 0;
+  transform: scale(0.55);
+  will-change: opacity, transform;
+}
+
+.landing-text-line {
   font-family: 'Montserrat', 'Helvetica Neue', system-ui, sans-serif;
   font-weight: 300;
   font-size: clamp(2rem, 5vw, 4.4rem);
   letter-spacing: 0.06em;
   color: #f4f1e8;
   white-space: nowrap;
-  opacity: 0;
-  transform: scale(0.55);
-  will-change: opacity, transform;
+  display: block;
+}
+
+/* Height is tuned so the white letter cap-height matches the "Welcome to" font size.
+   The SVG viewBox includes the orange mark above the letters (~35% of total height),
+   so we scale up by 1/0.354 relative to the desired cap-height. */
+.landing-wordmark-img {
+  height: clamp(4.5rem, 10vw, 9rem);
+  width: auto;
+  display: block;
+  user-select: none;
+  pointer-events: none;
 }
 
 /* fade in + scale out from center */

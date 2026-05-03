@@ -282,7 +282,15 @@ export default function LandingPage({ onComplete }) {
 
       {textPhase !== 'gone' && (
         <div className="landing-text-wrap">
-          <p className={`landing-text lp-${textPhase}`}>Welcome to Settlr</p>
+          <div className={`landing-text lp-${textPhase}`}>
+            <span className="landing-text-line">Welcome to</span>
+            <img
+              src="/settlr-landing-wordmark.svg"
+              alt="Settlr"
+              className="landing-wordmark-img"
+              draggable={false}
+            />
+          </div>
         </div>
       )}
 
