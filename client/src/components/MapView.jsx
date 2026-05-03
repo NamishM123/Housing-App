@@ -92,6 +92,13 @@ export default function MapView({
         pitch: 0,
         bearing: 0,
         antialias: true,
+        // Don't repeat the world horizontally — at low zoom this caused listing
+        // markers to wrap and appear at lng+360 / lng-360 across the screen.
+        renderWorldCopies: false,
+        // Hard floor on zoom-out. Below ~6 Mapbox starts globe rendering and
+        // HTML markers misproject onto the curved surface, scattering pins
+        // across the globe instead of staying at SLO.
+        minZoom: 5,
       });
 
       map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
@@ -500,6 +507,9 @@ export default function MapView({
   // After form submit: dramatic globe → SLO zoom-in
   useEffect(() => {
     if (!mapLoaded || !map.current || !monthlyIncome) return;
+    // Once listings are on the map, prevent zoom-out into the globe range —
+    // beyond this Mapbox HTML markers misproject and pins drift off SLO.
+    map.current.setMinZoom(8);
     map.current.flyTo({
       center: [-120.68, 35.27],
       zoom: 9.5,
