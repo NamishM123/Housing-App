@@ -25,10 +25,11 @@ const T_EARTH_NAV = 3600;
 
 // Mapbox globe animation
 const GLOBE_ZOOM     = 1.5;
-const GLOBE_START    = [120, 5];  // Indonesia
+const GLOBE_LAT      = 25;        // constant lat — no tilt during sweep
+const GLOBE_START    = [120, GLOBE_LAT];  // Indonesia
 const GLOBE_END_LNG  = 265;       // 265°E = -95°W (going east through Pacific)
-const GLOBE_END_LAT  = 40;
-const GLOBE_DURATION = 3200;      // ms
+const GLOBE_DURATION = 3200;      // ms — initial sweep
+const GLOBE_SPIN_DPS = 6;         // continuous spin after sweep, deg/sec
 
 function StarField() {
   const ref = useRef();
@@ -87,19 +88,30 @@ function MapboxGlobe({ active }) {
     });
 
     let startTime = null;
+    let lastTime  = null;
+    let lng       = GLOBE_START[0];
 
     function animate(now) {
       if (!startTime) startTime = now;
+      if (!lastTime)  lastTime  = now;
+      const dt    = (now - lastTime) / 1000;
+      lastTime    = now;
+
       const t    = Math.min(1, (now - startTime) / GLOBE_DURATION);
       const ease = easeOutQuart(t);
 
-      const lng           = GLOBE_START[0] + (GLOBE_END_LNG - GLOBE_START[0]) * ease;
-      const lat           = GLOBE_START[1] + (GLOBE_END_LAT  - GLOBE_START[1]) * ease;
-      const normalizedLng = lng > 180 ? lng - 360 : lng;
+      if (t < 1) {
+        // initial sweep — eased eastward, constant lat (no tilt)
+        lng = GLOBE_START[0] + (GLOBE_END_LNG - GLOBE_START[0]) * ease;
+      } else {
+        // continuous smooth eastward spin
+        lng += GLOBE_SPIN_DPS * dt;
+      }
+      const normalizedLng = ((lng + 180) % 360 + 360) % 360 - 180;
 
-      map.setCenter([normalizedLng, lat]);
+      map.setCenter([normalizedLng, GLOBE_LAT]);
 
-      if (t < 1) rafRef.current = requestAnimationFrame(animate);
+      rafRef.current = requestAnimationFrame(animate);
     }
 
     map.once('load', () => {
@@ -125,11 +137,61 @@ export default function LandingPage({ onComplete }) {
   const overlayRef     = useRef(null);
   const shootAnim      = useRef(null);
   const globeScreenRef = useRef({ active: false, x: 0, y: 0, radius: 0 });
+  const textRef        = useRef(null);
+  const textRectRef    = useRef(null);
 
   const [earthActive, setEarthActive] = useState(false);
   const [textPhase,   setTextPhase]   = useState('hidden');
   const [navIn,       setNavIn]       = useState(false);
   const [dismissing,  setDismissing]  = useState(false);
+
+  // Track globe screen position so shooting stars can be clipped around it
+  useEffect(() => {
+    if (!earthActive) {
+      globeScreenRef.current = { active: false, x: 0, y: 0, radius: 0 };
+      return;
+    }
+    const update = () => {
+      const W = window.innerWidth;
+      const H = window.innerHeight;
+      globeScreenRef.current = {
+        active: true,
+        x: W / 2,
+        y: H / 2,
+        radius: Math.min(W, H) * 0.44,
+      };
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, [earthActive]);
+
+  // Track text bounding rect (changes during scale animation) so shooting
+  // stars don't streak through the words
+  useEffect(() => {
+    if (textPhase === 'gone' || textPhase === 'hidden') {
+      textRectRef.current = null;
+      return;
+    }
+    const update = () => {
+      if (textRef.current) {
+        const r = textRef.current.getBoundingClientRect();
+        textRectRef.current = {
+          x: r.left,
+          y: r.top,
+          w: r.width,
+          h: r.height,
+        };
+      }
+    };
+    update();
+    const id = setInterval(update, 60);
+    window.addEventListener('resize', update);
+    return () => {
+      clearInterval(id);
+      window.removeEventListener('resize', update);
+    };
+  }, [textPhase]);
 
   function goToDashboard() {
     setDismissing(true);
@@ -201,14 +263,28 @@ export default function LandingPage({ onComplete }) {
         lastSpawn = now; nextIn = 600+Math.random()*1800;
       }
 
-      // Clip shooting stars to appear only OUTSIDE the globe
-      const gs       = globeScreenRef.current;
-      const clipping = gs.active && gs.radius > 10;
+      // Clip shooting stars so they never streak across the globe or text.
+      // Build a single evenodd clip path: outer rect = include, nested holes
+      // (globe disc, text bbox) = exclude.
+      const gs        = globeScreenRef.current;
+      const tr        = textRectRef.current;
+      const clipGlobe = gs.active && gs.radius > 10;
+      const clipText  = !!tr && tr.w > 1 && tr.h > 1;
+      const clipping  = clipGlobe || clipText;
       if (clipping) {
         ctx.save();
         ctx.beginPath();
         ctx.rect(0, 0, W, H);
-        ctx.arc(gs.x, gs.y, gs.radius, 0, Math.PI*2, true); // CCW = punch hole
+        if (clipGlobe) {
+          // Sub-path for the globe disc — evenodd makes it a hole.
+          ctx.moveTo(gs.x + gs.radius, gs.y);
+          ctx.arc(gs.x, gs.y, gs.radius, 0, Math.PI * 2);
+        }
+        if (clipText) {
+          // Padded text bbox so stars don't graze the letters either.
+          const pad = 28;
+          ctx.rect(tr.x - pad, tr.y - pad, tr.w + 2 * pad, tr.h + 2 * pad);
+        }
         ctx.clip('evenodd');
       }
 
@@ -263,7 +339,7 @@ export default function LandingPage({ onComplete }) {
 
       {textPhase !== 'gone' && (
         <div className="landing-text-wrap">
-          <div className={`landing-text lp-${textPhase}`}>
+          <div ref={textRef} className={`landing-text lp-${textPhase}`}>
             <span className="landing-text-line">Welcome to</span>
             <img
               src="/settlr-landing-wordmark.svg"
