@@ -175,34 +175,33 @@ body {
   cursor: pointer;
 }
 
-/* Back arrow at top-right of the sidebar — sits in the wrapper (fixed)
-   so it stays anchored regardless of how far the form is scrolled.
-   Opaque dark background + shadow keeps it visually separate from any
-   form card that scrolls under it. */
+/* Hide-sidebar chip — matches the directions panel's minimize button
+   so both panels use the same affordance. Sits in the wrapper (fixed)
+   so it stays anchored regardless of how far the form is scrolled. */
 .sidebar-back-btn {
   position: absolute;
   top: 24px;
   right: 14px;
-  width: 36px;
-  height: 36px;
-  background: rgba(8, 12, 24, 0.94);
-  border: 1px solid #1e293b;
-  border-radius: 10px;
-  color: #cbd5e1;
+  width: 28px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  color: var(--text);
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   z-index: 20;
   backdrop-filter: blur(10px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
-  transition: background 0.18s, border-color 0.18s, color 0.18s;
+  -webkit-backdrop-filter: blur(10px);
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
   padding: 0;
 }
 .sidebar-back-btn:hover {
-  background: rgba(91, 140, 247, 0.20);
-  border-color: rgba(91, 140, 247, 0.55);
-  color: #ffffff;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #fff;
 }
 
 .sidebar-close-btn {
@@ -3038,6 +3037,18 @@ input.error {
 }
 .route-from-label { color: #38bdf8; }
 .route-origin-empty { color: rgba(255, 255, 255, 0.55); }
+
+/* Empty-state title shown above the mode/amenity grid when no listing
+   is selected — acts as the panel's call-to-action. */
+.route-empty-title {
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  margin-bottom: 16px;
+  padding-right: 32px; /* clear the absolute-positioned minimize chip */
+}
 
 .route-origin-dot {
   width: 10px;

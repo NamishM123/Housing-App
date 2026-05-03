@@ -685,15 +685,16 @@ export default function MapView({
             </button>
 
             {/* Origin label */}
-            <div className="route-origin-label">
-              <span className="route-origin-dot" />
-              <span>
-                {selectedListing
-                  ? <><strong className="route-from-label">From:</strong> {selectedListing.address}</>
-                  : <span className="route-origin-empty">Click a listing pin to set origin</span>
-                }
-              </span>
-            </div>
+            {selectedListing ? (
+              <div className="route-origin-label">
+                <span className="route-origin-dot" />
+                <span>
+                  <strong className="route-from-label">From:</strong> {selectedListing.address}
+                </span>
+              </div>
+            ) : (
+              <div className="route-empty-title">Pick a home to plan trips</div>
+            )}
 
             {/* Travel mode toggle */}
             <div className="route-mode-toggle">
