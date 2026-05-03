@@ -167,6 +167,30 @@ export default function MapView({
     return () => { if (map.current) { map.current.remove(); map.current = null; } };
   }, []);
 
+  // ── Spotlight pointer-tracker on the NavigationControl ───────────
+  useEffect(() => {
+    if (!mapLoaded) return;
+    const ctrl = mapContainer.current?.querySelector('.mapboxgl-ctrl-group');
+    if (!ctrl) return;
+
+    const onMove = (e) => {
+      const rect = ctrl.getBoundingClientRect();
+      ctrl.style.setProperty('--glow-x', `${e.clientX - rect.left}px`);
+      ctrl.style.setProperty('--glow-y', `${e.clientY - rect.top}px`);
+      ctrl.style.setProperty('--glow-active', '1');
+    };
+    const onLeave = () => ctrl.style.setProperty('--glow-active', '0');
+
+    ctrl.addEventListener('pointermove', onMove);
+    ctrl.addEventListener('pointerenter', onMove);
+    ctrl.addEventListener('pointerleave', onLeave);
+    return () => {
+      ctrl.removeEventListener('pointermove', onMove);
+      ctrl.removeEventListener('pointerenter', onMove);
+      ctrl.removeEventListener('pointerleave', onLeave);
+    };
+  }, [mapLoaded]);
+
   // ── Cinematic intro: when the landing dismisses, fly the camera from the
   //    US-prominent globe view down into California (SLO).
   useEffect(() => {
