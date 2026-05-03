@@ -138,6 +138,16 @@ export default function App() {
           />
         </main>
 
+        {/* Income Slider - only show after form is submitted */}
+        {submittedForm && !leftPinned && (
+          <IncomeSlider
+            value={submittedForm.salary}
+            onChange={handleIncomeChange}
+            maxRent={maxRent}
+            onMaxRentChange={handleMaxRentChange}
+          />
+        )}
+
         {/* Left Sidebar Wrapper */}
         <div className={`sidebar-wrapper ${leftPinned ? 'pinned' : ''}`}>
           <div className="sidebar-sphere-bg" />
