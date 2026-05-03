@@ -7,7 +7,20 @@ import NeighborhoodPanel from './components/NeighborhoodPanel';
 
 import LandingPage from './components/LandingPage';
 import { fetchListings } from './utils/api';
+import { geocodeAddress } from './utils/mapbox';
 import './App.css';
+
+// Refine listing coordinates by forward-geocoding their addresses, so pins
+// land on the actual building rather than approximate parcel centers.
+async function refineListingCoords(listings) {
+  const refined = await Promise.all(
+    (listings || []).map(async (l) => {
+      const hit = await geocodeAddress(l.address, l.city, l.zip);
+      return hit ? { ...l, lat: hit.lat, lng: hit.lng } : l;
+    })
+  );
+  return refined;
+}
 
 export default function App() {
   const [showLanding, setShowLanding]           = useState(true);
@@ -48,7 +61,15 @@ export default function App() {
     setListingsLoading(true);
     setSelectedListing(null);
     fetchListings(neighborhood.zip, neighborhood.name)
-      .then(({ listings: l, urls }) => { setListings(l || []); setSearchUrls(urls); })
+      .then(async ({ listings: l, urls }) => {
+        const base = l || [];
+        setSearchUrls(urls);
+        // Show approximate pins immediately, then refine via geocoding so
+        // each pin sits on the actual address.
+        setListings(base);
+        const refined = await refineListingCoords(base);
+        setListings(refined);
+      })
       .catch(() => setListings([]))
       .finally(() => setListingsLoading(false));
   }, []);
@@ -119,13 +140,31 @@ export default function App() {
           />
         </main>
 
+        {/* Always-visible reopen tab — sits outside the wrapper so
+            `overflow: hidden` can't clip it after the sidebar slides away. */}
+        {!leftPinned && (
+          <button
+            className="sidebar-reopen-tab"
+            onClick={() => setLeftPinned(true)}
+            aria-label="Open sidebar"
+            title="Open sidebar"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        )}
+
         {/* Left Sidebar Wrapper */}
         <div className={`sidebar-wrapper ${leftPinned ? 'pinned' : ''}`}>
           <div className="sidebar-sphere-bg" />
-          <div className="sidebar-edge-tab" onClick={() => setLeftPinned(true)}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
-          </div>
           <aside className="sidebar">
+            <button
+              className="sidebar-collapse-btn"
+              onClick={() => setLeftPinned(false)}
+              aria-label="Hide sidebar"
+              title="Hide sidebar"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
             <div className="sidebar-brand">
               <img
                 src="/settlr-mark.svg"

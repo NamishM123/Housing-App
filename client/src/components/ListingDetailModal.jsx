@@ -1,54 +1,23 @@
 import { useEffect, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
+import { pickHouseGallery } from '../utils/housePhotos';
 
-// Build a multi-image gallery for any listing using:
-//   1. The real RentCast photo (when present)
-//   2. Mapbox Static Images of the *actual* address from 4 angles — these
-//      are real satellite imagery centered on the listing's lat/lng, so
-//      every listing shows its true location instead of generic stock photos
-//   3. A 3D-style oblique aerial as the establishing shot
+const GALLERY_LABELS = ['Front exterior', 'Side view', 'Yard / back', 'Approach'];
+
+// Build a gallery for a listing:
+//   1. Real RentCast listing photo when present.
+//   2. Pre-generated SLO-style house exterior photos from a curated pool,
+//      picked deterministically from the listing's id so the same listing
+//      always shows the same set.
 function buildGallery(listing) {
-  const token = mapboxgl.accessToken;
   const out = [];
 
-  // RentCast photo first if present (real listing photo)
-  if (listing.image) out.push({ src: listing.image, label: 'Listing photo', kind: 'photo' });
-
-  if (listing.lat && listing.lng && token) {
-    const lng = listing.lng.toFixed(5);
-    const lat = listing.lat.toFixed(5);
-
-    // Establishing 3D oblique
-    out.push({
-      src: `https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/${lng},${lat},18.2,-20,62/900x520@2x?access_token=${token}&attribution=false&logo=false`,
-      label: 'Aerial — looking north',
-      kind: 'aerial',
-    });
-    // North-facing
-    out.push({
-      src: `https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/${lng},${lat},18.6,0,70/900x520@2x?access_token=${token}&attribution=false&logo=false`,
-      label: 'Looking north',
-      kind: 'aerial',
-    });
-    // East-facing
-    out.push({
-      src: `https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/${lng},${lat},18.4,90,70/900x520@2x?access_token=${token}&attribution=false&logo=false`,
-      label: 'Looking east',
-      kind: 'aerial',
-    });
-    // South-facing
-    out.push({
-      src: `https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/${lng},${lat},18.4,180,70/900x520@2x?access_token=${token}&attribution=false&logo=false`,
-      label: 'Looking south',
-      kind: 'aerial',
-    });
-    // Wider neighborhood context
-    out.push({
-      src: `https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/${lng},${lat},16.5,0,30/900x520@2x?access_token=${token}&attribution=false&logo=false`,
-      label: 'Neighborhood context',
-      kind: 'aerial',
-    });
+  if (listing.image) {
+    out.push({ src: listing.image, label: 'Listing photo', kind: 'photo' });
   }
+
+  pickHouseGallery(listing, 4, 'hero').forEach((src, i) => {
+    out.push({ src, label: GALLERY_LABELS[i] || `View ${i + 1}`, kind: 'preset' });
+  });
 
   return out;
 }
@@ -183,10 +152,37 @@ export default function ListingDetailModal({
         )}
 
         <div className="listing-detail-section">
-          <div className="listing-detail-section-title">Location</div>
-          <p className="muted small">
-            {listing.lat?.toFixed(4)}°, {listing.lng?.toFixed(4)}° — switch images above to see the address from different
-            angles via Mapbox satellite imagery.
+          <div className="listing-detail-section-title">More photos</div>
+          <p className="muted small" style={{ marginBottom: 10 }}>
+            For the full interior photo gallery, open this listing on a rental platform:
+          </p>
+          <div className="platform-btns">
+            <a
+              href={listing.urls?.zillow || listing.zillowUrl
+                || `https://www.zillow.com/homes/${encodeURIComponent(listing.address + ', ' + (listing.city || '') + ' ' + (listing.zip || ''))}_rb/`}
+              target="_blank"
+              rel="noreferrer"
+              className="platform-btn"
+            >
+              View on Zillow →
+            </a>
+            <a
+              href={listing.urls?.apartments
+                || `https://www.apartments.com/${(listing.city || '').toLowerCase().replace(/\s+/g, '-')}-ca/`}
+              target="_blank"
+              rel="noreferrer"
+              className="platform-btn"
+            >
+              Apartments.com →
+            </a>
+            {listing.listingUrl && (
+              <a href={listing.listingUrl} target="_blank" rel="noreferrer" className="platform-btn">
+                Original listing →
+              </a>
+            )}
+          </div>
+          <p className="muted small" style={{ marginTop: 14, fontSize: 11 }}>
+            Coordinates: {listing.lat?.toFixed(4)}°, {listing.lng?.toFixed(4)}°
           </p>
         </div>
 
