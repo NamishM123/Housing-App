@@ -196,14 +196,16 @@ body {
 }
 
 /* Back arrow at top-right of the sidebar — sits in the wrapper (fixed)
-   so it stays anchored regardless of how far the form is scrolled. */
+   so it stays anchored regardless of how far the form is scrolled.
+   Opaque dark background + shadow keeps it visually separate from any
+   form card that scrolls under it. */
 .sidebar-back-btn {
   position: absolute;
-  top: 14px;
+  top: 24px;
   right: 14px;
   width: 36px;
   height: 36px;
-  background: rgba(8, 12, 24, 0.62);
+  background: rgba(8, 12, 24, 0.94);
   border: 1px solid #1e293b;
   border-radius: 10px;
   color: #cbd5e1;
@@ -211,8 +213,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 5;
+  z-index: 20;
   backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
   transition: background 0.18s, border-color 0.18s, color 0.18s;
   padding: 0;
 }
