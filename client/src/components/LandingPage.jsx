@@ -246,9 +246,10 @@ export default function LandingPage({ onComplete }) {
     function spawn() {
       const p = Math.random();
       let tail, spd, life, lw;
-      if      (p < 0.45) { tail = 25+Math.random()*35;  spd = 7+Math.random()*5;   life = 28+Math.random()*18;  lw=0.75; }
-      else if (p < 0.85) { tail = 70+Math.random()*80;  spd = 4+Math.random()*3;   life = 80+Math.random()*60;  lw=1.0;  }
-      else               { tail =180+Math.random()*140; spd = 2+Math.random()*1.6; life=220+Math.random()*140; lw=1.2;  }
+      // Speeds significantly reduced so no star feels "super fast"
+      if      (p < 0.45) { tail = 40+Math.random()*50;  spd = 2.2+Math.random()*1.2; life = 55+Math.random()*30;  lw=0.75; }
+      else if (p < 0.85) { tail = 70+Math.random()*80;  spd = 1.6+Math.random()*1.0; life = 90+Math.random()*70;  lw=1.0;  }
+      else               { tail =180+Math.random()*140; spd = 0.9+Math.random()*0.7; life=240+Math.random()*160; lw=1.2;  }
       // Left or right only — within ±15° of horizontal
       const spread = (Math.PI / 12); // 15°
       const base   = Math.random() < 0.5 ? 0 : Math.PI; // rightward or leftward
@@ -372,9 +373,6 @@ export default function LandingPage({ onComplete }) {
         </div>
       </nav>
 
-      {!navIn && (
-        <button className="landing-skip-btn" onClick={goToDashboard}>Skip →</button>
-      )}
     </div>
   );
 }
