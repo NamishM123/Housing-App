@@ -97,13 +97,10 @@ export default function MapView({
       map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
       map.current.on('load', () => {
-        map.current.addSource('mapbox-dem', {
-          type: 'raster-dem',
-          url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
-          tileSize: 512,
-          maxzoom: 14,
-        });
-        map.current.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 });
+        // Terrain DEM is intentionally disabled here. With terrain on, Mapbox HTML
+        // markers snap to terrain elevation, and DEM tile resolution changes with
+        // zoom — that caused listing pins to visibly drift away from their true
+        // ground positions on zoom-out. Sky + fog + pitch still give a 3D feel.
 
         map.current.addLayer({
           id: 'sky',
@@ -506,8 +503,8 @@ export default function MapView({
     map.current.flyTo({
       center: [-120.68, 35.27],
       zoom: 9.5,
-      pitch: 54,
-      bearing: -14,
+      pitch: 35,
+      bearing: -10,
       duration: 3200,
       essential: true,
       curve: 1.8,
@@ -522,8 +519,8 @@ export default function MapView({
     map.current.flyTo({
       center: hasForm ? [-120.68, 35.30] : [-108, 32],
       zoom: hasForm ? 9.5 : 2.8,
-      pitch: hasForm ? 54 : 0,
-      bearing: hasForm ? -14 : 0,
+      pitch: hasForm ? 35 : 0,
+      bearing: hasForm ? -10 : 0,
       duration: 1200,
     });
   }, [mapLoaded, selectedId]);
