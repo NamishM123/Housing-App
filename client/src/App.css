@@ -1104,10 +1104,14 @@ input.error {
 }
 
 .nbr-sep {
-  color: rgba(255, 255, 255, 0.30);
-  font-size: 22px;
-  font-weight: 300;
-  line-height: 1;
+  display: inline-block;
+  width: 1px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.30);
+  font-size: 0;
+  line-height: 0;
+  align-self: center;
+  flex-shrink: 0;
 }
 
 /* Quick-fact pills — sized like the sidebar seg-pills:
