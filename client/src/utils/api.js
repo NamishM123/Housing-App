@@ -36,3 +36,8 @@ export async function fetchListings(zip, city) {
   const { data } = await api.get('/rentcast/listings', { params: { zip, city } });
   return data;
 }
+
+export async function fetchNeighborhoodReviews(neighborhood) {
+  const { data } = await api.get('/insights/reviews', { params: { neighborhood } });
+  return data;
+}
