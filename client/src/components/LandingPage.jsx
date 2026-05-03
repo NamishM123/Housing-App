@@ -17,17 +17,17 @@ import './LandingPage.css';
 const easeOutQuart = t => 1 - Math.pow(1 - t, 4);
 
 // Phase timing (ms)
-const T_STARS     = 1800;
-const T_TEXT_IN   = 1800;
+const T_STARS = 1800;
+const T_TEXT_IN = 1800;
 const T_TEXT_HOLD = 1000;
-const T_TEXT_OUT  = 650;
+const T_TEXT_OUT = 650;
 const T_EARTH_NAV = 3600;
 
 // Mapbox globe animation
-const GLOBE_ZOOM     = 1.5;
-const GLOBE_START    = [120, 5];  // Indonesia
-const GLOBE_END_LNG  = 265;       // 265°E = -95°W (going east through Pacific)
-const GLOBE_END_LAT  = 40;
+const GLOBE_ZOOM = 1.5;
+const GLOBE_START = [120, 5];  // Indonesia
+const GLOBE_END_LNG = 265;       // 265°E = -95°W (going east through Pacific)
+const GLOBE_END_LAT = 40;
 const GLOBE_DURATION = 3200;      // ms
 
 function StarField() {
@@ -40,7 +40,7 @@ function StarField() {
   });
   return (
     <group ref={ref}>
-      <Stars radius={100} depth={50} count={1600} factor={7}   saturation={0.3} fade speed={0.5} />
+      <Stars radius={100} depth={50} count={1600} factor={7} saturation={0.3} fade speed={0.5} />
       <Stars radius={140} depth={70} count={9000} factor={3.0} saturation={0.5} fade speed={0.7} />
     </group>
   );
@@ -48,8 +48,8 @@ function StarField() {
 
 function MapboxGlobe({ active }) {
   const containerRef = useRef(null);
-  const mapRef       = useRef(null);
-  const rafRef       = useRef(null);
+  const mapRef = useRef(null);
+  const rafRef = useRef(null);
 
   useEffect(() => {
     if (!active || !containerRef.current || mapRef.current) return;
@@ -57,12 +57,12 @@ function MapboxGlobe({ active }) {
     mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
     const map = new mapboxgl.Map({
-      container:          containerRef.current,
-      style:              'mapbox://styles/mapbox/satellite-streets-v12',
-      projection:         'globe',
-      center:             GLOBE_START,
-      zoom:               GLOBE_ZOOM,
-      interactive:        false,
+      container: containerRef.current,
+      style: 'mapbox://styles/mapbox/satellite-streets-v12',
+      projection: 'globe',
+      center: GLOBE_START,
+      zoom: GLOBE_ZOOM,
+      interactive: false,
       attributionControl: false,
     });
 
@@ -71,10 +71,10 @@ function MapboxGlobe({ active }) {
     map.on('style.load', () => {
       // Same atmosphere as dashboard globe
       map.setFog({
-        color:            'rgba(120, 165, 220, 0.32)',
-        'high-color':     'rgba(60, 110, 190, 0.22)',
-        'horizon-blend':  0.04,
-        'space-color':    'rgb(2, 6, 18)',
+        color: 'rgba(120, 165, 220, 0.32)',
+        'high-color': 'rgba(60, 110, 190, 0.22)',
+        'horizon-blend': 0.04,
+        'space-color': 'rgb(2, 6, 18)',
         'star-intensity': 0,
       });
 
@@ -90,11 +90,11 @@ function MapboxGlobe({ active }) {
 
     function animate(now) {
       if (!startTime) startTime = now;
-      const t    = Math.min(1, (now - startTime) / GLOBE_DURATION);
+      const t = Math.min(1, (now - startTime) / GLOBE_DURATION);
       const ease = easeOutQuart(t);
 
-      const lng           = GLOBE_START[0] + (GLOBE_END_LNG - GLOBE_START[0]) * ease;
-      const lat           = GLOBE_START[1] + (GLOBE_END_LAT  - GLOBE_START[1]) * ease;
+      const lng = GLOBE_START[0] + (GLOBE_END_LNG - GLOBE_START[0]) * ease;
+      const lat = GLOBE_START[1] + (GLOBE_END_LAT - GLOBE_START[1]) * ease;
       const normalizedLng = lng > 180 ? lng - 360 : lng;
 
       map.setCenter([normalizedLng, lat]);
@@ -122,14 +122,14 @@ function MapboxGlobe({ active }) {
 }
 
 export default function LandingPage({ onComplete }) {
-  const overlayRef     = useRef(null);
-  const shootAnim      = useRef(null);
+  const overlayRef = useRef(null);
+  const shootAnim = useRef(null);
   const globeScreenRef = useRef({ active: false, x: 0, y: 0, radius: 0 });
 
   const [earthActive, setEarthActive] = useState(false);
-  const [textPhase,   setTextPhase]   = useState('hidden');
-  const [navIn,       setNavIn]       = useState(false);
-  const [dismissing,  setDismissing]  = useState(false);
+  const [textPhase, setTextPhase] = useState('hidden');
+  const [navIn, setNavIn] = useState(false);
+  const [dismissing, setDismissing] = useState(false);
 
   function goToDashboard() {
     setDismissing(true);
@@ -145,11 +145,11 @@ export default function LandingPage({ onComplete }) {
     const t4 = t3 + T_EARTH_NAV;
 
     const ids = [
-      setTimeout(() => setTextPhase('in'),                               t0),
-      setTimeout(() => setTextPhase('hold'),                             t1),
-      setTimeout(() => setTextPhase('out'),                              t2),
+      setTimeout(() => setTextPhase('in'), t0),
+      setTimeout(() => setTextPhase('hold'), t1),
+      setTimeout(() => setTextPhase('out'), t2),
       setTimeout(() => { setTextPhase('gone'); setEarthActive(true); }, t3),
-      setTimeout(() => setNavIn(true),                                   t4),
+      setTimeout(() => setNavIn(true), t4),
     ];
     return () => ids.forEach(clearTimeout);
   }, []);
@@ -157,7 +157,7 @@ export default function LandingPage({ onComplete }) {
   // ── Shooting stars (clipped behind globe) ───────────────────────────────
   useEffect(() => {
     const canvas = overlayRef.current;
-    const ctx    = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d');
     let dpr = Math.min(window.devicePixelRatio || 1, 2);
     let W = 0, H = 0;
     const stars = [];
@@ -166,7 +166,7 @@ export default function LandingPage({ onComplete }) {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       W = canvas.clientWidth;
       H = canvas.clientHeight;
-      canvas.width  = W * dpr;
+      canvas.width = W * dpr;
       canvas.height = H * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
@@ -174,63 +174,63 @@ export default function LandingPage({ onComplete }) {
     function spawn() {
       const p = Math.random();
       let tail, spd, life, lw;
-      if      (p < 0.45) { tail = 25+Math.random()*35;  spd = 7+Math.random()*5;   life = 28+Math.random()*18;  lw=0.75; }
-      else if (p < 0.85) { tail = 70+Math.random()*80;  spd = 4+Math.random()*3;   life = 80+Math.random()*60;  lw=1.0;  }
-      else               { tail =180+Math.random()*140; spd = 2+Math.random()*1.6; life=220+Math.random()*140; lw=1.2;  }
+      if (p < 0.45) { tail = 25 + Math.random() * 35; spd = 7 + Math.random() * 5; life = 28 + Math.random() * 18; lw = 0.75; }
+      else if (p < 0.85) { tail = 70 + Math.random() * 80; spd = 4 + Math.random() * 3; life = 80 + Math.random() * 60; lw = 1.0; }
+      else { tail = 180 + Math.random() * 140; spd = 2 + Math.random() * 1.6; life = 220 + Math.random() * 140; lw = 1.2; }
       // Left or right only — within ±15° of horizontal
       const spread = (Math.PI / 12); // 15°
-      const base   = Math.random() < 0.5 ? 0 : Math.PI; // rightward or leftward
-      const angle  = base + (Math.random() * 2 - 1) * spread;
+      const base = Math.random() < 0.5 ? 0 : Math.PI; // rightward or leftward
+      const angle = base + (Math.random() * 2 - 1) * spread;
       stars.push({
-        x:-50+Math.random()*(W+100), y:-50+Math.random()*(H*0.75+100),
-        vx:Math.cos(angle)*spd, vy:Math.sin(angle)*spd,
-        tail, life:0, maxLife:life, lw,
-        hue: Math.random()<0.7 ? 'rgba(255,245,225,' : 'rgba(220,230,255,',
+        x: -50 + Math.random() * (W + 100), y: -50 + Math.random() * (H * 0.75 + 100),
+        vx: Math.cos(angle) * spd, vy: Math.sin(angle) * spd,
+        tail, life: 0, maxLife: life, lw,
+        hue: Math.random() < 0.7 ? 'rgba(255,245,225,' : 'rgba(220,230,255,',
       });
     }
 
     let lastSpawn = performance.now() - 1000;
-    let nextIn    = 400 + Math.random() * 600;
+    let nextIn = 400 + Math.random() * 600;
 
     function frame(now) {
       ctx.clearRect(0, 0, W, H);
 
       if (now - lastSpawn > nextIn) {
         spawn();
-        if (Math.random() < 0.3) setTimeout(spawn, 200+Math.random()*400);
-        lastSpawn = now; nextIn = 600+Math.random()*1800;
+        if (Math.random() < 0.3) setTimeout(spawn, 200 + Math.random() * 400);
+        lastSpawn = now; nextIn = 600 + Math.random() * 1800;
       }
 
       // Clip shooting stars to appear only OUTSIDE the globe
-      const gs       = globeScreenRef.current;
+      const gs = globeScreenRef.current;
       const clipping = gs.active && gs.radius > 10;
       if (clipping) {
         ctx.save();
         ctx.beginPath();
         ctx.rect(0, 0, W, H);
-        ctx.arc(gs.x, gs.y, gs.radius, 0, Math.PI*2, true); // CCW = punch hole
+        ctx.arc(gs.x, gs.y, gs.radius, 0, Math.PI * 2, true); // CCW = punch hole
         ctx.clip('evenodd');
       }
 
-      for (let i = stars.length-1; i >= 0; i--) {
+      for (let i = stars.length - 1; i >= 0; i--) {
         const s = stars[i];
-        s.x+=s.vx; s.y+=s.vy; s.life++;
-        const lr   = s.life/s.maxLife;
-        const fade = lr<0.12 ? lr/0.12 : lr>0.7 ? Math.max(0,1-(lr-0.7)/0.3) : 1;
-        const sp   = Math.hypot(s.vx,s.vy)||1;
-        const ux=s.vx/sp, uy=s.vy/sp;
-        const tx=s.x-ux*s.tail, ty=s.y-uy*s.tail;
-        const g=ctx.createLinearGradient(tx,ty,s.x,s.y);
-        g.addColorStop(0, s.hue+'0)');
-        g.addColorStop(0.6, s.hue+(0.18*fade)+')');
-        g.addColorStop(1, s.hue+(0.95*fade)+')');
-        ctx.strokeStyle=g; ctx.lineWidth=s.lw; ctx.lineCap='round';
-        ctx.beginPath(); ctx.moveTo(tx,ty); ctx.lineTo(s.x,s.y); ctx.stroke();
-        const hg=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,3);
-        hg.addColorStop(0, s.hue+(0.7*fade)+')');
-        hg.addColorStop(1, s.hue+'0)');
-        ctx.fillStyle=hg; ctx.beginPath(); ctx.arc(s.x,s.y,3,0,Math.PI*2); ctx.fill();
-        if (s.life>=s.maxLife||s.x<-200||s.x>W+200||Math.abs(s.y)>H+200) stars.splice(i,1);
+        s.x += s.vx; s.y += s.vy; s.life++;
+        const lr = s.life / s.maxLife;
+        const fade = lr < 0.12 ? lr / 0.12 : lr > 0.7 ? Math.max(0, 1 - (lr - 0.7) / 0.3) : 1;
+        const sp = Math.hypot(s.vx, s.vy) || 1;
+        const ux = s.vx / sp, uy = s.vy / sp;
+        const tx = s.x - ux * s.tail, ty = s.y - uy * s.tail;
+        const g = ctx.createLinearGradient(tx, ty, s.x, s.y);
+        g.addColorStop(0, s.hue + '0)');
+        g.addColorStop(0.6, s.hue + (0.18 * fade) + ')');
+        g.addColorStop(1, s.hue + (0.95 * fade) + ')');
+        ctx.strokeStyle = g; ctx.lineWidth = s.lw; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(s.x, s.y); ctx.stroke();
+        const hg = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, 3);
+        hg.addColorStop(0, s.hue + (0.7 * fade) + ')');
+        hg.addColorStop(1, s.hue + '0)');
+        ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(s.x, s.y, 3, 0, Math.PI * 2); ctx.fill();
+        if (s.life >= s.maxLife || s.x < -200 || s.x > W + 200 || Math.abs(s.y) > H + 200) stars.splice(i, 1);
       }
 
       if (clipping) ctx.restore();
@@ -281,8 +281,8 @@ export default function LandingPage({ onComplete }) {
         </div>
         <div className="landing-nav-links">
           <button className="landing-nav-ghost">About Us</button>
-          <button className="landing-nav-ghost" onClick={goToDashboard}>Log In</button>
-          <button className="landing-nav-cta"   onClick={goToDashboard}>Try Settlr</button>
+          <button className="landing-nav-ghost" onClick={goToDashboard}>Loog In</button>
+          <button className="landing-nav-cta" onClick={goToDashboard}>Try Settlr</button>
         </div>
       </nav>
 
