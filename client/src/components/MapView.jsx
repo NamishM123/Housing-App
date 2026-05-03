@@ -359,18 +359,13 @@ export default function MapView({
       const el = buildMarkerEl(listing, isShortlisted);
       if (isSelected) el.classList.add('origin-pin');
 
-      const popup = new mapboxgl.Popup({ offset: [0, -28], closeButton: false })
+      const popup = new mapboxgl.Popup({ offset: [0, -28], closeButton: false, maxWidth: 'none' })
         .setHTML(`
-          <div style="font-family:system-ui;padding:8px 12px;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#f1f5f9;min-width:200px">
-            <div style="font-weight:700;font-size:13px;margin-bottom:4px">${listing.address}</div>
-            <div style="display:flex;gap:12px;font-size:12px;color:#94a3b8;margin-bottom:8px">
-              <span><strong style="color:#f1f5f9">$${listing.price?.toLocaleString()}/mo</strong></span>
-              <span>${listing.beds}bd · ${listing.baths}ba${listing.sqft ? ` · ${listing.sqft.toLocaleString()} sqft` : ''}</span>
-            </div>
-            <div style="font-size:11px;color:#64748b">${listing.type} · Available ${listing.available}</div>
-            ${listing.petFriendly ? '<div style="font-size:11px;color:#22c55e;margin-top:3px">🐾 Pet-friendly</div>' : ''}
-            <div style="font-size:10px;color:#38bdf8;margin-top:4px">🛰️ Click for satellite preview</div>
-          </div>
+          <button
+            style="font-family:system-ui;padding:10px 16px;background:#3b82f6;border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:0.03em;box-shadow:0 4px 12px rgba(59,130,246,0.4);transition:all 0.2s;white-space:nowrap"
+            onmouseover="this.style.background='#2563eb';this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 16px rgba(59,130,246,0.5)'"
+            onmouseout="this.style.background='#3b82f6';this.style.transform='translateY(0)';this.style.boxShadow='0 4px 12px rgba(59,130,246,0.4)'"
+          >🛰️ View Details</button>
         `);
 
       const marker = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
