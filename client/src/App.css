@@ -2948,31 +2948,28 @@ input.error {
 .route-panel:not(.open) { width: auto; }
 .route-panel.open { width: 380px; }
 
-/* Closed state: dark-navy pill matching the sidebar palette
-   (same rgba(8,12,24,.92) bg + #1e293b border as .sidebar-reopen-tab),
-   keeping the GlowCard blue spotlight on hover. */
+/* Closed state: solid brand-blue pill for high visibility against the
+   dark map. White text + subtle border keep the call-to-action obvious. */
 .route-panel .route-toggle-btn.glow-card {
-  background-color: rgba(8, 12, 24, 0.92) !important;
-  color: #cbd5e1;
-  border-color: #1e293b;
+  background-color: #5B8CF7 !important;
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.35);
   padding: 10px 22px;
   font-family: inherit;
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.02em;
   cursor: pointer;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  transition: transform 0.1s ease, box-shadow 0.2s ease, color 0.18s ease;
+  box-shadow: 0 4px 18px rgba(91, 140, 247, 0.45);
+  transition: transform 0.1s ease, box-shadow 0.2s ease, background-color 0.18s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 .route-panel .route-toggle-btn.glow-card:hover {
   transform: translateY(-1px);
-  color: #fff;
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.55);
+  background-color: #7BA3F9 !important;
+  box-shadow: 0 6px 22px rgba(91, 140, 247, 0.6);
 }
 
 /* Open state: tall panel that grows to fit its contents (origin label,
