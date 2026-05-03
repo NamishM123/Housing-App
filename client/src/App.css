@@ -748,7 +748,7 @@ input.error {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--text-muted);
+  color: #ffffff;
   margin-bottom: 8px;
 }
 
