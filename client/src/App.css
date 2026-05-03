@@ -78,7 +78,7 @@ body {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 24px 0 18px;
+  padding: 10px 0 18px;
   border-bottom: 1px solid var(--border);
   margin-bottom: 4px;
   flex-shrink: 0;
@@ -1118,54 +1118,104 @@ input.error {
   color: #f1f5f9;
 }
 
-.nbr-tiles {
+/* ── DockMorph tile row ───────────────────────────── */
+.nbr-dock-row {
   display: flex;
   align-items: center;
-  gap: 2px;
-  padding: 4px 12px 14px;
-  overflow-x: auto;
+  justify-content: center;
+  padding: 6px 12px 14px;
 }
 
-.nbr-tile {
+.nbr-dock-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 28px;
+  background: rgba(15, 23, 42, 0.3);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.nbr-dock-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nbr-dock-bubble {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(99,102,241,0.4), rgba(99,102,241,0.2), transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 4px 16px rgba(99,102,241,0.2);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.nbr-dock-tooltip {
+  position: absolute;
+  top: -32px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: #e2e8f0;
+  font-size: 11px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.nbr-dock-btn {
+  position: relative;
+  z-index: 10;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   padding: 10px 14px;
-  min-width: 72px;
-  flex: 1;
-  border: 1px solid transparent;
-  border-radius: 12px;
+  min-width: 64px;
+  border: none;
+  border-radius: 50%;
   background: none;
   cursor: pointer;
-  transition: all 0.18s;
   user-select: none;
 }
 
-.nbr-tile:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: #1e293b;
+.nbr-dock-btn.active {
+  background: rgba(99, 102, 241, 0.15);
+  border-radius: 16px;
 }
 
-.nbr-tile.active {
-  background: rgba(59, 130, 246, 0.14);
-  border-color: rgba(59, 130, 246, 0.3);
+.nbr-dock-icon-svg {
+  width: 22px;
+  height: 22px;
+  color: #94a3b8;
+  transition: color 0.15s;
 }
 
-.nbr-tile-icon {
-  font-size: 22px;
-  line-height: 1;
+.nbr-dock-btn.active .nbr-dock-icon-svg {
+  color: #818cf8;
 }
 
-.nbr-tile-label {
-  font-size: 11px;
-  color: #64748b;
+.nbr-dock-label {
+  font-size: 10px;
+  color: #475569;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
+  transition: color 0.15s;
 }
 
-.nbr-tile.active .nbr-tile-label {
-  color: #60a5fa;
+.nbr-dock-btn.active .nbr-dock-label {
+  color: #818cf8;
 }
 
 /* ── Right detail panel ───────────────────────────── */
