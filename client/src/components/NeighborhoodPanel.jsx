@@ -1,16 +1,12 @@
 import { useState, useEffect } from 'react';
-import { fetchWalkScore, fetchChecklist, fetchFurnitureList, fetchNeighborhoodReviews } from '../utils/api';
+import { fetchFurnitureList, fetchNeighborhoodReviews } from '../utils/api';
 import RoomLayout from './RoomLayout';
-import MoveInChecklist from './MoveInChecklist';
 import ListingsPanel from './ListingsPanel';
 
 const UTILITIES = { pge: 95, water: 45, internet: 70 };
 const TOTAL_UTILITIES = Object.values(UTILITIES).reduce((a, b) => a + b, 0);
 
 export default function NeighborhoodPanel({ open, activeTab, neighborhood, form, onClose, listings, listingsLoading, searchUrls, shortlist, onShortlist, onEditProfile }) {
-  const [walkScore, setWalkScore]         = useState(null);
-  const [checklist, setChecklist]         = useState(null);
-  const [checklistLoading, setChecklistLoading] = useState(false);
   const [furniture, setFurniture]         = useState(null);
   const [furnitureLoading, setFurnitureLoading] = useState(false);
   const [roomDims, setRoomDims]           = useState({ width: 12, length: 14 });
@@ -19,15 +15,7 @@ export default function NeighborhoodPanel({ open, activeTab, neighborhood, form,
   const [reviewsLoading, setReviewsLoading]   = useState(false);
   const [reviewsError, setReviewsError]       = useState(null);
 
-  useEffect(() => {
-    if (!neighborhood) return;
-    setWalkScore(null);
-    fetchWalkScore(neighborhood.id)
-      .then(setWalkScore)
-      .catch(() => setWalkScore({ walk: neighborhood.walkScore, transit: 25, bike: 40, source: 'fallback' }));
-  }, [neighborhood?.id]);
-
-  useEffect(() => { setChecklist(null); setFurniture(null); setReviews(null); setReviewsError(null); }, [neighborhood?.id]);
+  useEffect(() => { setFurniture(null); setReviews(null); setReviewsError(null); }, [neighborhood?.id]);
 
   // Fetch real-people reviews from Reddit when the user opens Insights.
   // Lazy-load on tab open so we don't burn the rate-limit on every map click.
@@ -44,24 +32,6 @@ export default function NeighborhoodPanel({ open, activeTab, neighborhood, form,
       .catch(() => setReviewsError('unavailable'))
       .finally(() => setReviewsLoading(false));
   }, [activeTab, neighborhood?.id]);
-
-  const handleGenerateChecklist = () => {
-    if (!form || !neighborhood) return;
-    setChecklistLoading(true);
-    fetchChecklist({ ...form, neighborhood: neighborhood.name })
-      .then(setChecklist)
-      .catch(() => setChecklist({
-        categories: [
-          { name: 'Admin / Paperwork', items: ['Update driver\'s license address', 'Forward mail via USPS', 'Register to vote at new address'] },
-          { name: 'Utilities Setup',   items: ['Set up PG&E account', 'Set up water/sewer', 'Set up internet (Charter/Spectrum)'] },
-          { name: 'Home Essentials',   items: ['Buy cleaning supplies', 'Set up kitchen basics', 'Get first aid kit', 'Buy bedding/towels'] },
-          ...(form?.hasCar ? [{ name: 'Transport', items: ['Get SLO city parking permit', 'Update CA car registration'] }]
-                           : [{ name: 'Transport', items: ['Download SLO Transit app', 'Get bike lock + helmet'] }]),
-          { name: 'Social / Fun',      items: ['Thursday Farmers Market downtown', 'Find local hiking trails', 'Join SLO subreddit & Facebook groups'] },
-        ],
-      }))
-      .finally(() => setChecklistLoading(false));
-  };
 
   const handleGenerateFurniture = () => {
     if (!furnitureBudget) return;
@@ -185,25 +155,6 @@ export default function NeighborhoodPanel({ open, activeTab, neighborhood, form,
           </div>
         )}
 
-        {/* Walkability */}
-        {activeTab === 'walkscore' && (
-          <div className="walkscore-tab">
-            {walkScore ? (
-              <>
-                <div className="score-cards">
-                  <ScoreCard label="Walk Score"    value={walkScore.walk}    icon="🚶" />
-                  <ScoreCard label="Transit Score"  value={walkScore.transit} icon="🚌" />
-                  <ScoreCard label="Bike Score"     value={walkScore.bike}    icon="🚲" />
-                </div>
-                {walkScore.source === 'fallback' && <p className="muted small">Estimated — add WALKSCORE_API_KEY for live data.</p>}
-                <WalkDescription score={walkScore.walk} neighborhood={neighborhood.name} />
-              </>
-            ) : (
-              <div className="loading-row"><div className="spinner sm" /><span>Loading scores…</span></div>
-            )}
-          </div>
-        )}
-
         {/* Insights */}
         {activeTab === 'insights' && (
           <div className="insights-tab">
@@ -275,28 +226,12 @@ export default function NeighborhoodPanel({ open, activeTab, neighborhood, form,
           </div>
         )}
 
-        {/* Checklist */}
-        {activeTab === 'checklist' && (
-          <MoveInChecklist checklist={checklist} loading={checklistLoading}
-            onGenerate={handleGenerateChecklist} hasForm={!!form} />
-        )}
       </div>
     </div>
   );
 }
 
 /* ── Helpers ── */
-function ScoreCard({ label, value, icon }) {
-  const color = value >= 70 ? '#22c55e' : value >= 50 ? '#14b8a6' : value >= 25 ? '#f59e0b' : '#ef4444';
-  return (
-    <div className="score-card">
-      <span className="score-icon">{icon}</span>
-      <div className="score-ring" style={{ borderColor: color }}><span style={{ color }}>{value}</span></div>
-      <span className="score-card-label">{label}</span>
-    </div>
-  );
-}
-
 function InsightRow({ icon, label, value, badge, detail }) {
   const badgeClass = { quiet: 'badge-green', moderate: 'badge-amber', loud: 'badge-red', easy: 'badge-green', hard: 'badge-red' }[badge] || 'badge-muted';
   return (
@@ -384,12 +319,3 @@ function ReviewsBlock({ loading, error, reviews, neighborhoodName }) {
   );
 }
 
-function WalkDescription({ score, neighborhood }) {
-  let desc;
-  if      (score >= 90) desc = `${neighborhood} is a walker's paradise — daily errands need no car.`;
-  else if (score >= 70) desc = `${neighborhood} is very walkable. Most errands can be done on foot.`;
-  else if (score >= 50) desc = `${neighborhood} is somewhat walkable. Some errands on foot.`;
-  else if (score >= 25) desc = `${neighborhood} is car-dependent for most errands.`;
-  else                  desc = `${neighborhood} is almost entirely car-dependent. A vehicle is strongly recommended.`;
-  return <p className="walk-description">{desc}</p>;
-}
