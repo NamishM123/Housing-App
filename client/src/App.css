@@ -41,8 +41,11 @@
   --amber: #FBBF24;
   --red: #F87171;
 
-  --radius: 10px;
-  --radius-lg: 16px;
+  --radius: 14px;
+  --radius-lg: 20px;
+  /* Unified height for ALL single-line form controls so the $ prefix,
+     input, chips, segment pills line up exactly. */
+  --input-h: 44px;
   font-size: 14px;
 }
 
@@ -585,10 +588,12 @@ select {
   background: var(--bg-input);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 9px 11px;
+  height: var(--input-h);
+  padding: 0 14px;
   color: var(--text);
   font-size: 14px;
   width: 100%;
+  box-sizing: border-box;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
@@ -613,13 +618,19 @@ input.error {
 }
 
 .input-prefix span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: rgba(0, 0, 0, 0.5);
-  padding: 9px 11px;
+  height: var(--input-h);
+  padding: 0 14px;
   border: 1px solid var(--border);
   border-right: none;
   border-radius: var(--radius) 0 0 var(--radius);
   color: var(--text-sub);
   font-size: 14px;
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .input-prefix input {
@@ -3574,20 +3585,37 @@ input.error {
 }
 .q-section input[type="text"],
 .q-section input[type="number"] {
-  border-radius: 12px;
+  border-radius: var(--radius);
+  height: var(--input-h);
   color: #fff;
 }
 .q-section .input-prefix span {
-  border-radius: 12px 0 0 12px;
+  border-radius: var(--radius) 0 0 var(--radius);
+  height: var(--input-h);
   color: rgba(255, 255, 255, 0.85);
 }
 .q-section .input-prefix input {
-  border-radius: 0 12px 12px 0;
+  border-radius: 0 var(--radius) var(--radius) 0;
 }
 .q-section .situation-btn,
 .q-section .seg-row,
 .q-section .seg-pill {
-  border-radius: 14px;
+  border-radius: var(--radius);
+}
+.q-section .seg-pill {
+  height: var(--input-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.q-section .seg-row {
+  min-height: var(--input-h);
+}
+.q-section .situation-btn {
+  min-height: 60px;
+}
+.q-section .chip {
+  border-radius: 999px;
 }
 .q-section .situation-label,
 .q-section .seg-label {
@@ -3603,15 +3631,15 @@ input.error {
   color: #fff;
 }
 .q-section .rent-estimate-box {
-  border-radius: 14px;
+  border-radius: var(--radius);
   color: #fff;
 }
 .q-section .combined-display {
-  border-radius: 12px;
+  border-radius: var(--radius);
   color: #fff;
 }
 .q-section .rent-pct-input input {
-  border-radius: 14px;
+  border-radius: var(--radius);
 }
 
 .q-label {
@@ -3767,54 +3795,71 @@ input.error {
 
 .geo-suggestions {
   list-style: none;
+  margin: 6px 0 0;
+  padding: 6px;
   position: absolute;
   top: 100%;
   left: 0;
   right: 0;
-  margin-top: 2px;
   background: var(--bg-card);
   border: 1px solid var(--border-med);
-  border-radius: var(--radius);
-  z-index: 20;
-  max-height: 220px;
+  border-radius: var(--radius-lg);
+  z-index: 1000;
+  max-height: 240px;
   overflow-y: auto;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  overflow-x: hidden;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+  box-sizing: border-box;
 }
 
 .geo-suggestions li {
-  padding: 9px 12px;
-  font-size: 12px;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.35;
   color: var(--text);
   cursor: pointer;
-  border-bottom: 1px solid var(--border);
+  border-radius: calc(var(--radius-lg) - 8px);
+  /* allow long addresses to wrap so we never clip "United States" */
+  white-space: normal;
+  word-break: break-word;
 }
 
-.geo-suggestions li:last-child {
-  border-bottom: none;
+.geo-suggestions li + li {
+  margin-top: 2px;
 }
 
 .geo-suggestions li:hover {
   background: var(--bg-hover);
 }
 
-/* Preset chips under work field */
+/* Preset chips under work field — all same size via 3-col grid */
 .preset-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-top: 6px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 8px;
 }
 
 .chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: var(--bg-input);
   border: 1px solid var(--border);
   border-radius: 999px;
-  padding: 5px 11px;
-  font-size: 11px;
+  height: 38px;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 500;
   color: var(--text);
   cursor: pointer;
   font-family: inherit;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   transition: all 0.12s ease;
+  box-sizing: border-box;
 }
 
 .chip:hover {
