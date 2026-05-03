@@ -9,6 +9,7 @@ export const NEIGHBORHOODS = [
     walkScore: 88,
     vibes: ['urban'],
     noiseLevel: 'loud',
+    noiseScore: 78,
     noiseSources: ['Thursday night Farmers Market', 'bar & restaurant traffic', 'Higuera St weekend crowds'],
     parkingDifficulty: 'hard',
     minZoom: 11.5,         // only show when zoomed into SLO
@@ -43,6 +44,7 @@ export const NEIGHBORHOODS = [
     walkScore: 65,
     vibes: ['college', 'urban'],
     noiseLevel: 'moderate',
+    noiseScore: 58,
     noiseSources: ['student parties (Fri–Sat)', 'campus events', 'move-in/out cycles'],
     parkingDifficulty: 'moderate',
     minZoom: 11.5,         // only show when zoomed into SLO
@@ -78,6 +80,7 @@ export const NEIGHBORHOODS = [
     walkScore: 80,
     vibes: ['urban', 'college'],
     noiseLevel: 'moderate',
+    noiseScore: 55,
     noiseSources: ['downtown bar traffic', 'campus events', 'Farmers Market'],
     parkingDifficulty: 'moderate',
     maxZoom: 11.5,         // hidden once user zooms in (sub-hoods take over)
@@ -111,6 +114,7 @@ export const NEIGHBORHOODS = [
     walkScore: 12,
     vibes: ['suburban'],
     noiseLevel: 'quiet',
+    noiseScore: 22,
     noiseSources: ['occasional farm equipment', 'wine tasting event traffic (weekends)'],
     parkingDifficulty: 'easy',
     localInsights: [
@@ -143,6 +147,7 @@ export const NEIGHBORHOODS = [
     walkScore: 42,
     vibes: ['coastal', 'suburban'],
     noiseLevel: 'quiet',
+    noiseScore: 25,
     noiseSources: ['harbor fog horns (occasional)', 'wildlife (birds, sea otters)'],
     parkingDifficulty: 'easy',
     localInsights: [
@@ -175,6 +180,7 @@ export const NEIGHBORHOODS = [
     walkScore: 55,
     vibes: ['coastal'],
     noiseLevel: 'moderate',
+    noiseScore: 48,
     noiseSources: ['harbor activity', 'tourist foot traffic (summer)', 'fishing boats at dawn'],
     parkingDifficulty: 'moderate',
     localInsights: [
@@ -207,6 +213,7 @@ export const NEIGHBORHOODS = [
     walkScore: 38,
     vibes: ['suburban'],
     noiseLevel: 'quiet',
+    noiseScore: 35,
     noiseSources: ['US-101 freeway (eastern edge)', 'occasional train horns'],
     parkingDifficulty: 'easy',
     localInsights: [
@@ -239,6 +246,7 @@ export const NEIGHBORHOODS = [
     walkScore: 48,
     vibes: ['suburban'],
     noiseLevel: 'quiet',
+    noiseScore: 30,
     noiseSources: ['US-101 noise near highway corridors', 'small airport (light plane traffic)'],
     parkingDifficulty: 'easy',
     localInsights: [
@@ -271,6 +279,7 @@ export const NEIGHBORHOODS = [
     walkScore: 62,
     vibes: ['coastal'],
     noiseLevel: 'moderate',
+    noiseScore: 55,
     noiseSources: ['beach tourist traffic (summer)', 'oceanfront bar and restaurant strip', 'ATV activity near dunes'],
     parkingDifficulty: 'moderate',
     localInsights: [
