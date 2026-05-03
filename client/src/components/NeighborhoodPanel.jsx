@@ -16,7 +16,7 @@ const SECTION_META = {
   checklist: { icon: '✅', label: 'Move-in Checklist' },
 };
 
-export default function NeighborhoodPanel({ open, activeTab, neighborhood, form, onClose, listings, listingsLoading, searchUrls, shortlist, onShortlist }) {
+export default function NeighborhoodPanel({ open, activeTab, neighborhood, form, onClose, listings, listingsLoading, searchUrls, shortlist, onShortlist, onEditProfile }) {
   const [walkScore, setWalkScore]         = useState(null);
   const [checklist, setChecklist]         = useState(null);
   const [checklistLoading, setChecklistLoading] = useState(false);
@@ -121,7 +121,7 @@ export default function NeighborhoodPanel({ open, activeTab, neighborhood, form,
         {/* Listings */}
         {activeTab === 'listings' && (
           <ListingsPanel listings={listings} loading={listingsLoading} searchUrls={searchUrls}
-            form={form} shortlist={shortlist} onShortlist={onShortlist} />
+            form={form} shortlist={shortlist} onShortlist={onShortlist} onEditProfile={onEditProfile} />
         )}
 
         {/* Costs */}

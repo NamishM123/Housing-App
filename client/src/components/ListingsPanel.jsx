@@ -78,7 +78,7 @@ function TourModal({ listing, form, onClose }) {
   );
 }
 
-export default function ListingsPanel({ listings, loading, searchUrls, form, shortlist, onShortlist }) {
+export default function ListingsPanel({ listings, loading, searchUrls, form, shortlist, onShortlist, onEditProfile }) {
   const [bedFilter, setBedFilter] = useState('All');
   const [tourTarget, setTourTarget] = useState(null);
   const [detailTarget, setDetailTarget] = useState(null);
@@ -97,6 +97,14 @@ export default function ListingsPanel({ listings, loading, searchUrls, form, sho
     return (
       <div className="listings-empty">
         <p className="muted">No listings found for this area.</p>
+        {onEditProfile && (
+          <div className="empty-adjust">
+            <p className="muted small">Try widening your range — bump your income or adjust your housing budget %.</p>
+            <button className="action-btn" onClick={onEditProfile}>
+              ⚙️ Edit Income & Preferences
+            </button>
+          </div>
+        )}
         <div className="platform-links">
           <p className="muted small">Search directly on:</p>
           <div className="platform-btns">
