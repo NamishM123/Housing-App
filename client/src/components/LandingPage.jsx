@@ -4,6 +4,7 @@ import { Stars } from '@react-three/drei';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import './LandingPage.css';
+import { GlowCard } from './GlowCard';
 
 /**
  * Landing sequence:
@@ -24,7 +25,7 @@ const T_TEXT_OUT  = 650;
 const T_EARTH_NAV = 1200;   // nav fades in 1.2s after globe appears (was 3.6s)
 
 // Mapbox globe animation
-const GLOBE_ZOOM     = 1.8;
+const GLOBE_ZOOM     = 1.45;
 const GLOBE_LAT      = 25;        // constant lat — no tilt during sweep
 const GLOBE_START    = [120, GLOBE_LAT];  // Indonesia
 const GLOBE_END_LNG  = 265;       // 265°E = -95°W (going east through Pacific)
@@ -380,13 +381,20 @@ export default function LandingPage({ onComplete }) {
       </nav>
 
       <div className={`landing-cta-wrap ${navIn ? 'lp-in' : ''}`}>
-        <button className="landing-hero-cta" onClick={goToDashboard}>
-          <span className="landing-hero-cta-glow" aria-hidden="true" />
+        <GlowCard
+          as="button"
+          className="landing-hero-cta"
+          glowColor="blue"
+          radius={999}
+          border={2}
+          size={260}
+          onClick={goToDashboard}
+        >
           <span className="landing-hero-cta-content">
             <span className="landing-hero-cta-label">Try Settlr</span>
             <svg
               className="landing-hero-cta-arrow"
-              width="22" height="22" viewBox="0 0 24 24" fill="none"
+              width="18" height="18" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"
               aria-hidden="true"
             >
@@ -394,7 +402,7 @@ export default function LandingPage({ onComplete }) {
               <polyline points="7 7 17 7 17 17" />
             </svg>
           </span>
-        </button>
+        </GlowCard>
       </div>
 
     </div>

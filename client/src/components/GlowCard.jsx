@@ -1,83 +1,141 @@
 import { useEffect, useRef } from 'react';
 
-const GlowCard = ({ children, className = '', style = {} }) => {
+const COLOR_MAP = {
+  blue:   { base: 220, spread: 200 },
+  purple: { base: 280, spread: 300 },
+  green:  { base: 120, spread: 200 },
+  red:    { base: 0,   spread: 200 },
+  orange: { base: 30,  spread: 200 },
+};
+
+const GlowCard = ({
+  children,
+  className = '',
+  style = {},
+  glowColor = 'blue',
+  radius = 14,
+  border = 3,
+  size = 200,
+  as: Tag = 'div',
+  ...rest
+}) => {
   const cardRef = useRef(null);
 
   useEffect(() => {
-    const el = cardRef.current;
-    if (!el) return;
-
-    const onMove = (e) => {
-      const rect = el.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+    const sync = (e) => {
+      const el = cardRef.current;
+      if (!el) return;
+      const { clientX: x, clientY: y } = e;
       el.style.setProperty('--x', x.toFixed(2));
+      el.style.setProperty('--xp', (x / window.innerWidth).toFixed(2));
       el.style.setProperty('--y', y.toFixed(2));
-      el.style.setProperty('--xp', (x / rect.width).toFixed(2));
+      el.style.setProperty('--yp', (y / window.innerHeight).toFixed(2));
     };
-
-    document.addEventListener('pointermove', onMove);
-    return () => document.removeEventListener('pointermove', onMove);
+    document.addEventListener('pointermove', sync);
+    return () => document.removeEventListener('pointermove', sync);
   }, []);
+
+  const { base, spread } = COLOR_MAP[glowColor] || COLOR_MAP.blue;
+
+  const inlineVars = {
+    '--base': base,
+    '--spread': spread,
+    '--radius': radius,
+    '--border': border,
+    '--backdrop': 'hsl(0 0% 60% / 0.12)',
+    '--backup-border': 'var(--backdrop)',
+    '--size': size,
+    '--outer': '1',
+    '--border-size': 'calc(var(--border, 2) * 1px)',
+    '--spotlight-size': 'calc(var(--size, 150) * 1px)',
+    '--hue': 'calc(var(--base) + (var(--xp, 0) * var(--spread, 0)))',
+    backgroundImage: `radial-gradient(
+      var(--spotlight-size) var(--spotlight-size) at
+      calc(var(--x, 0) * 1px)
+      calc(var(--y, 0) * 1px),
+      hsl(var(--hue, 210) calc(var(--saturation, 100) * 1%) calc(var(--lightness, 70) * 1%) / 0.10), transparent
+    )`,
+    backgroundColor: 'var(--backdrop, transparent)',
+    backgroundSize: 'calc(100% + (2 * var(--border-size))) calc(100% + (2 * var(--border-size)))',
+    backgroundPosition: '50% 50%',
+    backgroundAttachment: 'fixed',
+    border: 'var(--border-size) solid var(--backup-border)',
+    borderRadius: 'calc(var(--radius) * 1px)',
+    position: 'relative',
+    touchAction: 'none',
+    backdropFilter: 'blur(5px)',
+    ...style,
+  };
 
   return (
     <>
       <style>{`
-        .glow-card {
-          --base: 210;
-          --spread: 30;
-          --radius: 18;
-          --border: 1.5;
-          --size: 260;
-          --border-size: calc(var(--border) * 1px);
-          --spotlight-size: calc(var(--size) * 1px);
-          --hue: calc(var(--base) + (var(--xp, 0) * var(--spread)));
-          position: relative;
-          border-radius: calc(var(--radius) * 1px);
-          border: var(--border-size) solid rgba(255, 255, 255, 0.08);
-          background-color: rgba(15, 23, 42, 0.6);
-          backdrop-filter: blur(10px);
-          background-image: radial-gradient(
-            var(--spotlight-size) var(--spotlight-size) at
-            calc(var(--x, -9999) * 1px) calc(var(--y, -9999) * 1px),
-            hsl(var(--hue) 80% 65% / 0.10),
-            transparent
-          );
-          background-repeat: no-repeat;
-          touch-action: none;
+        [data-glow] {
+          --saturation: 100;
+          --lightness: 70;
         }
-        .glow-card::before,
-        .glow-card::after {
+        [data-glow]::before,
+        [data-glow]::after {
           pointer-events: none;
           content: "";
           position: absolute;
           inset: calc(var(--border-size) * -1);
           border: var(--border-size) solid transparent;
           border-radius: calc(var(--radius) * 1px);
+          background-attachment: fixed;
+          background-size: calc(100% + (2 * var(--border-size))) calc(100% + (2 * var(--border-size)));
           background-repeat: no-repeat;
-          mask: linear-gradient(transparent, transparent), linear-gradient(white, white);
+          background-position: 50% 50%;
+          mask:
+            linear-gradient(transparent, transparent),
+            linear-gradient(white, white);
           mask-clip: padding-box, border-box;
           mask-composite: intersect;
         }
-        .glow-card::before {
+        [data-glow]::before {
           background-image: radial-gradient(
             calc(var(--spotlight-size) * 0.75) calc(var(--spotlight-size) * 0.75) at
-            calc(var(--x, -9999) * 1px) calc(var(--y, -9999) * 1px),
-            hsl(var(--hue) 85% 60% / 0.95), transparent 100%
+            calc(var(--x, 0) * 1px)
+            calc(var(--y, 0) * 1px),
+            hsl(var(--hue, 210) calc(var(--saturation, 100) * 1%) calc(var(--lightness, 50) * 1%) / 1), transparent 100%
           );
-          filter: brightness(1.6);
+          filter: brightness(2);
         }
-        .glow-card::after {
+        [data-glow]::after {
           background-image: radial-gradient(
             calc(var(--spotlight-size) * 0.5) calc(var(--spotlight-size) * 0.5) at
-            calc(var(--x, -9999) * 1px) calc(var(--y, -9999) * 1px),
-            hsl(0 0% 100% / 0.85), transparent 100%
+            calc(var(--x, 0) * 1px)
+            calc(var(--y, 0) * 1px),
+            hsl(0 100% 100% / 1), transparent 100%
           );
         }
+        [data-glow] [data-glow] {
+          position: absolute;
+          inset: 0;
+          will-change: filter;
+          opacity: var(--outer, 1);
+          border-radius: calc(var(--radius) * 1px);
+          border-width: calc(var(--border-size) * 20);
+          filter: blur(calc(var(--border-size) * 10));
+          background: none;
+          pointer-events: none;
+          border: none;
+        }
+        [data-glow] > [data-glow]::before {
+          inset: -10px;
+          border-width: 10px;
+        }
       `}</style>
-      <div ref={cardRef} className={`glow-card ${className}`} style={style}>
+      <Tag
+        ref={cardRef}
+        data-glow=""
+        style={inlineVars}
+        className={`glow-card ${className}`}
+        {...rest}
+      >
+        <div data-glow="" />
         {children}
-      </div>
+      </Tag>
     </>
   );
 };

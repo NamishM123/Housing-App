@@ -249,62 +249,30 @@
 }
 
 .landing-hero-cta {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
   cursor: pointer;
-  padding: 22px 56px;
-  border-radius: 999px;
-  background: #0b0f1d;
+  padding: 14px 36px;
   font-family: 'Montserrat', 'Helvetica Neue', system-ui, sans-serif;
-  font-size: 1.4rem;
+  font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: #ffffff;
-  overflow: visible;
-  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: transform 0.2s ease;
 }
 .landing-hero-cta:hover {
-  transform: translateY(-1px) scale(1.02);
+  transform: translateY(-1px);
 }
 .landing-hero-cta:active {
-  transform: translateY(0) scale(0.99);
-}
-
-/* Animated gradient halo — sits behind, blurred, animates */
-.landing-hero-cta-glow {
-  position: absolute;
-  inset: -4px;
-  z-index: -1;
-  border-radius: 999px;
-  background: linear-gradient(
-    90deg,
-    #6366f1 0%,
-    #a855f7 35%,
-    #ec4899 70%,
-    #6366f1 100%
-  );
-  background-size: 200% 100%;
-  filter: blur(14px);
-  opacity: 0.55;
-  animation: landing-cta-gradient-shift 6s linear infinite;
-  transition: opacity 0.4s ease, filter 0.4s ease;
-}
-.landing-hero-cta:hover .landing-hero-cta-glow {
-  opacity: 0.95;
-  filter: blur(18px);
+  transform: translateY(0);
 }
 
 .landing-hero-cta-content {
-  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 14px;
-  z-index: 1;
+  gap: 10px;
 }
 
 .landing-hero-cta-arrow {
