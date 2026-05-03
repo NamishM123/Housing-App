@@ -79,7 +79,6 @@ body {
   align-items: flex-start;
   gap: 12px;
   padding: 10px 0 18px;
-  border-bottom: 1px solid var(--border);
   margin-bottom: 4px;
   flex-shrink: 0;
   justify-content: flex-start;
@@ -144,15 +143,19 @@ body {
   transform: translateX(0);
 }
 
-/* Sidebar background — static earth-glow blue (matches globe atmosphere) */
-.sidebar-sphere-bg {
+/* Sidebar starfield background — same look as the landing page, scoped to sidebar */
+.sidebar-stars-bg {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background:
-    radial-gradient(ellipse at 30% 20%, rgba(200, 225, 255, 0.18) 0%, transparent 55%),
-    radial-gradient(ellipse at 70% 80%, rgba(140, 185, 235, 0.14) 0%, transparent 60%),
-    linear-gradient(160deg, #0a1730 0%, #07101f 60%, #050a16 100%);
+  background: #02050d;
+  overflow: hidden;
+  pointer-events: none;
+}
+.sidebar-stars-bg canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
 }
 
 /* Always-visible reopen pull-tab on the left edge of the screen.
@@ -185,31 +188,6 @@ body {
   width: 32px;
 }
 
-/* Inline collapse button at top-left of the open sidebar. */
-.sidebar-collapse-btn {
-  position: absolute;
-  top: 14px;
-  right: 12px;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-med);
-  border-radius: 8px;
-  color: var(--text-muted);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 5;
-  transition: all 0.15s;
-}
-.sidebar-collapse-btn:hover {
-  background: rgba(91, 140, 247, 0.15);
-  color: var(--text);
-  border-color: var(--accent);
-}
-
 .sidebar-close-btn {
   position: absolute;
   top: 16px;
@@ -236,7 +214,7 @@ body {
   z-index: 1;
   width: 100%;
   height: 100%;
-  background: linear-gradient(160deg, rgba(6, 10, 22, 0.72) 0%, rgba(4, 10, 20, 0.68) 55%, rgba(6, 10, 20, 0.72) 100%);
+  background: transparent;
   border-right: 1px solid rgba(255, 255, 255, 0.05);
   overflow-y: auto;
   overflow-x: hidden;
@@ -726,7 +704,7 @@ input.error {
 }
 
 .submit-btn {
-  background: linear-gradient(135deg, var(--accent) 0%, #3D6FE8 100%);
+  background: linear-gradient(135deg, #ff8a3d 0%, #ff751f 100%);
   color: #fff;
   border: none;
   border-radius: var(--radius);
@@ -736,13 +714,13 @@ input.error {
   cursor: pointer;
   transition: all 0.18s;
   margin-top: 6px;
-  box-shadow: 0 4px 16px var(--accent-glow);
+  box-shadow: 0 4px 16px rgba(255, 117, 31, 0.32);
   letter-spacing: 0.04em;
   width: 100%;
 }
 
 .submit-btn:hover {
-  background: linear-gradient(135deg, var(--accent-hover) 0%, var(--accent) 100%);
+  background: linear-gradient(135deg, #ff9a55 0%, #ff8230 100%);
   box-shadow: 0 6px 20px var(--accent-glow);
   transform: translateY(-1px);
 }
@@ -3943,8 +3921,8 @@ input.error {
 }
 
 .submit-btn {
-  background: var(--accent);
-  color: #06101F;
+  background: #ff751f;
+  color: #fff;
   border: none;
   border-radius: var(--radius);
   padding: 13px;
@@ -3957,7 +3935,7 @@ input.error {
 }
 
 .submit-btn:hover:not(:disabled) {
-  background: var(--accent-hover);
+  background: #ff8a3d;
 }
 
 /* ── Hide Mapbox attribution & logo ──────────────── */

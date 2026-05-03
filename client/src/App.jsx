@@ -1,4 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useRef, useState, useCallback } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { Stars } from '@react-three/drei';
 import OnboardingForm from './components/OnboardingForm';
 import MapView from './components/MapView';
 import VerdictPanel from './components/VerdictPanel';
@@ -20,6 +22,22 @@ async function refineListingCoords(listings) {
     })
   );
   return refined;
+}
+
+function SidebarStars() {
+  const ref = useRef();
+  useFrame((_, delta) => {
+    if (ref.current) {
+      ref.current.rotation.y += delta * 0.008;
+      ref.current.rotation.x += delta * 0.003;
+    }
+  });
+  return (
+    <group ref={ref}>
+      <Stars radius={100} depth={50} count={1200} factor={6}   saturation={0.25} fade speed={0.4} />
+      <Stars radius={140} depth={70} count={4500} factor={3.2} saturation={0.4}  fade speed={0.6} />
+    </group>
+  );
 }
 
 export default function App() {
@@ -155,16 +173,12 @@ export default function App() {
 
         {/* Left Sidebar Wrapper */}
         <div className={`sidebar-wrapper ${leftPinned ? 'pinned' : ''}`}>
-          <div className="sidebar-sphere-bg" />
+          <div className="sidebar-stars-bg">
+            <Canvas camera={{ position: [0, 0, 1], fov: 60 }} gl={{ alpha: true }} style={{ background: 'transparent' }}>
+              <SidebarStars />
+            </Canvas>
+          </div>
           <aside className="sidebar">
-            <button
-              className="sidebar-collapse-btn"
-              onClick={() => setLeftPinned(false)}
-              aria-label="Hide sidebar"
-              title="Hide sidebar"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
             <div className="sidebar-brand">
               <img
                 src="/settlr-mark.svg"
