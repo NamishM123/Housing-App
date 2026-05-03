@@ -170,6 +170,13 @@ export default function App() {
     setRightPinned(false);
   }, []);
 
+  const handleEditProfile = useCallback(() => {
+    setActivePanelTab(null);
+    setRightPinned(false);
+    setBottomPinned(false);
+    setLeftPinned(true);
+  }, []);
+
   const handleShortlist = useCallback((listing) => {
     setShortlist(prev => {
       const exists = prev.some(s => s.id === listing.id);
@@ -307,6 +314,7 @@ export default function App() {
             searchUrls={searchUrls}
             shortlist={shortlist}
             onShortlist={handleShortlist}
+            onEditProfile={handleEditProfile}
           />
         </div>
       )}
