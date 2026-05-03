@@ -229,16 +229,20 @@ export default function App() {
               <SidebarStars />
             </Canvas>
           </div>
-          <button
-            className="sidebar-back-btn"
-            onClick={() => setLeftPinned(false)}
-            aria-label="Hide sidebar"
-            title="Hide sidebar"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
-              <path d="M5 12h14" />
-            </svg>
-          </button>
+          {/* Hide-sidebar chip only after the user has submitted the form,
+              so the onboarding step can't be skipped or hidden. */}
+          {submittedForm && (
+            <button
+              className="sidebar-back-btn"
+              onClick={() => setLeftPinned(false)}
+              aria-label="Hide sidebar"
+              title="Hide sidebar"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+                <path d="M5 12h14" />
+              </svg>
+            </button>
+          )}
           <aside className="sidebar">
             <div className="sidebar-brand">
               <img

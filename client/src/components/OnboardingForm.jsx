@@ -32,9 +32,9 @@ const workLabel = (situation) => {
 };
 
 export default function OnboardingForm({ onSubmit, loading }) {
-  const [annualIncome, setAnnualIncome] = useState(65000);
-  const [rentPct, setRentPct] = useState(DEFAULT_RENT_PCT);
-  const [situation, setSituation] = useState('solo');
+  const [annualIncome, setAnnualIncome] = useState(null);
+  const [rentPct, setRentPct] = useState('');
+  const [situation, setSituation] = useState(null);
   const [partnerIncome, setPartnerIncome] = useState(null);
   const [roommateCount, setRoommateCount] = useState(1);
   const [roommateIncomes, setRoommateIncomes] = useState({});
@@ -42,7 +42,7 @@ export default function OnboardingForm({ onSubmit, loading }) {
   const [partnerWork, setPartnerWork] = useState(null);
   const [roommateWorks, setRoommateWorks] = useState({});
   const [kidsCount, setKidsCount] = useState(1);
-  const [tolerance, setTolerance] = useState('short');
+  const [tolerance, setTolerance] = useState(null);
   const [errors, setErrors] = useState({});
 
   const isRemoteOnly = tolerance === 'remote';
@@ -340,7 +340,7 @@ export default function OnboardingForm({ onSubmit, loading }) {
       </GlowCard>
 
       <button type="submit" className="submit-btn" disabled={loading}>
-        {loading ? 'Crunching the map for you…' : 'Show me what fits →'}
+        {loading ? 'Crunching the map for you…' : 'Find my dream place →'}
       </button>
     </form>
   );
