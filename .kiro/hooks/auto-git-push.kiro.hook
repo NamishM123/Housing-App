@@ -18,5 +18,7 @@
   "then": {
     "type": "runCommand",
     "command": "git add -A && git commit -m \"auto: update $(date '+%Y-%m-%d %H:%M:%S')\" && git push || true"
-  }
+  },
+  "workspaceFolderName": "Housing-App",
+  "shortName": "auto-git-push"
 }
