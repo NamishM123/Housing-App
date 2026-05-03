@@ -57,6 +57,8 @@ export default function MapView({
 }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
+  const popupRef = useRef(null);
+  const popupCloseTimer = useRef(null);
   const markersRef = useRef([]);
   const userMarkerRef = useRef(null);
   const destMarkerRef = useRef(null);
@@ -117,12 +119,12 @@ export default function MapView({
           },
         });
 
-        // Globe atmosphere — very light, transparent blue rim
+        // Globe atmosphere — very subtle transparent light blue rim
         map.current.setFog({
-          color:            'rgba(200, 225, 255, 0.18)', // light blue, mostly transparent
-          'high-color':     'rgba(140, 185, 235, 0.10)', // dimmer upper atmosphere
-          'horizon-blend':  0.04,                        // tight rim, not bloomy
-          'space-color':    'rgb(2, 6, 18)',
+          color: 'rgba(140, 185, 245, 0.18)', // light blue, very transparent
+          'high-color': 'rgba(50, 100, 200, 0.10)',  // barely-there upper atmosphere
+          'horizon-blend': 0.03,                       // tight rim
+          'space-color': 'rgb(2, 6, 18)',
           'star-intensity': 0,
         });
 
@@ -266,13 +268,71 @@ export default function MapView({
           map.current.flyTo({ center: hood.center, zoom: 12.5, pitch: 50, bearing: -8, duration: 900 });
         });
 
-        // Simple hover effects
-        map.current.on('mouseenter', fillId, () => {
-          map.current.getCanvas().style.cursor = 'pointer';
-        });
+        // Popup only when cursor is within ~40px of the label center
+        map.current.on('mousemove', fillId, (e) => {
+          const projected = map.current.project(hood.center);
+          const dx = e.point.x - projected.x;
+          const dy = e.point.y - projected.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const THRESHOLD = 42; // px
 
-        map.current.on('mouseleave', fillId, () => {
-          map.current.getCanvas().style.cursor = '';
+          if (dist <= THRESHOLD) {
+            // Cancel any pending close
+            if (popupCloseTimer.current) { clearTimeout(popupCloseTimer.current); popupCloseTimer.current = null; }
+            if (popupRef.current) return; // already open
+            map.current.getCanvas().style.cursor = 'pointer';
+            const r = roommates > 0 ? Math.round(hood.avgRent / (roommates + 1)) : hood.avgRent;
+            const label = monthlyIncome > 0 ? getAffordabilityLabel(r, monthlyIncome, maxRent) : 'Enter salary';
+            const c = monthlyIncome > 0 ? getAffordabilityColor(r, monthlyIncome, maxRent) : '#6b7280';
+            const overBudget = maxRent && r > maxRent
+              ? `<div style="font-size:11px;color:#f59e0b;margin-top:3px">⚠️ Over your $${maxRent.toLocaleString()} cap</div>`
+              : '';
+            const dimNote = !vibeMatch
+              ? `<div style="font-size:11px;color:#64748b;margin-top:2px">Outside vibe filter</div>`
+              : '';
+
+            window.__mapSelectHood = () => {
+              onNeighborhoodSelect({ ...hood, avgRent: r });
+              map.current.flyTo({ center: hood.center, zoom: 12.5, pitch: 50, bearing: -8, duration: 900 });
+              if (popupRef.current) { popupRef.current.remove(); popupRef.current = null; }
+            };
+
+            const popup = new mapboxgl.Popup({ closeButton: false, offset: [0, -8], maxWidth: 'none' })
+              .setLngLat(hood.center)
+              .setHTML(`
+                <button
+                  id="mbpopup-${hood.id}"
+                  onmouseenter="window.__popupMouseEnter()"
+                  onmouseleave="window.__popupMouseLeave()"
+                  onclick="window.__mapSelectHood()"
+                  style="font-family:system-ui;padding:10px 16px;background:#3b82f6;border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:0.03em;box-shadow:0 4px 12px rgba(59,130,246,0.4);transition:all 0.2s"
+                  onmouseover="this.style.background='#2563eb';this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 16px rgba(59,130,246,0.5)'"
+                  onmouseout="this.style.background='#3b82f6';this.style.transform='translateY(0)';this.style.boxShadow='0 4px 12px rgba(59,130,246,0.4)'"
+                >Explore ${hood.name} →</button>
+              `)
+              .addTo(map.current);
+            popupRef.current = popup;
+
+            window.__popupMouseEnter = () => {
+              if (popupCloseTimer.current) { clearTimeout(popupCloseTimer.current); popupCloseTimer.current = null; }
+            };
+            window.__popupMouseLeave = () => {
+              popupCloseTimer.current = setTimeout(() => {
+                if (popupRef.current) { popupRef.current.remove(); popupRef.current = null; }
+                map.current.getCanvas().style.cursor = '';
+              }, 120);
+            };
+          } else {
+            // Moved away from label — start close timer
+            if (popupRef.current) {
+              popupCloseTimer.current = popupCloseTimer.current || setTimeout(() => {
+                if (popupRef.current) { popupRef.current.remove(); popupRef.current = null; }
+                map.current.getCanvas().style.cursor = '';
+              }, 200);
+            } else {
+              map.current.getCanvas().style.cursor = '';
+            }
+          }
         });
       }
 
