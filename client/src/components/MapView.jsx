@@ -15,11 +15,20 @@ function buildMarkerEl(listing, isShortlisted) {
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
+// Listing pins are only meaningful inside this zoom band. Outside it Mapbox's
+// HTML markers can misproject (especially at low zoom / globe range), so we
+// hide them entirely. PIN_ZOOM_MIN sits just under the neighborhood-detail
+// zoom (12.5) so a small zoom-out from the area view makes pins disappear.
+const PIN_ZOOM_MIN = 11.5;
+const PIN_ZOOM_MAX = 18;
+const isInPinZoomRange = (z) => z >= PIN_ZOOM_MIN && z <= PIN_ZOOM_MAX;
+
+// Mirrors getHeatmapColor() in data/neighborhoods.js — keep in sync.
 const LEGEND = [
-  { color: '#22c55e', label: 'Comfortable  <28%' },
-  { color: '#3b82f6', label: 'Manageable  28–35%' },
-  { color: '#f59e0b', label: 'Tight  35–45%' },
-  { color: '#ef4444', label: 'Out of range / Over budget' },
+  { color: '#172554', label: 'Comfortable  <28%' },
+  { color: '#3b0764', label: 'Manageable  28–35%' },
+  { color: '#7c2d12', label: 'Tight  35–45%' },
+  { color: '#4c0519', label: 'Out of range / Over budget' },
 ];
 
 const ROUTE_AMENITIES = [
@@ -92,18 +101,22 @@ export default function MapView({
         pitch: 0,
         bearing: 0,
         antialias: true,
+        // Don't repeat the world horizontally — at low zoom this caused listing
+        // markers to wrap and appear at lng+360 / lng-360 across the screen.
+        renderWorldCopies: false,
+        // Hard floor on zoom-out. Below ~6 Mapbox starts globe rendering and
+        // HTML markers misproject onto the curved surface, scattering pins
+        // across the globe instead of staying at SLO.
+        minZoom: 5,
       });
 
       map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
       map.current.on('load', () => {
-        map.current.addSource('mapbox-dem', {
-          type: 'raster-dem',
-          url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
-          tileSize: 512,
-          maxzoom: 14,
-        });
-        map.current.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 });
+        // Terrain DEM is intentionally disabled here. With terrain on, Mapbox HTML
+        // markers snap to terrain elevation, and DEM tile resolution changes with
+        // zoom — that caused listing pins to visibly drift away from their true
+        // ground positions on zoom-out. Sky + fog + pitch still give a 3D feel.
 
         map.current.addLayer({
           id: 'sky',
@@ -317,12 +330,17 @@ export default function MapView({
     markersRef.current = [];
     if (!listings?.length) return;
 
+    // Read zoom directly from the map (state may be a tick stale during
+    // animated flyTos), so newly-created pins start hidden if out of range.
+    const inRange = isInPinZoomRange(map.current.getZoom());
+
     listings.forEach(listing => {
       if (!listing.lat || !listing.lng) return;
       const isShortlisted = (shortlist || []).some(s => s.id === listing.id);
       const isSelected = selectedListing?.id === listing.id;
       const el = buildMarkerEl(listing, isShortlisted);
       if (isSelected) el.classList.add('origin-pin');
+      if (!inRange) el.style.display = 'none';
 
       // Store listing reference for popup button click
       window[`__openStreetView_${listing.id}`] = () => {
@@ -354,6 +372,16 @@ export default function MapView({
       markersRef.current.push(marker);
     });
   }, [mapLoaded, listings, shortlist, onListingSelect, selectedListing]);
+
+  // Hide listing pins when zoomed outside the neighborhood-detail band.
+  // See PIN_ZOOM_MIN/MAX at the top of the file.
+  useEffect(() => {
+    const inRange = isInPinZoomRange(mapZoom);
+    markersRef.current.forEach(m => {
+      const el = m.getElement();
+      if (el) el.style.display = inRange ? '' : 'none';
+    });
+  }, [mapZoom, listings]);
 
 
   // ── Route rendering ───────────────────────────────────
@@ -503,11 +531,14 @@ export default function MapView({
   // After form submit: dramatic globe → SLO zoom-in
   useEffect(() => {
     if (!mapLoaded || !map.current || !monthlyIncome) return;
+    // Once listings are on the map, prevent zoom-out into the globe range —
+    // beyond this Mapbox HTML markers misproject and pins drift off SLO.
+    map.current.setMinZoom(8);
     map.current.flyTo({
       center: [-120.68, 35.27],
       zoom: 9.5,
-      pitch: 54,
-      bearing: -14,
+      pitch: 35,
+      bearing: -10,
       duration: 3200,
       essential: true,
       curve: 1.8,
@@ -522,8 +553,8 @@ export default function MapView({
     map.current.flyTo({
       center: hasForm ? [-120.68, 35.30] : [-108, 32],
       zoom: hasForm ? 9.5 : 2.8,
-      pitch: hasForm ? 54 : 0,
-      bearing: hasForm ? -14 : 0,
+      pitch: hasForm ? 35 : 0,
+      bearing: hasForm ? -10 : 0,
       duration: 1200,
     });
   }, [mapLoaded, selectedId]);
