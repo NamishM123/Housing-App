@@ -24,7 +24,8 @@
   z-index: 0;
 }
 
-/* ── Mapbox satellite globe — fills the screen, same look as dashboard ── */
+/* ── Mapbox satellite globe — masked to a circle so the Three.js star field
+   keeps showing through in the corners during the globe phase. ── */
 .landing-mapbox {
   position: absolute;
   inset: 0;
@@ -32,6 +33,16 @@
   opacity: 0;
   transition: opacity 0.9s ease;
   pointer-events: none;
+  /* Reveal the globe + atmosphere in the center, fade to transparent toward
+     the corners so the starfield (z-index:0) is visible behind it. */
+  -webkit-mask-image: radial-gradient(circle at 50% 50%,
+    rgba(0,0,0,1) 0%,
+    rgba(0,0,0,1) 38%,
+    rgba(0,0,0,0) 62%);
+  mask-image: radial-gradient(circle at 50% 50%,
+    rgba(0,0,0,1) 0%,
+    rgba(0,0,0,1) 38%,
+    rgba(0,0,0,0) 62%);
 }
 
 .landing-mapbox.active {
@@ -72,10 +83,11 @@
   margin: 0;
   display: flex;
   flex-direction: row;
-  /* flex-end so both elements anchor to their bottom edge — then we nudge
-     the wordmark up by the SVG's internal bottom padding to land on baseline */
-  align-items: flex-end;
-  gap: 0.5em;
+  /* baseline so text baseline = img bottom; we then translate the SVG
+     down by its internal sub-baseline whitespace so the *letter* baseline
+     (not the SVG bottom) ends up exactly on the "Welcome to" baseline */
+  align-items: baseline;
+  gap: 0.45em;
   opacity: 0;
   transform: scale(0.55);
   will-change: opacity, transform;
@@ -91,18 +103,18 @@
   display: block;
 }
 
-/* Wordmark — letters sit in the lower ~82% of the SVG; the upper ~18% is
-   the orange house roof.  With align-items:flex-end the SVG bottom edge
-   aligns with "Welcome to" descenders.  We lift by the sub-baseline gap
-   (~18% of SVG height) so the Settlr letter baseline sits on the same line. */
+/* Wordmark.  SVG viewBox is 145 75 1055 658.  Letter baseline is at y=612
+   (in SVG units); the bottom 121 units = 18.4% of total height is empty
+   whitespace below the letters.  With align-items:baseline the img's
+   intrinsic baseline = its bottom edge, so we translate it DOWN by exactly
+   that 18.4% — putting the Settlr letter baseline on the text baseline. */
 .landing-wordmark-img {
   height: clamp(3rem, 7vw, 9rem);
   width: auto;
   display: block;
   user-select: none;
   pointer-events: none;
-  /* lift by the whitespace below the letters inside the SVG (~18% of height) */
-  margin-bottom: clamp(0.55rem, 1.26vw, 1.62rem);
+  transform: translateY(clamp(0.55rem, 1.29vw, 1.66rem));
 }
 
 /* fade in + scale out from center */
