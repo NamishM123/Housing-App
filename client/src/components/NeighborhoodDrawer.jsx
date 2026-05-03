@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Home,
@@ -32,6 +32,29 @@ export default function NeighborhoodDrawer({
   onNext,
 }) {
   const [hovered, setHovered] = useState(null);
+  const barRef = useRef(null);
+
+  // Spotlight glow tracking — mirrors GlowCard but inline so we don't have
+  // to fight specificity with the drawer's bespoke background/border-radius.
+  useEffect(() => {
+    const el = barRef.current;
+    if (!el) return;
+    const onMove = (e) => {
+      const rect = el.getBoundingClientRect();
+      el.style.setProperty('--glow-x', `${e.clientX - rect.left}px`);
+      el.style.setProperty('--glow-y', `${e.clientY - rect.top}px`);
+      el.style.setProperty('--glow-active', '1');
+    };
+    const onLeave = () => el.style.setProperty('--glow-active', '0');
+    el.addEventListener('pointermove', onMove);
+    el.addEventListener('pointerenter', onMove);
+    el.addEventListener('pointerleave', onLeave);
+    return () => {
+      el.removeEventListener('pointermove', onMove);
+      el.removeEventListener('pointerenter', onMove);
+      el.removeEventListener('pointerleave', onLeave);
+    };
+  }, [open, neighborhood?.id]);
 
   if (!open || !neighborhood) return null;
 
@@ -39,7 +62,7 @@ export default function NeighborhoodDrawer({
   const parkingCls = PARK_CLASS[neighborhood.parkingDifficulty] || 'badge-muted';
 
   return (
-    <div className="nbr-bar">
+    <div className="nbr-bar nbr-bar-glow" ref={barRef}>
       {/* Name + quick stats */}
       <div className="nbr-header">
         <div className="nbr-info">

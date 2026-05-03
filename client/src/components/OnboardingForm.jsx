@@ -195,7 +195,6 @@ export default function OnboardingForm({ onSubmit, loading }) {
       {/* Q3 — Living situation */}
       <GlowCard className="q-section" radius={22}>
         <label className="q-label">Who's moving with you?</label>
-        <span className="hint">This changes the math — combined income, rent splits, the whole map.</span>
         <div className="situation-grid">
           {SITUATIONS.map(s => (
             <button
@@ -297,7 +296,6 @@ export default function OnboardingForm({ onSubmit, loading }) {
       {!isRemoteOnly && (
         <GlowCard className="q-section" radius={22}>
           <label className="q-label">{workLabel(situation)}</label>
-          <span className="hint">Type an address, or pick a common one. Working from home? Skip this.</span>
           <WorkLocationField
             label=""
             value={primaryWork}
@@ -342,11 +340,6 @@ export default function OnboardingForm({ onSubmit, loading }) {
           ))}
         </div>
       </GlowCard>
-
-      <div className="budget-preview">
-        Allocating {Math.round(strategyPct * 100)}% → <strong>{fmt(maxRent)}/mo</strong> max rent
-        {combinedAnnual > 0 && <span className="budget-annual"> · {fmt(annualHousingEst)}/yr of {fmt(combinedAnnual)}/yr income</span>}
-      </div>
 
       <button type="submit" className="submit-btn" disabled={loading}>
         {loading ? 'Crunching the map for you…' : 'Show me what fits →'}

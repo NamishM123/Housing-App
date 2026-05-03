@@ -4,7 +4,7 @@ import { geocodePlaces } from '../utils/mapbox';
 const PRESETS = [
   { id: 'cal-poly',     label: 'Cal Poly',         lat: 35.3050, lng: -120.6625 },
   { id: 'downtown-slo', label: 'Downtown SLO',     lat: 35.2796, lng: -120.6597 },
-  { id: 'tech-park',    label: 'Tech Park / Airport', lat: 35.2374, lng: -120.6418 },
+  { id: 'tech-park',    label: 'Airport',          lat: 35.2374, lng: -120.6418 },
   { id: 'french',       label: 'French Hospital',  lat: 35.2604, lng: -120.6469 },
   { id: 'cuesta',       label: 'Cuesta College',   lat: 35.3018, lng: -120.7372 },
   { id: 'remote',       label: 'I work remote',    remote: true },
