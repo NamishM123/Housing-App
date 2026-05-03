@@ -62,7 +62,6 @@ export default function MapView({
   const map = useRef(null);
   const markersRef = useRef([]);
   const userMarkerRef = useRef(null);
-  const destMarkerRef = useRef(null);
   const animFrameRef = useRef(null);
   const monthlyIncomeRef = useRef(monthlyIncome);
   const flownRef = useRef(false);
@@ -434,7 +433,6 @@ export default function MapView({
       if (map.current.getLayer(id)) map.current.removeLayer(id);
     });
     if (map.current.getSource('route')) map.current.removeSource('route');
-    if (destMarkerRef.current) { destMarkerRef.current.remove(); destMarkerRef.current = null; }
   }, []);
 
   const drawRoute = useCallback((coords, amenity, mode = 'driving') => {
@@ -442,13 +440,6 @@ export default function MapView({
     clearRoute();
 
     const colors = MODE_COLORS[mode] || MODE_COLORS.driving;
-
-    const destEl = document.createElement('div');
-    destEl.className = 'dest-marker';
-    destEl.innerHTML = amenity.icon;
-    destMarkerRef.current = new mapboxgl.Marker({ element: destEl, anchor: 'bottom' })
-      .setLngLat([amenity.lng, amenity.lat])
-      .addTo(map.current);
 
     map.current.addSource('route', {
       type: 'geojson',

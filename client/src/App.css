@@ -161,38 +161,18 @@ body {
   display: block;
 }
 
-/* Always-visible reopen pull-tab on the left edge of the screen.
-   Lives outside `.sidebar-wrapper` so `overflow: hidden` cannot clip it.
-   Sized to match `.nbr-bar-edge-tab` (30px thickness × 120px length, swapped axes). */
-.sidebar-reopen-tab {
+/* Invisible hover zone on the left edge — replaces the visible reopen tab.
+   Sized to match the area where the old tab lived (30px wide × full height
+   so users discover it by sweeping toward the left edge). */
+.sidebar-hover-zone {
   position: fixed;
   left: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 0;
+  bottom: 0;
   width: 30px;
-  height: 120px;
-  background: rgba(8, 12, 24, 0.92);
-  border: 1px solid #1e293b;
-  border-left: none;
-  border-radius: 0 12px 12px 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #cbd5e1;
-  cursor: pointer;
-  backdrop-filter: blur(10px);
   z-index: 250;
-  padding: 0;
-  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.45);
-  transition: background 0.2s, color 0.2s, width 0.2s, box-shadow 0.25s;
-  animation: reopen-tab-pulse-side 2.6s ease-in-out infinite;
-}
-.sidebar-reopen-tab:hover {
-  background: rgba(91, 140, 247, 0.22);
-  color: #fff;
-  width: 36px;
-  animation-play-state: paused;
-  box-shadow: 2px 0 18px rgba(0, 0, 0, 0.55), 0 0 22px 6px rgba(91, 140, 247, 0.45);
+  background: transparent;
+  cursor: pointer;
 }
 
 /* Back arrow at top-right of the sidebar — sits in the wrapper (fixed)
@@ -223,19 +203,6 @@ body {
   background: rgba(91, 140, 247, 0.20);
   border-color: rgba(91, 140, 247, 0.55);
   color: #ffffff;
-}
-
-@keyframes reopen-tab-pulse-side {
-  0%, 100% {
-    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.45),
-                0 0 0 0 rgba(91, 140, 247, 0);
-    border-color: #1e293b;
-  }
-  50% {
-    box-shadow: 2px 0 16px rgba(0, 0, 0, 0.55),
-                4px 0 22px 4px rgba(91, 140, 247, 0.38);
-    border-color: rgba(91, 140, 247, 0.55);
-  }
 }
 
 .sidebar-close-btn {
@@ -3004,16 +2971,17 @@ input.error {
   box-shadow: 0 6px 22px rgba(0, 0, 0, 0.55);
 }
 
-/* Open state: rounded square with spotlight glow.  The square sizing
-   (380×380) plus content overflow gives the user a focused panel that
-   never grows past its bounds. */
+/* Open state: tall panel that grows to fit its contents (origin label,
+   travel-mode toggle, 8 amenities, route result, optional turn-by-turn).
+   We cap at the viewport height (minus the 16px top offset and a 16px
+   breathing-room buffer at the bottom) so it never overflows the screen,
+   and let the inner content scroll if it ever exceeds that cap. */
 .route-panel .route-panel-body.glow-card {
   background-color: rgba(6, 15, 30, 0.92) !important;
   padding: 38px 18px 16px;
   width: 380px;
-  height: 380px;
+  max-height: calc(100vh - 32px);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
-  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -3601,27 +3569,6 @@ input.error {
 
   100% {
     box-shadow: 0 0 0 0 rgba(56, 189, 248, 0);
-  }
-}
-
-/* ── Destination marker ───────────────────────────── */
-.dest-marker {
-  font-size: 26px;
-  line-height: 1;
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.7));
-  cursor: default;
-  animation: dest-drop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-}
-
-@keyframes dest-drop {
-  from {
-    transform: translateY(-20px) scale(0.6);
-    opacity: 0;
-  }
-
-  to {
-    transform: translateY(0) scale(1);
-    opacity: 1;
   }
 }
 

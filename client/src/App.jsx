@@ -212,17 +212,14 @@ export default function App() {
           />
         </main>
 
-        {/* Always-visible reopen tab — sits outside the wrapper so
-            `overflow: hidden` can't clip it after the sidebar slides away. */}
+        {/* Invisible hover zone on the left edge — entering it reopens the sidebar.
+            Replaces the visible reopen tab so the map stays uncluttered. */}
         {!leftPinned && (
-          <button
-            className="sidebar-reopen-tab"
-            onClick={() => setLeftPinned(true)}
-            aria-label="Open sidebar"
-            title="Open sidebar"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-          </button>
+          <div
+            className="sidebar-hover-zone"
+            onMouseEnter={() => setLeftPinned(true)}
+            aria-hidden="true"
+          />
         )}
 
         {/* Left Sidebar Wrapper */}
