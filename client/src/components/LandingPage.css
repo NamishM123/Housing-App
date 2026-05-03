@@ -4,7 +4,7 @@
   inset: 0;
   z-index: 9999;
   overflow: hidden;
-  background: radial-gradient(ellipse at center, #060814 0%, #02030a 60%, #000 100%);
+  background: radial-gradient(ellipse at center, #0c1830 0%, #060f1e 55%, #000 100%);
 }
 
 .landing-root.dismissing {
@@ -23,14 +23,14 @@
 }
 
 /* ── Mapbox satellite globe ──────────────────────────────────── */
-/* mix-blend-mode: screen makes its pure-black space areas neutral/transparent
-   so the Three.js starfield behind it remains visible                        */
+/* clip-path is updated per-frame via JS to match the exact globe circle,
+   so Three.js stars show in the space around the globe (not through it) */
 .landing-mapbox {
   position: absolute;
   inset: 0;
   z-index: 1;
   opacity: 0;
-  mix-blend-mode: screen;
+  clip-path: circle(42vmin at 50% 50%); /* approx initial; JS corrects each frame */
   transition: opacity 0.9s ease;
   pointer-events: none;
 }
@@ -52,9 +52,9 @@
   position: absolute;
   inset: 0;
   background: radial-gradient(circle at 50% 50%,
-    rgba(50, 120, 255, 0.12) 0%,
-    rgba(30,  80, 200, 0.07) 38%,
-    transparent 58%);
+    rgba(160, 200, 255, 0.09) 0%,
+    rgba(110, 160, 240, 0.05) 40%,
+    transparent 60%);
   pointer-events: none;
   z-index: 2;
   animation: fadeInGlow 1.6s ease forwards;
