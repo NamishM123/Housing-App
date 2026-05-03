@@ -359,6 +359,20 @@ export default function MapView({
     });
   }, [mapLoaded, listings, shortlist, onListingSelect, selectedListing]);
 
+  // Hide listing pins when zoomed outside the SLO-area range. Outside this
+  // band the pins lose their geographic meaning (they'd cluster into a blob
+  // when zoomed too far out or scatter on the globe projection), so we just
+  // make them disappear until the user comes back into range.
+  const PIN_ZOOM_MIN = 8.5;
+  const PIN_ZOOM_MAX = 18;
+  useEffect(() => {
+    const inRange = mapZoom >= PIN_ZOOM_MIN && mapZoom <= PIN_ZOOM_MAX;
+    markersRef.current.forEach(m => {
+      const el = m.getElement();
+      if (el) el.style.display = inRange ? '' : 'none';
+    });
+  }, [mapZoom, listings]);
+
 
   // ── Route rendering ───────────────────────────────────
   const clearRoute = useCallback(() => {
