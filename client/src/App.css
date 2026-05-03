@@ -96,6 +96,27 @@ body {
 .sidebar-brand > * {
   pointer-events: auto;
 }
+/* Opaque backdrop pinned to the top of the sidebar wrapper. Sits below the
+   brand (z:5) and back-chip (z:20) but above the scrolling form, so cards
+   gliding past the logo can't visually collide with the wordmark. */
+.sidebar-wrapper::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 110px;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(2, 5, 13, 0.96) 0,
+    rgba(2, 5, 13, 0.92) 70%,
+    rgba(2, 5, 13, 0) 100%
+  );
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
 
 .sidebar-logo {
   /* height fixed, width: auto — never distorts the logo */
