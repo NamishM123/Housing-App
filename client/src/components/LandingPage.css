@@ -4,6 +4,7 @@
   inset: 0;
   z-index: 9999;
   overflow: hidden;
+  background: #02050d;
 }
 
 .landing-root.dismissing {
@@ -18,6 +19,29 @@
   inset: 0 !important;
   width: 100% !important;
   height: 100% !important;
+  z-index: 0;
+}
+
+/* ── Mapbox satellite globe — fills the screen, same look as dashboard ── */
+.landing-mapbox {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+  pointer-events: none;
+}
+
+.landing-mapbox.active {
+  opacity: 1;
+}
+
+/* Hide Mapbox UI chrome on landing */
+.landing-mapbox .mapboxgl-ctrl-bottom-right,
+.landing-mapbox .mapboxgl-ctrl-bottom-left,
+.landing-mapbox .mapboxgl-ctrl-top-right,
+.landing-mapbox .mapboxgl-ctrl-top-left {
+  display: none;
 }
 
 /* ── Shooting-star overlay ───────────────────────────────────── */
@@ -28,7 +52,7 @@
   height: 100%;
   display: block;
   pointer-events: none;
-  z-index: 1;
+  z-index: 3;
 }
 
 /* ── "Welcome to Settlr" text ────────────────────────────────── */
@@ -39,20 +63,39 @@
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  z-index: 2;
+  z-index: 4;
 }
 
 .landing-text {
   margin: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.35em;
+  opacity: 0;
+  transform: scale(0.55);
+  will-change: opacity, transform;
+}
+
+.landing-text-line {
   font-family: 'Montserrat', 'Helvetica Neue', system-ui, sans-serif;
   font-weight: 300;
   font-size: clamp(2rem, 5vw, 4.4rem);
   letter-spacing: 0.06em;
   color: #f4f1e8;
   white-space: nowrap;
-  opacity: 0;
-  transform: scale(0.55);
-  will-change: opacity, transform;
+  display: block;
+}
+
+/* Wordmark sized so the "Settlr" letter cap-height matches the "Welcome to"
+   font size on the same line. The SVG viewBox includes the orange mark
+   above the letters (~35% of total height). */
+.landing-wordmark-img {
+  height: clamp(3rem, 7vw, 6.2rem);
+  width: auto;
+  display: block;
+  user-select: none;
+  pointer-events: none;
 }
 
 /* fade in + scale out from center */
@@ -109,8 +152,8 @@
 }
 
 .landing-nav-mark {
-  width: 52px;
-  height: 52px;
+  width: 88px;
+  height: 88px;
   filter: brightness(0) invert(1);
   opacity: 0.92;
 }

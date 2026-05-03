@@ -1,6 +1,19 @@
 import { useState } from 'react';
+import mapboxgl from 'mapbox-gl';
+import ListingDetailModal from './ListingDetailModal';
 
 const BED_FILTERS = ['All', '1', '2', '3+'];
+
+// Build a thumbnail URL: prefer real RentCast photo, fall back to a Mapbox
+// satellite oblique aerial of the listing's exact lat/lng. Every card shows
+// imagery true to its actual address.
+function thumbUrl(listing) {
+  if (listing.image) return listing.image;
+  if (!listing.lat || !listing.lng || !mapboxgl.accessToken) return null;
+  const lng = listing.lng.toFixed(5);
+  const lat = listing.lat.toFixed(5);
+  return `https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/${lng},${lat},17.6,-15,55/720x220@2x?access_token=${mapboxgl.accessToken}&attribution=false&logo=false`;
+}
 
 function buildTourEmail({ listing, form }) {
   const name = form?.jobTitle ? `a ${form.jobTitle}` : 'a prospective tenant';
@@ -70,6 +83,7 @@ function TourModal({ listing, form, onClose }) {
 export default function ListingsPanel({ listings, loading, searchUrls, form, shortlist, onShortlist }) {
   const [bedFilter, setBedFilter] = useState('All');
   const [tourTarget, setTourTarget] = useState(null);
+  const [detailTarget, setDetailTarget] = useState(null);
   const [sortBy, setSortBy] = useState('price');
 
   if (loading) {
@@ -135,11 +149,36 @@ export default function ListingsPanel({ listings, loading, searchUrls, form, sho
           const isShortlisted = shortlist.some(s => s.id === listing.id);
           const overBudget = maxRent && listing.price > maxRent;
 
+          const thumb = thumbUrl(listing);
+
           return (
             <div key={listing.id} className={`listing-card ${overBudget ? 'over-budget' : ''} ${isShortlisted ? 'shortlisted' : ''}`}>
+              {thumb && (
+                <button
+                  className="listing-thumb-btn"
+                  onClick={() => setDetailTarget(listing)}
+                  title="View full details"
+                >
+                  <img
+                    src={thumb}
+                    alt={`${listing.address} aerial`}
+                    className="listing-card-image"
+                    loading="lazy"
+                    onError={(e) => { e.currentTarget.parentElement.style.display = 'none'; }}
+                  />
+                  <span className="listing-card-image-badge">🛰 Live aerial</span>
+                </button>
+              )}
+
               <div className="listing-header">
                 <div>
-                  <div className="listing-address">{listing.address}</div>
+                  <button
+                    className="listing-address listing-address-btn"
+                    onClick={() => setDetailTarget(listing)}
+                    title="View full details"
+                  >
+                    {listing.address}
+                  </button>
                   <div className="listing-meta">{listing.type} · Available {listing.available}</div>
                 </div>
                 <button
@@ -173,17 +212,12 @@ export default function ListingsPanel({ listings, loading, searchUrls, form, sho
               )}
 
               <div className="listing-actions">
-                <button className="listing-action-btn primary" onClick={() => setTourTarget(listing)}>
+                <button className="listing-action-btn primary" onClick={() => setDetailTarget(listing)}>
+                  🏠 View Details
+                </button>
+                <button className="listing-action-btn" onClick={() => setTourTarget(listing)}>
                   📅 Request Tour
                 </button>
-                <a
-                  href={listing.listingUrl || listing.urls?.zillow || searchUrls?.zillow || '#'}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="listing-action-btn"
-                >
-                  🔗 View Listing
-                </a>
               </div>
             </div>
           );
@@ -192,6 +226,17 @@ export default function ListingsPanel({ listings, loading, searchUrls, form, sho
 
       {tourTarget && (
         <TourModal listing={tourTarget} form={form} onClose={() => setTourTarget(null)} />
+      )}
+
+      {detailTarget && (
+        <ListingDetailModal
+          listing={detailTarget}
+          form={form}
+          isShortlisted={shortlist.some(s => s.id === detailTarget.id)}
+          onShortlist={onShortlist}
+          onRequestTour={(l) => { setDetailTarget(null); setTourTarget(l); }}
+          onClose={() => setDetailTarget(null)}
+        />
       )}
     </>
   );

@@ -121,11 +121,11 @@ export default function App() {
 
         {/* Left Sidebar Wrapper */}
         <div className={`sidebar-wrapper ${leftPinned ? 'pinned' : ''}`}>
+          <div className="sidebar-sphere-bg" />
           <div className="sidebar-edge-tab" onClick={() => setLeftPinned(true)}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
           </div>
           <aside className="sidebar">
-            <button className="sidebar-close-btn" onClick={() => setLeftPinned(false)} title="Hide sidebar">✕</button>
             <div className="sidebar-brand">
               <img
                 src="/settlr-mark.svg"
@@ -176,7 +176,7 @@ export default function App() {
 
       {/* Right-side detail panel Wrapper */}
       {selectedNeighborhood && activePanelTab && (
-        <div className={`n-panel-wrapper ${rightPinned ? 'pinned' : ''}`}>
+        <div className={`n-panel-wrapper ${rightPinned ? 'pinned' : ''} ${activePanelTab === 'listings' ? 'wide' : ''}`}>
           <div className="n-panel-edge-tab" onClick={() => setRightPinned(true)}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
           </div>
