@@ -160,82 +160,25 @@
   100% { opacity: 0; transform: scale(1.08) translateY(-6px); }
 }
 
-/* ── Nav bar ─────────────────────────────────────────────────── */
-.landing-nav {
+/* ── Brand logo ─────────────────────────────────────────────────
+   Positioned to match the dashboard sidebar logo exactly so the
+   image doesn't shift when the user clicks "Try Settlr" and the
+   landing dismisses into the dashboard.
+   Sidebar: .sidebar padding 64px 16px 18px + .sidebar-brand
+   padding 8px 0 0  →  logo origin at left:16px top:72px. */
+.landing-brand-logo {
   position: absolute;
-  top: 0; left: 0; right: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 32px;
+  top: 72px;
+  left: 16px;
   z-index: 10;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.9s ease;
 }
 
-.landing-nav.lp-in {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* brand */
-.landing-nav-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.landing-nav-mark {
-  /* same sizing as the dashboard sidebar logo */
-  width: auto;
-  height: auto;
-  max-height: 72px;
-  max-width: 200px;
-  object-fit: contain;
-  display: block;
-  /* keep native colors — orange house + white wordmark */
+.landing-brand-logo.lp-in {
   opacity: 1;
 }
-
-/* right-side links */
-.landing-nav-links {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-}
-
-.landing-nav-ghost {
-  background: transparent;
-  border: none;
-  color: rgba(244, 241, 232, 0.85);
-  font-family: 'Montserrat', 'Helvetica Neue', system-ui, sans-serif;
-  font-size: 1.05rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  cursor: pointer;
-  padding: 6px 4px;
-  transition: color 0.2s ease;
-}
-
-.landing-nav-ghost:hover { color: #f4f1e8; }
-
-.landing-nav-cta {
-  background: rgba(244, 241, 232, 0.92);
-  border: 1px solid transparent;
-  color: #060814;
-  font-family: 'Montserrat', 'Helvetica Neue', system-ui, sans-serif;
-  font-size: 1.05rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  padding: 12px 28px;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: background 0.2s ease, opacity 0.2s ease;
-}
-
-.landing-nav-cta:hover { background: #ffffff; }
 
 /* ── Hero CTA (center-bottom of globe) ───────────────────────── */
 .landing-cta-wrap {

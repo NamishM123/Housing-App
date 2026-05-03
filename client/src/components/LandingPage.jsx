@@ -376,11 +376,12 @@ export default function LandingPage({ onComplete }) {
         </div>
       )}
 
-      <nav className={`landing-nav ${navIn ? 'lp-in' : ''}`}>
-        <div className="landing-nav-brand">
-          <img src="/settlr-mark.svg" alt="Settlr" className="sidebar-logo-full" />
-        </div>
-      </nav>
+      <img
+        src="/settlr-mark.svg"
+        alt="Settlr"
+        className={`sidebar-logo-full landing-brand-logo ${navIn ? 'lp-in' : ''}`}
+        draggable={false}
+      />
 
       <div className={`landing-cta-wrap ${navIn ? 'lp-in' : ''}`}>
         <GlowCard
