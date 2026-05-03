@@ -211,7 +211,6 @@ export default function OnboardingForm({ onSubmit, loading }) {
 
         {(situation === 'partner' || situation === 'family') && (
           <div className="form-group nested">
-            <label>Your partner's income</label>
             <div className="input-prefix">
               <span>$</span>
               <input

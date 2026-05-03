@@ -162,18 +162,19 @@ body {
 }
 
 /* Always-visible reopen pull-tab on the left edge of the screen.
-   Lives outside `.sidebar-wrapper` so `overflow: hidden` cannot clip it. */
+   Lives outside `.sidebar-wrapper` so `overflow: hidden` cannot clip it.
+   Sized to match `.nbr-bar-edge-tab` (30px thickness × 120px length, swapped axes). */
 .sidebar-reopen-tab {
   position: fixed;
   left: 0;
   top: 50%;
   transform: translateY(-50%);
-  width: 26px;
-  height: 72px;
+  width: 30px;
+  height: 120px;
   background: rgba(8, 12, 24, 0.92);
   border: 1px solid #1e293b;
   border-left: none;
-  border-radius: 0 10px 10px 0;
+  border-radius: 0 12px 12px 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -183,12 +184,28 @@ body {
   z-index: 250;
   padding: 0;
   box-shadow: 2px 0 12px rgba(0, 0, 0, 0.45);
-  transition: background 0.2s, color 0.2s, width 0.2s;
+  transition: background 0.2s, color 0.2s, width 0.2s, box-shadow 0.25s;
+  animation: reopen-tab-pulse-side 2.6s ease-in-out infinite;
 }
 .sidebar-reopen-tab:hover {
   background: rgba(91, 140, 247, 0.22);
   color: #fff;
-  width: 32px;
+  width: 36px;
+  animation-play-state: paused;
+  box-shadow: 2px 0 18px rgba(0, 0, 0, 0.55), 0 0 22px 6px rgba(91, 140, 247, 0.45);
+}
+
+@keyframes reopen-tab-pulse-side {
+  0%, 100% {
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.45),
+                0 0 0 0 rgba(91, 140, 247, 0);
+    border-color: #1e293b;
+  }
+  50% {
+    box-shadow: 2px 0 16px rgba(0, 0, 0, 0.55),
+                4px 0 22px 4px rgba(91, 140, 247, 0.38);
+    border-color: rgba(91, 140, 247, 0.55);
+  }
 }
 
 .sidebar-close-btn {
@@ -1022,29 +1039,54 @@ input.error {
 }
 .nbr-bar-wrapper > * { pointer-events: auto; }
 
+/* Reopen pull-tab on the bottom edge of the screen.
+   Mirrors `.sidebar-reopen-tab` (30px thickness × 120px length, swapped axes)
+   so both reopen tabs read as the same component in different orientations. */
 .nbr-bar-edge-tab {
   position: absolute;
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 60px;
-  height: 24px;
-  background: rgba(8, 12, 24, 0.85);
+  width: 120px;
+  height: 30px;
+  background: rgba(8, 12, 24, 0.92);
   border: 1px solid #1e293b;
   border-bottom: none;
-  border-radius: 8px 8px 0 0;
+  border-radius: 12px 12px 0 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #94a3b8;
+  color: #cbd5e1;
   cursor: pointer;
   backdrop-filter: blur(10px);
   opacity: 1;
-  transition: opacity 0.3s;
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.45);
+  transition: opacity 0.3s, background 0.2s, color 0.2s, height 0.2s, box-shadow 0.25s;
+  animation: reopen-tab-pulse-bottom 2.6s ease-in-out infinite;
+}
+.nbr-bar-edge-tab:hover {
+  background: rgba(91, 140, 247, 0.22);
+  color: #fff;
+  height: 36px;
+  animation-play-state: paused;
+  box-shadow: 0 -2px 18px rgba(0, 0, 0, 0.55), 0 -6px 22px rgba(91, 140, 247, 0.45);
 }
 .nbr-bar-wrapper.pinned .nbr-bar-edge-tab {
   opacity: 0;
   pointer-events: none;
+}
+
+@keyframes reopen-tab-pulse-bottom {
+  0%, 100% {
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.45),
+                0 0 0 0 rgba(91, 140, 247, 0);
+    border-color: #1e293b;
+  }
+  50% {
+    box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.55),
+                0 -4px 22px 4px rgba(91, 140, 247, 0.38);
+    border-color: rgba(91, 140, 247, 0.55);
+  }
 }
 
 .nbr-bar {
