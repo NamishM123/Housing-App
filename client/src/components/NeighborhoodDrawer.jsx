@@ -57,96 +57,101 @@ export default function NeighborhoodDrawer({
 
   return (
     <div className="nbr-bar nbr-bar-glow" ref={barRef}>
-      {/* Name + quick stats */}
-      <div className="nbr-header">
-        <button
-          className="nbr-nav-btn nbr-nav-btn-side"
-          onClick={onPrev}
-          aria-label="Previous city"
-          title="Previous city"
-        >
-          <ChevronLeft className="nbr-nav-icon" />
-        </button>
-        <div className="nbr-info">
-          <h2 className="nbr-name">{neighborhood.name}</h2>
-          <div className="nbr-quick-stats">
-            {neighborhood.noiseLevel && (
-              <span className={`nbr-quick-badge ${noiseCls}`}>{neighborhood.noiseLevel} noise</span>
-            )}
-            {neighborhood.noiseLevel && neighborhood.parkingDifficulty && (
-              <span className="nbr-sep">|</span>
-            )}
-            {neighborhood.parkingDifficulty && (
-              <span className={`nbr-quick-badge ${parkingCls}`}>{neighborhood.parkingDifficulty} parking</span>
-            )}
+      {/* Navigation buttons flanking the content */}
+      <button
+        className="nbr-nav-btn nbr-nav-btn-edge nbr-nav-btn-left"
+        onClick={onPrev}
+        aria-label="Previous city"
+        title="Previous city"
+      >
+        <ChevronLeft className="nbr-nav-icon" />
+      </button>
+
+      <div className="nbr-content">
+        {/* Name + quick stats */}
+        <div className="nbr-header">
+          <div className="nbr-info">
+            <h2 className="nbr-name">{neighborhood.name}</h2>
+            <div className="nbr-quick-stats">
+              {neighborhood.noiseLevel && (
+                <span className={`nbr-quick-badge ${noiseCls}`}>{neighborhood.noiseLevel} noise</span>
+              )}
+              {neighborhood.noiseLevel && neighborhood.parkingDifficulty && (
+                <span className="nbr-sep">|</span>
+              )}
+              {neighborhood.parkingDifficulty && (
+                <span className={`nbr-quick-badge ${parkingCls}`}>{neighborhood.parkingDifficulty} parking</span>
+              )}
+            </div>
           </div>
         </div>
-        <button
-          className="nbr-nav-btn nbr-nav-btn-side"
-          onClick={onNext}
-          aria-label="Next city"
-          title="Next city"
-        >
-          <ChevronRight className="nbr-nav-icon" />
-        </button>
-      </div>
 
-      {/* DockMorph tile row */}
-      <div className="nbr-dock-row">
-        <div className="nbr-dock-pill">
-          {TILES.map(({ id, Icon, label }, i) => {
-            const isActive  = activeTile === id;
-            const showBubble = hovered === i || isActive;
-            return (
-              <div
-                key={id}
-                className="nbr-dock-item"
-                onMouseEnter={() => setHovered(i)}
-                onMouseLeave={() => setHovered(null)}
-              >
-                {/* Morphic glass bubble — appears on hover OR when active */}
-                <AnimatePresence>
-                  {showBubble && (
-                    <motion.div
-                      className="nbr-dock-bubble"
-                      initial={{ scale: 0.6, opacity: 0 }}
-                      animate={{ scale: 1.4, opacity: 1 }}
-                      exit={{ scale: 0.6, opacity: 0 }}
-                      transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-                    />
-                  )}
-                </AnimatePresence>
-
-                {/* Tooltip — shown on hover only */}
-                <AnimatePresence>
-                  {hovered === i && (
-                    <motion.div
-                      className="nbr-dock-tooltip"
-                      initial={{ opacity: 0, y: 4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 4 }}
-                      transition={{ duration: 0.12 }}
-                    >
-                      {label}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Icon-only button (DockMorph style) */}
-                <motion.button
-                  className={`nbr-dock-btn${isActive ? ' active' : ''}`}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => onTileClick(id)}
-                  aria-label={label}
+        {/* DockMorph tile row */}
+        <div className="nbr-dock-row">
+          <div className="nbr-dock-pill">
+            {TILES.map(({ id, Icon, label }, i) => {
+              const isActive  = activeTile === id;
+              const showBubble = hovered === i || isActive;
+              return (
+                <div
+                  key={id}
+                  className="nbr-dock-item"
+                  onMouseEnter={() => setHovered(i)}
+                  onMouseLeave={() => setHovered(null)}
                 >
-                  <Icon className="nbr-dock-icon-svg" />
-                </motion.button>
-              </div>
-            );
-          })}
+                  {/* Morphic glass bubble — appears on hover OR when active */}
+                  <AnimatePresence>
+                    {showBubble && (
+                      <motion.div
+                        className="nbr-dock-bubble"
+                        initial={{ scale: 0.6, opacity: 0 }}
+                        animate={{ scale: 1.4, opacity: 1 }}
+                        exit={{ scale: 0.6, opacity: 0 }}
+                        transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+                      />
+                    )}
+                  </AnimatePresence>
+
+                  {/* Tooltip — shown on hover only */}
+                  <AnimatePresence>
+                    {hovered === i && (
+                      <motion.div
+                        className="nbr-dock-tooltip"
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 4 }}
+                        transition={{ duration: 0.12 }}
+                      >
+                        {label}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Icon-only button (DockMorph style) */}
+                  <motion.button
+                    className={`nbr-dock-btn${isActive ? ' active' : ''}`}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => onTileClick(id)}
+                    aria-label={label}
+                  >
+                    <Icon className="nbr-dock-icon-svg" />
+                  </motion.button>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
+
+      <button
+        className="nbr-nav-btn nbr-nav-btn-edge nbr-nav-btn-right"
+        onClick={onNext}
+        aria-label="Next city"
+        title="Next city"
+      >
+        <ChevronRight className="nbr-nav-icon" />
+      </button>
     </div>
   );
 }
