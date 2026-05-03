@@ -69,7 +69,7 @@ export default function SatellitePreview({ listing, onClose }) {
         <div className="preview-meta">
           <span><strong>${listing.price?.toLocaleString()}/mo</strong></span>
           <span className="stat-sep">·</span>
-          <span>{listing.beds} bd · {listing.baths} ba</span>
+          <span>{listing.beds} bedroom{listing.beds === 1 ? '' : 's'} · {listing.baths} bathroom{listing.baths === 1 ? '' : 's'}</span>
           {listing.sqft && (<><span className="stat-sep">·</span><span>{listing.sqft.toLocaleString()} sqft</span></>)}
         </div>
 

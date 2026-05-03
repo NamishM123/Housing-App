@@ -936,33 +936,73 @@ input.error {
 }
 
 /* ── Bottom tile bar ──────────────────────────────── */
-/* Invisible hover zone at the bottom edge — replaces the visible reopen tab.
-   Centered on the dock's footprint so hovering map widgets in the corners
-   doesn't trigger the dock. */
-.nbr-bar-hover-zone {
-  position: fixed;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 600px;
-  max-width: 80vw;
-  height: 24px;
-  z-index: 89;
-  pointer-events: auto;
-  background: transparent;
-}
-
 .nbr-bar-wrapper {
   position: fixed;
   bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  z-index: 90;
+  pointer-events: none; /* let clicks fall through to the map by default */
+}
+.nbr-bar-wrapper > * { pointer-events: auto; }
+
+/* Reopen pull-tab on the bottom edge of the screen.
+   Mirrors `.sidebar-reopen-tab` (30px thickness × 120px length, swapped axes)
+   so both reopen tabs read as the same component in different orientations. */
+.nbr-bar-edge-tab {
+  position: absolute;
+  bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 90;
-  pointer-events: auto;
+  width: 120px;
+  height: 30px;
+  background: rgba(8, 12, 24, 0.92);
+  border: 1px solid #1e293b;
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #cbd5e1;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  opacity: 1;
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.45);
+  transition: opacity 0.3s, background 0.2s, color 0.2s, height 0.2s, box-shadow 0.25s;
+  animation: reopen-tab-pulse-bottom 2.6s ease-in-out infinite;
+}
+.nbr-bar-edge-tab:hover {
+  background: rgba(91, 140, 247, 0.22);
+  color: #fff;
+  height: 36px;
+  animation-play-state: paused;
+  box-shadow: 0 -2px 18px rgba(0, 0, 0, 0.55), 0 -6px 22px rgba(91, 140, 247, 0.45);
+}
+.nbr-bar-wrapper.pinned .nbr-bar-edge-tab {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@keyframes reopen-tab-pulse-bottom {
+  0%, 100% {
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.45),
+                0 0 0 0 rgba(91, 140, 247, 0);
+    border-color: #1e293b;
+  }
+  50% {
+    box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.55),
+                0 -4px 22px 4px rgba(91, 140, 247, 0.38);
+    border-color: rgba(91, 140, 247, 0.55);
+  }
 }
 
 .nbr-bar {
-  position: relative;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
   width: auto;
   min-width: 480px;
   background: rgba(8, 12, 24, 0.97);
@@ -972,6 +1012,9 @@ input.error {
   backdrop-filter: blur(20px);
   transition: border-color 0.25s ease;
   isolation: isolate;
+}
+.nbr-bar-wrapper:not(.pinned) .nbr-bar {
+  display: none;
 }
 
 /* Spotlight glow on the drawer — same effect as <GlowCard>, scoped here so

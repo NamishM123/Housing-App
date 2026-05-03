@@ -133,7 +133,7 @@ export default function ListingsPanel({ listings, loading, searchUrls, form, sho
         <div className="bed-filters">
           {BED_FILTERS.map(f => (
             <button key={f} className={`bed-btn ${bedFilter === f ? 'active' : ''}`} onClick={() => setBedFilter(f)}>
-              {f === 'All' ? 'All' : `${f} BR`}
+              {f === 'All' ? 'All' : `${f} Bedroom${f === '1' ? '' : 's'}`}
             </button>
           ))}
         </div>
@@ -213,9 +213,9 @@ export default function ListingsPanel({ listings, loading, searchUrls, form, sho
               </div>
 
               <div className="listing-stats">
-                <span>{listing.beds} bd</span>
+                <span>{listing.beds} bedroom{listing.beds === 1 ? '' : 's'}</span>
                 <span className="stat-sep">·</span>
-                <span>{listing.baths} ba</span>
+                <span>{listing.baths} bathroom{listing.baths === 1 ? '' : 's'}</span>
                 {listing.sqft && <><span className="stat-sep">·</span><span>{listing.sqft?.toLocaleString()} sqft</span></>}
                 {listing.petFriendly && <><span className="stat-sep">·</span><span className="pet-tag">🐾 Pets OK</span></>}
               </div>
