@@ -185,8 +185,11 @@ export default function MapView({
       }
 
       // ── Heatmap-style glow circle — covers full area at low zoom, fades on zoom-in ──
+      // Gated on monthlyIncome > 0 so the map is clean until the user
+      // submits the "Show me what fits" form.
+      const heatmapVisible = monthlyIncome > 0;
       const glowOpacityBase = vibeMatch ? (isSelected ? 0.82 : 0.52) : 0.06;
-      const glowOpacityZoom = [
+      const glowOpacityZoom = !heatmapVisible ? 0 : [
         'interpolate', ['linear'], ['zoom'],
         9, glowOpacityBase,   // full opacity when zoomed out
         12, glowOpacityBase,   // start fading
@@ -230,7 +233,7 @@ export default function MapView({
 
       // ── Transparent fill — invisible but captures click/hover events ──
       // Keep a minimal opacity so the polygon boundary is interactable
-      const fillOpacity = vibeMatch ? 0.04 : 0.01;
+      const fillOpacity = !heatmapVisible ? 0.01 : (vibeMatch ? 0.04 : 0.01);
       if (map.current.getLayer(fillId)) {
         map.current.setPaintProperty(fillId, 'fill-opacity', fillOpacity);
       } else {
