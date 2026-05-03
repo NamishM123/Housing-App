@@ -3,6 +3,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { NEIGHBORHOODS, getAffordabilityColor, getAffordabilityLabel, getHeatmapColor, matchesVibe } from '../data/neighborhoods';
 import SatellitePreview from './SatellitePreview';
+import { GlowCard } from './GlowCard';
 
 function buildMarkerEl(listing, isShortlisted) {
   const el = document.createElement('div');
@@ -573,7 +574,10 @@ export default function MapView({
       <div ref={mapContainer} className="map-container" />
 
       {/* Affordability legend — bottom RIGHT */}
-      <div className="map-legend">
+      <GlowCard
+        className="map-legend"
+        style={{ position: 'absolute', bottom: 24, right: 16, zIndex: 5, padding: '10px 12px' }}
+      >
         <div className="legend-title">Affordability</div>
         {LEGEND.map(({ color, label }) => (
           <div key={label} className="legend-item">
@@ -582,7 +586,7 @@ export default function MapView({
           </div>
         ))}
         {vibe && vibe !== 'any' && <div className="legend-filter">Vibe: <strong>{vibe}</strong></div>}
-      </div>
+      </GlowCard>
 
       {/* Directions floating panel — bottom LEFT */}
       <div className={`route-panel ${routeOpen ? 'open' : ''}`}>

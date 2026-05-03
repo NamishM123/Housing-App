@@ -731,15 +731,7 @@ input.error {
 }
 
 .map-legend {
-  position: absolute;
-  bottom: 24px;
-  right: 16px;
-  background: rgba(15, 23, 42, 0.88);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius);
-  padding: 10px 12px;
-  backdrop-filter: blur(10px);
-  z-index: 5;
+  /* layout handled by GlowCard inline styles */
 }
 
 .legend-title {
