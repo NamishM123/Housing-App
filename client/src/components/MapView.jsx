@@ -119,6 +119,15 @@ export default function MapView({
           },
         });
 
+        // Globe atmosphere — transparent light blue rim (not the default white)
+        map.current.setFog({
+          color:            'rgba(140, 185, 245, 0.35)', // light blue, semi-transparent
+          'high-color':     'rgba(50, 100, 200, 0.25)',  // dimmer upper atmosphere
+          'horizon-blend':  0.04,                       // tight rim, not bloomy
+          'space-color':    'rgb(2, 6, 18)',             // matches landing-page space
+          'star-intensity': 0,
+        });
+
         setMapLoaded(true);
       });
 
