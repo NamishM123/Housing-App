@@ -103,18 +103,20 @@
   display: block;
 }
 
-/* Wordmark.  SVG viewBox is 145 75 1055 658.  Letter baseline is at y=612
-   (in SVG units); the bottom 121 units = 18.4% of total height is empty
-   whitespace below the letters.  With align-items:baseline the img's
-   intrinsic baseline = its bottom edge, so we translate it DOWN by exactly
-   that 18.4% — putting the Settlr letter baseline on the text baseline. */
+/* Wordmark.  SVG viewBox 145 75 1055 658.  The "Settlr" letter cap-height
+   is 224 SVG units = ~34% of total SVG height.  Montserrat cap-height is
+   ~70% of font-size.  To match "Welcome to" letter cap-height, the SVG
+   must be ~2.06x the font-size (5vw font → 10.3vw SVG, 4.4rem max font →
+   9.06rem SVG would match — we use 10rem max for a touch more presence).
+   The translateY pushes the SVG down by its 18.4% sub-baseline whitespace
+   so the Settlr letter baseline sits on the "Welcome to" baseline. */
 .landing-wordmark-img {
-  height: clamp(3rem, 7vw, 9rem);
+  height: clamp(4.5rem, 11vw, 10rem);
   width: auto;
   display: block;
   user-select: none;
   pointer-events: none;
-  transform: translateY(clamp(0.55rem, 1.29vw, 1.66rem));
+  transform: translateY(clamp(0.83rem, 2.02vw, 1.84rem));
 }
 
 /* fade in + scale out from center */
