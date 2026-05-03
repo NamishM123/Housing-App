@@ -176,7 +176,7 @@ export default function App() {
 
       {/* Right-side detail panel Wrapper */}
       {selectedNeighborhood && activePanelTab && (
-        <div className={`n-panel-wrapper ${rightPinned ? 'pinned' : ''}`}>
+        <div className={`n-panel-wrapper ${rightPinned ? 'pinned' : ''} ${activePanelTab === 'listings' ? 'wide' : ''}`}>
           <div className="n-panel-edge-tab" onClick={() => setRightPinned(true)}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
           </div>
