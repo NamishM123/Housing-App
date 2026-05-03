@@ -113,9 +113,9 @@ export default function MapView({
           paint: {
             'sky-type': 'atmosphere',
             'sky-atmosphere-sun': [0.0, 80.0],
-            'sky-atmosphere-sun-intensity': 12,
-            'sky-atmosphere-color': 'rgba(135, 206, 235, 1.0)',
-            'sky-atmosphere-halo-color': 'rgba(255, 255, 255, 0.5)',
+            'sky-atmosphere-sun-intensity': 6,
+            'sky-atmosphere-color': 'rgba(8, 20, 60, 1.0)',
+            'sky-atmosphere-halo-color': 'rgba(60, 120, 230, 0.20)',
           },
         });
 
