@@ -4130,28 +4130,31 @@ input.error {
 .map-container .mapboxgl-ctrl-group {
   position: relative;
   isolation: isolate;
-  background: linear-gradient(180deg, #2f7bff 0%, #1d4ed8 100%);
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(17, 25, 39, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 14px;
   box-shadow:
-    0 8px 24px rgba(37, 99, 235, 0.38),
-    0 1px 0 rgba(255, 255, 255, 0.22) inset;
+    0 1px 3px rgba(0, 0, 0, 0.35),
+    0 4px 20px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.025);
   overflow: hidden;
   --glow-x: 50%;
   --glow-y: 50%;
   --glow-active: 0;
 }
 
-/* Inner soft spotlight on the surface */
+/* Inner soft spotlight on the surface (matches GlowCard, hue 210) */
 .map-container .mapboxgl-ctrl-group::before {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
   background: radial-gradient(
-    160px 160px at var(--glow-x) var(--glow-y),
-    rgba(255, 255, 255, 0.55),
-    rgba(255, 255, 255, 0.14) 35%,
+    180px 180px at var(--glow-x) var(--glow-y),
+    hsla(210, 95%, 70%, 0.22),
+    hsla(210, 95%, 70%, 0.08) 35%,
     transparent 70%
   );
   opacity: var(--glow-active);
@@ -4169,8 +4172,8 @@ input.error {
   padding: 2px;
   background: radial-gradient(
     180px 180px at var(--glow-x) var(--glow-y),
-    rgba(255, 255, 255, 1),
-    rgba(190, 220, 255, 0.65) 30%,
+    hsla(210, 100%, 75%, 1),
+    hsla(210, 100%, 70%, 0.5) 30%,
     transparent 70%
   );
   -webkit-mask:
@@ -4184,7 +4187,7 @@ input.error {
   opacity: var(--glow-active);
   transition: opacity 0.35s ease;
   pointer-events: none;
-  filter: brightness(1.2);
+  filter: brightness(1.15);
   z-index: 1;
 }
 
@@ -4193,7 +4196,7 @@ input.error {
   z-index: 2;
   background-color: transparent;
   border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.20);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
   width: 32px;
   height: 32px;
   transition: background-color 0.18s ease;
@@ -4204,11 +4207,11 @@ input.error {
 }
 
 .map-container .mapboxgl-ctrl-group button:hover {
-  background-color: rgba(255, 255, 255, 0.14);
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .map-container .mapboxgl-ctrl-group button:active {
-  background-color: rgba(255, 255, 255, 0.24);
+  background-color: rgba(255, 255, 255, 0.09);
 }
 
 .map-container .mapboxgl-ctrl-group button:focus {
