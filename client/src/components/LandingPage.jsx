@@ -24,7 +24,7 @@ const T_TEXT_OUT  = 650;
 const T_EARTH_NAV = 1200;   // nav fades in 1.2s after globe appears (was 3.6s)
 
 // Mapbox globe animation
-const GLOBE_ZOOM     = 3.7;
+const GLOBE_ZOOM     = 1.8;
 const GLOBE_LAT      = 25;        // constant lat — no tilt during sweep
 const GLOBE_START    = [120, GLOBE_LAT];  // Indonesia
 const GLOBE_END_LNG  = 265;       // 265°E = -95°W (going east through Pacific)
