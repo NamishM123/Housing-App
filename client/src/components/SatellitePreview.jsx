@@ -2,15 +2,15 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 
 const HEADINGS = [
-  { id: 'n', label: 'N',  bearing: 0   },
-  { id: 'e', label: 'E',  bearing: 90  },
-  { id: 's', label: 'S',  bearing: 180 },
-  { id: 'w', label: 'W',  bearing: 270 },
+  { id: 'n', label: 'N', bearing: 0 },
+  { id: 'e', label: 'E', bearing: 90 },
+  { id: 's', label: 'S', bearing: 180 },
+  { id: 'w', label: 'W', bearing: 270 },
 ];
 
 // Newer Mapbox v3 "Standard Satellite" style — sharper imagery, realistic 3D
 // landmarks/lighting. Falls back to satellite-streets-v12 if it errors.
-const STYLE_PRIMARY  = 'mapbox://styles/mapbox/standard-satellite';
+const STYLE_PRIMARY = 'mapbox://styles/mapbox/standard-satellite';
 const STYLE_FALLBACK = 'mapbox://styles/mapbox/satellite-streets-v12';
 
 const GOOGLE_EMBED_KEY = import.meta.env.VITE_GOOGLE_MAPS_EMBED_KEY || '';
@@ -205,16 +205,16 @@ export default function SatellitePreview({ listing, onClose }) {
       const pitchStep = 6;    // deg
 
       switch (e.key) {
-        case 'ArrowUp':    case 'w': case 'W': map.panBy([0, -panStep]); break;
-        case 'ArrowDown':  case 's': case 'S': map.panBy([0,  panStep]); break;
-        case 'ArrowLeft':  case 'a': case 'A': map.panBy([-panStep, 0]); break;
-        case 'ArrowRight': case 'd': case 'D': map.panBy([ panStep, 0]); break;
+        case 'ArrowUp': case 'w': case 'W': map.panBy([0, -panStep]); break;
+        case 'ArrowDown': case 's': case 'S': map.panBy([0, panStep]); break;
+        case 'ArrowLeft': case 'a': case 'A': map.panBy([-panStep, 0]); break;
+        case 'ArrowRight': case 'd': case 'D': map.panBy([panStep, 0]); break;
         case '+': case '=': map.zoomTo(map.getZoom() + zoomStep, { duration: 200 }); break;
         case '-': case '_': map.zoomTo(map.getZoom() - zoomStep, { duration: 200 }); break;
         case 'q': case 'Q': map.easeTo({ bearing: map.getBearing() - rotateStep, duration: 200 }); setAutoRotate(false); break;
         case 'e': case 'E': map.easeTo({ bearing: map.getBearing() + rotateStep, duration: 200 }); setAutoRotate(false); break;
         case 'r': case 'R': map.easeTo({ pitch: Math.min(85, map.getPitch() + pitchStep), duration: 200 }); break;
-        case 'f': case 'F': map.easeTo({ pitch: Math.max(0,  map.getPitch() - pitchStep), duration: 200 }); break;
+        case 'f': case 'F': map.easeTo({ pitch: Math.max(0, map.getPitch() - pitchStep), duration: 200 }); break;
         default: handled = false;
       }
       if (handled) e.preventDefault();
@@ -336,26 +336,13 @@ export default function SatellitePreview({ listing, onClose }) {
           <div className={`preview-view-pane ${view === 'street' ? '' : 'hidden'}`}>
             {!hasCoords ? (
               <div className="preview-fallback">No coordinates available for this listing.</div>
-            ) : streetEmbedUrl ? (
-              <iframe
-                title="Google Street View"
-                className="preview-streetview-iframe"
-                src={streetEmbedUrl}
-                loading="lazy"
-                allowFullScreen
-                referrerPolicy="no-referrer-when-downgrade"
-              />
-            ) : (
+            ) : !GOOGLE_EMBED_KEY ? (
               <div className="preview-fallback streetview-setup">
-                <div>
-                  <strong>Embedded Street View needs a Google Maps Embed API key.</strong>
-                  <p className="muted small" style={{ marginTop: 8 }}>
-                    Set <code>VITE_GOOGLE_MAPS_EMBED_KEY</code> in your client env (and Vercel),
-                    then redeploy. The Embed API is free with no usage cap.
-                  </p>
-                  <p className="muted small" style={{ marginTop: 4 }}>
-                    Get a key at <code>console.cloud.google.com</code> → enable
-                    <em> Maps Embed API</em>.
+                <div style={{ textAlign: 'center', maxWidth: 400, margin: '0 auto' }}>
+                  <div style={{ fontSize: 48, marginBottom: 16 }}>🚶</div>
+                  <strong style={{ fontSize: 16 }}>Street View Available</strong>
+                  <p className="muted small" style={{ marginTop: 12, lineHeight: 1.5 }}>
+                    Click below to view this location in Google Street View
                   </p>
                 </div>
                 {streetViewUrl && (
@@ -364,11 +351,24 @@ export default function SatellitePreview({ listing, onClose }) {
                     href={streetViewUrl}
                     target="_blank"
                     rel="noreferrer"
+                    style={{ marginTop: 24, padding: '12px 24px', fontSize: 14, fontWeight: 700 }}
                   >
-                    🚶 Open in Google Street View
+                    🚶 Open Google Street View →
                   </a>
                 )}
+                <p className="muted small" style={{ marginTop: 24, fontSize: 11, color: '#64748b' }}>
+                  To embed Street View here, add <code>VITE_GOOGLE_MAPS_EMBED_KEY</code> to your .env file
+                </p>
               </div>
+            ) : (
+              <iframe
+                title="Google Street View"
+                className="preview-streetview-iframe"
+                src={streetEmbedUrl}
+                loading="lazy"
+                allowFullScreen
+                referrerPolicy="no-referrer-when-downgrade"
+              />
             )}
           </div>
         </div>
