@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 const TILES = [
   { id: 'listings',  icon: '🏠', label: 'Listings' },
   { id: 'costs',     icon: '💰', label: 'Costs' },
@@ -11,6 +13,8 @@ const NOISE_CLASS  = { quiet: 'badge-green', moderate: 'badge-amber', loud: 'bad
 const PARK_CLASS   = { easy: 'badge-green',  moderate: 'badge-amber', hard: 'badge-red' };
 
 export default function NeighborhoodDrawer({ open, neighborhood, onClose, onTileClick, activeTile }) {
+  const [hovered, setHovered] = useState(null);
+
   if (!open || !neighborhood) return null;
 
   const noiseCls   = NOISE_CLASS[neighborhood.noiseLevel]       || 'badge-muted';
@@ -43,17 +47,25 @@ export default function NeighborhoodDrawer({ open, neighborhood, onClose, onTile
         <button className="nbr-close-btn" onClick={onClose} aria-label="Close">✕</button>
       </div>
 
-      {/* Tile row */}
-      <div className="nbr-tiles">
-        {TILES.map(tile => (
-          <button
+      {/* Tile row — DockMorph style */}
+      <div className="nbr-dock">
+        {TILES.map((tile, i) => (
+          <div
             key={tile.id}
-            className={`nbr-tile ${activeTile === tile.id ? 'active' : ''}`}
-            onClick={() => onTileClick(tile.id)}
+            className="nbr-dock-item-wrap"
+            onMouseEnter={() => setHovered(i)}
+            onMouseLeave={() => setHovered(null)}
           >
-            <span className="nbr-tile-icon">{tile.icon}</span>
-            <span className="nbr-tile-label">{tile.label}</span>
-          </button>
+            {hovered === i && <span className="nbr-dock-bubble" />}
+            <button
+              className={`nbr-dock-btn ${activeTile === tile.id ? 'active' : ''}`}
+              onClick={() => onTileClick(tile.id)}
+              title={tile.label}
+            >
+              <span className="nbr-dock-icon">{tile.icon}</span>
+              <span className="nbr-dock-label">{tile.label}</span>
+            </button>
+          </div>
         ))}
       </div>
     </div>
