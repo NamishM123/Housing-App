@@ -43,6 +43,7 @@ const LEGEND = [
 
 const ROUTE_AMENITIES = [
   { id: 'grocery', label: 'Grocery', name: "Trader Joe's SLO", lng: -120.6681, lat: 35.2792 },
+  { id: 'store', label: 'Store', name: 'SLO Target', lng: -120.6720, lat: 35.2810 },
   { id: 'hospital', label: 'Hospital', name: 'Sierra Vista Regional', lng: -120.6700, lat: 35.2683 },
   { id: 'gym', label: 'Gym', name: 'Planet Fitness SLO', lng: -120.6640, lat: 35.2831 },
   { id: 'beach', label: 'Beach', name: 'Avila Beach', lng: -120.7295, lat: 35.1793 },
