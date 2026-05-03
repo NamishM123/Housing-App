@@ -24,7 +24,7 @@ const T_TEXT_OUT  = 650;
 const T_EARTH_NAV = 1200;   // nav fades in 1.2s after globe appears (was 3.6s)
 
 // Mapbox globe animation
-const GLOBE_ZOOM     = 2.2;
+const GLOBE_ZOOM     = 3.0;
 const GLOBE_LAT      = 25;        // constant lat — no tilt during sweep
 const GLOBE_START    = [120, GLOBE_LAT];  // Indonesia
 const GLOBE_END_LNG  = 265;       // 265°E = -95°W (going east through Pacific)
@@ -78,6 +78,17 @@ function MapboxGlobe({ active }) {
         'space-color':    'rgb(2, 6, 18)',
         'star-intensity': 0,
       });
+
+      // High-detail terrain so mountains/relief are visible on the globe
+      if (!map.getSource('mapbox-dem')) {
+        map.addSource('mapbox-dem', {
+          type: 'raster-dem',
+          url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+          tileSize: 512,
+          maxzoom: 14,
+        });
+        map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 });
+      }
 
       // Hide labels AND admin/border line layers (no country names or outlines)
       map.getStyle().layers.forEach(layer => {
