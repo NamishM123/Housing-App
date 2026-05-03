@@ -11,7 +11,7 @@ export default function IncomeInput({ value, onChange, error }) {
 
   return (
     <div className="form-group income-input">
-      <label className="q-label">What's your annual income?</label>
+      <label className="q-label">What's Your Annual Income?</label>
       <div className="input-prefix">
         <span>$</span>
         <input
@@ -30,10 +30,10 @@ export default function IncomeInput({ value, onChange, error }) {
 
 export function validateIncome(value) {
   if (value == null || value === '' || Number.isNaN(Number(value))) {
-    return 'Annual income is required';
+    return 'Annual Income Is Required';
   }
   const n = Number(value);
-  if (n < MIN) return `Minimum income is $${MIN.toLocaleString()}`;
-  if (n > MAX) return `Maximum income is $${MAX.toLocaleString()}`;
+  if (n < MIN) return `Minimum Income Is $${MIN.toLocaleString()}`;
+  if (n > MAX) return `Maximum Income Is $${MAX.toLocaleString()}`;
   return null;
 }

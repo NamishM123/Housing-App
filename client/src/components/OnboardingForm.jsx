@@ -15,10 +15,10 @@ const SITUATIONS = [
 ];
 
 const TOLERANCE = [
-  { id: 'walk', label: 'Walk or bike', sub: 'under 10 min' },
-  { id: 'short', label: 'Short drive', sub: '10–20 min' },
-  { id: 'long', label: "Don't mind a drive", sub: '20–35 min' },
-  { id: 'remote', label: 'Remote', sub: 'I work from home' },
+  { id: 'walk', label: 'Walk Or Bike', sub: 'Under 10 Min' },
+  { id: 'short', label: 'Short Drive', sub: '10–20 Min' },
+  { id: 'long', label: "Don't Mind A Drive", sub: '20–35 Min' },
+  { id: 'remote', label: 'Remote', sub: 'I Work From Home' },
 ];
 
 const ROOMMATE_OPTS = [1, 2, 3];
@@ -26,9 +26,9 @@ const ROOMMATE_OPTS = [1, 2, 3];
 const fmt = (n) => `$${Math.round(n).toLocaleString()}`;
 
 const workLabel = (situation) => {
-  if (situation === 'partner' || situation === 'family') return 'Where do you both need to be most days?';
-  if (situation === 'roommates') return 'Where does everyone need to be most days?';
-  return 'Where do you need to be most days?';
+  if (situation === 'partner' || situation === 'family') return 'Where Do You Both Need To Be Most Days?';
+  if (situation === 'roommates') return 'Where Does Everyone Need To Be Most Days?';
+  return 'Where Do You Need To Be Most Days?';
 };
 
 export default function OnboardingForm({ onSubmit, loading }) {
@@ -75,13 +75,13 @@ export default function OnboardingForm({ onSubmit, loading }) {
     const incomeErr = validateIncome(annualIncome);
     if (incomeErr) e.annualIncome = incomeErr;
     if (rentPct !== '' && Number(rentPct) < 25) {
-      e.rentPct = 'Set at least 25% — anything lower won\'t cover rent in most markets.';
+      e.rentPct = 'Set At Least 25% — Anything Lower Won\'t Cover Rent In Most Markets.';
     }
     if (situation === 'partner' && partnerIncome != null && partnerIncome !== '' && Number(partnerIncome) < 0) {
-      e.partnerIncome = "Can't be negative";
+      e.partnerIncome = "Can't Be Negative";
     }
     if (!isRemoteOnly && !primaryWork) {
-      e.primaryWork = 'Pick a workplace or "I work remote"';
+      e.primaryWork = 'Pick A Workplace Or "I Work Remote"';
     }
     return e;
   };
@@ -147,8 +147,8 @@ export default function OnboardingForm({ onSubmit, loading }) {
 
       {/* Q2 — Rent allocation % */}
       <GlowCard className="q-section" radius={22}>
-        <label className="q-label">How much of your income feels comfortable for rent?</label>
-        <span className="hint">Most people land between 25–35%.</span>
+        <label className="q-label">How Much Of Your Income Feels Comfortable For Rent?</label>
+        <span className="hint">Most People Land Between 25–35%.</span>
         <div className="rent-pct-input">
           <input
             type="number"
@@ -174,15 +174,15 @@ export default function OnboardingForm({ onSubmit, loading }) {
         {combinedAnnual > 0 && (
           <div className="rent-estimate-box">
             <div className="rent-estimate-row">
-              <span>Est. monthly rent budget</span>
-              <strong>{fmt(maxRent)}/mo</strong>
+              <span>Est. Monthly Rent Budget</span>
+              <strong>{fmt(maxRent)}/Mo</strong>
             </div>
             <div className="rent-estimate-row">
-              <span>Est. annual housing cost</span>
-              <strong>{fmt(annualHousingEst)}/yr</strong>
+              <span>Est. Annual Housing Cost</span>
+              <strong>{fmt(annualHousingEst)}/Yr</strong>
             </div>
             {strategyPct > 0.40 && (
-              <span className="rent-warn">⚠️ Over 40% is considered cost-burdened</span>
+              <span className="rent-warn">⚠️ Over 40% Is Considered Cost-Burdened</span>
             )}
           </div>
         )}
@@ -190,7 +190,7 @@ export default function OnboardingForm({ onSubmit, loading }) {
 
       {/* Q3 — Living situation */}
       <GlowCard className="q-section" radius={22}>
-        <label className="q-label">Who's moving with you?</label>
+        <label className="q-label">Who's Moving With You?</label>
         <div className="situation-grid">
           {SITUATIONS.map(s => (
             <button
@@ -225,7 +225,7 @@ export default function OnboardingForm({ onSubmit, loading }) {
 
         {situation === 'family' && (
           <div className="form-group nested">
-            <label>How many kids?</label>
+            <label>How Many Kids?</label>
             <div className="seg-row-h">
               {[1, 2, 3].map(n => (
                 <button
@@ -244,7 +244,7 @@ export default function OnboardingForm({ onSubmit, loading }) {
         {situation === 'roommates' && (
           <>
             <div className="form-group nested">
-              <label>How many roommates?</label>
+              <label>How Many Roommates?</label>
               <div className="seg-row-h">
                 {ROOMMATE_OPTS.map(n => (
                   <button
@@ -260,7 +260,7 @@ export default function OnboardingForm({ onSubmit, loading }) {
             </div>
             {Array.from({ length: roommateCount }).map((_, i) => (
               <div className="form-group nested" key={i}>
-                <label>Roommate {i + 1}'s income</label>
+                <label>Roommate {i + 1}'s Income</label>
                 <div className="input-prefix">
                   <span>$</span>
                   <input
@@ -281,7 +281,7 @@ export default function OnboardingForm({ onSubmit, loading }) {
 
         {showCombined && (
           <div className="combined-display">
-            Combined household: ~{fmt(combinedMonthly)}/mo gross
+            Combined Household: ~{fmt(combinedMonthly)}/Mo Gross
           </div>
         )}
       </GlowCard>
@@ -299,7 +299,7 @@ export default function OnboardingForm({ onSubmit, loading }) {
 
           {(situation === 'partner' || situation === 'family') && (
             <WorkLocationField
-              label="And your partner?"
+              label="And Your Partner?"
               value={partnerWork}
               onChange={setPartnerWork}
             />
@@ -309,7 +309,7 @@ export default function OnboardingForm({ onSubmit, loading }) {
             Array.from({ length: roommateCount }).map((_, i) => (
               <WorkLocationField
                 key={i}
-                label={`And roommate ${i + 1}?`}
+                label={`And Roommate ${i + 1}?`}
                 value={roommateWorks[i] || null}
                 onChange={(v) => setRoommateWorks(s => ({ ...s, [i]: v }))}
               />
@@ -319,7 +319,7 @@ export default function OnboardingForm({ onSubmit, loading }) {
 
       {/* Q5 — Commute tolerance */}
       <GlowCard className="q-section" radius={22}>
-        <label className="q-label">What's your commute limit?</label>
+        <label className="q-label">What's Your Commute Limit?</label>
         <div className="seg-stack">
           {TOLERANCE.map(t => (
             <button
@@ -336,7 +336,7 @@ export default function OnboardingForm({ onSubmit, loading }) {
       </GlowCard>
 
       <button type="submit" className="submit-btn" disabled={loading}>
-        {loading ? 'Crunching the map for you…' : 'Find My Dream Home'}
+        {loading ? 'Crunching The Map For You…' : 'Find My Dream Home'}
       </button>
     </form>
   );

@@ -7,7 +7,7 @@ const PRESETS = [
   { id: 'tech-park',    label: 'Airport',          lat: 35.2374, lng: -120.6418 },
   { id: 'french',       label: 'Adventist Health', lat: 35.2604, lng: -120.6469 },
   { id: 'cuesta',       label: 'Cuesta College',   lat: 35.3018, lng: -120.7372 },
-  { id: 'remote',       label: 'I work remote',    remote: true },
+  { id: 'remote',       label: 'I Work Remote',    remote: true },
 ];
 
 export default function WorkLocationField({ label, value, onChange }) {
@@ -65,7 +65,7 @@ export default function WorkLocationField({ label, value, onChange }) {
       <label>{label}</label>
       <input
         type="text"
-        placeholder="Type an address…"
+        placeholder="Type An Address…"
         value={query}
         onChange={(e) => {
           setQuery(e.target.value);
