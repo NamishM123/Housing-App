@@ -8,10 +8,10 @@ const MIN_RENT_PCT = 5;
 const MAX_RENT_PCT = 80;
 
 const SITUATIONS = [
-  { id: 'solo', label: 'Solo', sub: 'Just me' },
-  { id: 'partner', label: 'Partner', sub: 'Me and my person' },
-  { id: 'roommates', label: 'Roommates', sub: 'Splitting rent' },
-  { id: 'family', label: 'Family', sub: 'Kids in the mix' },
+  { id: 'solo', label: 'Solo' },
+  { id: 'partner', label: 'Partner' },
+  { id: 'roommates', label: 'Roommates' },
+  { id: 'family', label: 'Family' },
 ];
 
 const TOLERANCE = [
@@ -204,7 +204,6 @@ export default function OnboardingForm({ onSubmit, loading }) {
               onClick={() => setSituation(s.id)}
             >
               <span className="situation-label">{s.label}</span>
-              <span className="situation-sub">{s.sub}</span>
             </button>
           ))}
         </div>

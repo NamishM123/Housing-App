@@ -235,6 +235,16 @@ export default function App() {
               <SidebarStars />
             </Canvas>
           </div>
+          <button
+            className="sidebar-back-btn"
+            onClick={() => setShowLanding(true)}
+            aria-label="Back to landing"
+            title="Back"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 18l-6-6 6-6"/>
+            </svg>
+          </button>
           <aside className="sidebar">
             <div className="sidebar-brand">
               <img

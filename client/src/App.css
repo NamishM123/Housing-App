@@ -195,6 +195,33 @@ body {
   box-shadow: 2px 0 18px rgba(0, 0, 0, 0.55), 0 0 22px 6px rgba(91, 140, 247, 0.45);
 }
 
+/* Back arrow at top-right of the sidebar — sits in the wrapper (fixed)
+   so it stays anchored regardless of how far the form is scrolled. */
+.sidebar-back-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
+  background: rgba(8, 12, 24, 0.62);
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  color: #cbd5e1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  backdrop-filter: blur(10px);
+  transition: background 0.18s, border-color 0.18s, color 0.18s;
+  padding: 0;
+}
+.sidebar-back-btn:hover {
+  background: rgba(91, 140, 247, 0.20);
+  border-color: rgba(91, 140, 247, 0.55);
+  color: #ffffff;
+}
+
 @keyframes reopen-tab-pulse-side {
   0%, 100% {
     box-shadow: 2px 0 12px rgba(0, 0, 0, 0.45),
