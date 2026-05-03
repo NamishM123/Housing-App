@@ -17,7 +17,7 @@ mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
 const LEGEND = [
   { color: '#22c55e', label: 'Comfortable  <28%' },
-  { color: '#14b8a6', label: 'Manageable  28–35%' },
+  { color: '#3b82f6', label: 'Manageable  28–35%' },
   { color: '#f59e0b', label: 'Tight  35–45%' },
   { color: '#ef4444', label: 'Out of range / Over budget' },
 ];
@@ -119,10 +119,10 @@ export default function MapView({
 
         // Globe atmosphere — soft medium-blue rim
         map.current.setFog({
-          color:            'rgba(120, 165, 220, 0.32)', // medium blue
-          'high-color':     'rgba(60, 110, 190, 0.22)',  // darker upper atmosphere
-          'horizon-blend':  0.04,
-          'space-color':    'rgb(2, 6, 18)',
+          color: 'rgba(120, 165, 220, 0.32)', // medium blue
+          'high-color': 'rgba(60, 110, 190, 0.22)',  // darker upper atmosphere
+          'horizon-blend': 0.04,
+          'space-color': 'rgb(2, 6, 18)',
           'star-intensity': 0,
         });
 

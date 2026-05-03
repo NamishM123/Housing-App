@@ -310,7 +310,7 @@ export function getAffordabilityColor(rent, monthlyIncome, maxRent = null) {
   if (maxRent && rent > maxRent) return '#ef4444';
   const pct = rent / monthlyIncome;
   if (pct < 0.28) return '#22c55e';
-  if (pct < 0.35) return '#14b8a6';
+  if (pct < 0.35) return '#3b82f6';
   if (pct < 0.45) return '#f59e0b';
   return '#ef4444';
 }
