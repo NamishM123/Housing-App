@@ -313,19 +313,9 @@ export default function SatellitePreview({ listing, onClose }) {
           {listing.sqft && (<><span className="stat-sep">·</span><span>{listing.sqft.toLocaleString()} sqft</span></>)}
         </div>
 
-        {view === 'aerial' ? (
-          <div className="preview-hint-row">
-            <span className="kbd-hint"><kbd>WASD</kbd>/<kbd>↑↓←→</kbd> pan</span>
-            <span className="kbd-hint"><kbd>Q</kbd>/<kbd>E</kbd> rotate</span>
-            <span className="kbd-hint"><kbd>R</kbd>/<kbd>F</kbd> tilt</span>
-            <span className="kbd-hint"><kbd>+</kbd>/<kbd>-</kbd> zoom</span>
-            <span className="kbd-hint kbd-muted">drag · scroll · right-drag to tilt</span>
-          </div>
-        ) : (
-          <div className="preview-hint-row">
-            <span className="kbd-hint kbd-muted">Drag to look around · click arrows on the road to walk down the street</span>
-          </div>
-        )}
+        <div className="preview-hint-row">
+          <span className="kbd-hint kbd-muted">Drag to look around · click arrows on the road to walk down the street</span>
+        </div>
       </div>
     </div>
   );
